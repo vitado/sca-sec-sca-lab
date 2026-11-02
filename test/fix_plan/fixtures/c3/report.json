@@ -1,0 +1,236 @@
+{
+ "repo": "epam/ai-dial-chat",
+ "run_id": "41489368703",
+ "run_url": "https://github.com/vitado/ai-dial-chat/actions/runs/41489368703",
+ "schema_version": 4,
+ "targets": [
+  {
+   "commit_sha": "94ec8f21fa06eb63069ecaa157a417c923051502",
+   "id": "source-1.1.19",
+   "image": null,
+   "image_digest": null,
+   "kind": "fs",
+   "os": null,
+   "packages_scanned": 2038,
+   "reason": null,
+   "ref": "1.1.19",
+   "scanner": "trivy",
+   "status": "ok"
+  },
+  {
+   "commit_sha": null,
+   "id": "ai-dial-chat-1.1.19",
+   "image": "epam/ai-dial-chat",
+   "image_digest": "ghcr.io/epam/ai-dial-chat@sha256:92f1f058e1ca4f879ce674476b831470a403ffbac799174cc6d867ea0f286d80",
+   "kind": "image",
+   "os": {
+    "eosl": false,
+    "family": "alpine",
+    "name": "3.24.3"
+   },
+   "packages_scanned": 304,
+   "reason": null,
+   "ref": "1.1.19",
+   "scanner": "trivy",
+   "status": "ok"
+  },
+  {
+   "commit_sha": null,
+   "id": "ai-dial-chat-mcp-app-sandbox-1.1.19",
+   "image": "epam/ai-dial-chat-mcp-app-sandbox",
+   "image_digest": null,
+   "kind": "image",
+   "os": null,
+   "packages_scanned": null,
+   "reason": "release 1.1.19 not published for this image",
+   "ref": "1.1.19",
+   "scanner": "trivy",
+   "status": "not_applicable"
+  },
+  {
+   "commit_sha": null,
+   "id": "ai-dial-chat-bff-1.1.19",
+   "image": "epam/ai-dial-chat-bff",
+   "image_digest": null,
+   "kind": "image",
+   "os": null,
+   "packages_scanned": null,
+   "reason": "release 1.1.19 not published for this image",
+   "ref": "1.1.19",
+   "scanner": "trivy",
+   "status": "not_applicable"
+  },
+  {
+   "commit_sha": "94ec8f21fa06eb63069ecaa157a417c923051502",
+   "id": "source-1.1.19",
+   "image": null,
+   "image_digest": null,
+   "kind": "fs",
+   "packages_scanned": 2037,
+   "reason": null,
+   "ref": "1.1.19",
+   "scanner": "osv",
+   "status": "ok"
+  },
+  {
+   "commit_sha": null,
+   "id": "ai-dial-chat-1.1.19",
+   "image": "epam/ai-dial-chat",
+   "image_digest": null,
+   "kind": "image",
+   "packages_scanned": 296,
+   "reason": null,
+   "ref": "1.1.19",
+   "scanner": "osv",
+   "status": "ok"
+  },
+  {
+   "commit_sha": null,
+   "id": "ai-dial-chat-mcp-app-sandbox-1.1.19",
+   "image": "epam/ai-dial-chat-mcp-app-sandbox",
+   "image_digest": null,
+   "kind": "image",
+   "packages_scanned": null,
+   "reason": "trivy target not_applicable",
+   "ref": "1.1.19",
+   "scanner": "osv",
+   "status": "not_applicable"
+  },
+  {
+   "commit_sha": null,
+   "id": "ai-dial-chat-bff-1.1.19",
+   "image": "epam/ai-dial-chat-bff",
+   "image_digest": null,
+   "kind": "image",
+   "packages_scanned": null,
+   "reason": "trivy target not_applicable",
+   "ref": "1.1.19",
+   "scanner": "osv",
+   "status": "not_applicable"
+  }
+ ],
+ "versions": [
+  {
+   "counts": {
+    "all": 4,
+    "c": 0,
+    "fixable": 3,
+    "h": 0,
+    "l": 1,
+    "m": 3,
+    "unknown": 0
+   },
+   "kind": "release",
+   "latest": true,
+   "packages": [
+    {
+     "class": "lang",
+     "installed": [
+      "2.0.12"
+     ],
+     "pkg": "@hono/node-server",
+     "where": [
+      "source-1.1.19"
+     ]
+    },
+    {
+     "class": "lang",
+     "installed": [
+      "10.5.0",
+      "13.0.6",
+      "14.0.3",
+      "7.2.3"
+     ],
+     "pkg": "glob",
+     "where": [
+      "ai-dial-chat-1.1.19",
+      "source-1.1.19"
+     ]
+    }
+   ],
+   "ref": "1.1.19",
+   "status": "ok",
+   "targets": [
+    "ai-dial-chat-1.1.19",
+    "ai-dial-chat-bff-1.1.19",
+    "ai-dial-chat-mcp-app-sandbox-1.1.19",
+    "source-1.1.19"
+   ],
+   "vulns": [
+    {
+     "accepted": null,
+     "aliases": [],
+     "class": "lang",
+     "cvss": {
+      "score": 5.3,
+      "source": "ghsa",
+      "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N"
+     },
+     "dev": false,
+     "ecosystem": "npm",
+     "fixed": "2.1.3",
+     "id": "CVE-2026-118663",
+     "installed": [
+      "2.0.12"
+     ],
+     "locations": [
+      "package-lock.json"
+     ],
+     "modified": "2026-10-29",
+     "names": [
+      "CVE-2026-118663",
+      "GHSA-rmxm-3fg6-px4f"
+     ],
+     "pkg": "@hono/node-server",
+     "published": "2026-10-28",
+     "relationship": "indirect",
+     "severity": "MEDIUM",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "source-1.1.19"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [],
+     "class": "lang",
+     "cvss": {
+      "score": 5.3,
+      "source": "redhat",
+      "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:L"
+     },
+     "dev": true,
+     "ecosystem": "npm",
+     "fixed": "14.0.2",
+     "id": "CVE-2026-118773",
+     "installed": [
+      "10.5.0",
+      "13.0.6"
+     ],
+     "locations": [
+      "package-lock.json"
+     ],
+     "modified": "2026-10-30",
+     "names": [
+      "CVE-2026-118773",
+      "GHSA-3g3m-2fjr-6pw4"
+     ],
+     "pkg": "glob",
+     "published": "2026-10-29",
+     "relationship": "indirect",
+     "severity": "MEDIUM",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "source-1.1.19"
+     ]
+    }
+   ]
+  }
+ ]
+}

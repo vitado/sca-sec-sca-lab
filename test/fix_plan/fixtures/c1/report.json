@@ -1,0 +1,193 @@
+{
+ "repo": "epam/ai-dial-chat",
+ "run_id": "41489354215",
+ "run_url": "https://github.com/vitado/ai-dial-chat/actions/runs/41489354215",
+ "schema_version": 4,
+ "targets": [
+  {
+   "commit_sha": "ef2f2649a97ad9312180fd72e5bb4a76ca8f405b",
+   "id": "source-1.2.18",
+   "image": null,
+   "image_digest": null,
+   "kind": "fs",
+   "os": null,
+   "packages_scanned": 2000,
+   "reason": null,
+   "ref": "1.2.18",
+   "scanner": "trivy",
+   "status": "ok"
+  },
+  {
+   "commit_sha": null,
+   "id": "ai-dial-chat-1.2.18",
+   "image": "epam/ai-dial-chat",
+   "image_digest": "ghcr.io/epam/ai-dial-chat@sha256:61c98850650bf6a2c031042ba9e08b3e2894cd320381b2f4cf2ee66d143795f8",
+   "kind": "image",
+   "os": {
+    "eosl": false,
+    "family": "alpine",
+    "name": "3.24.2"
+   },
+   "packages_scanned": 322,
+   "reason": null,
+   "ref": "1.2.18",
+   "scanner": "trivy",
+   "status": "ok"
+  },
+  {
+   "commit_sha": null,
+   "id": "ai-dial-chat-mcp-app-sandbox-1.2.18",
+   "image": "epam/ai-dial-chat-mcp-app-sandbox",
+   "image_digest": "ghcr.io/epam/ai-dial-chat-mcp-app-sandbox@sha256:f8c58b79b7a17ddada77122b36b1cd76c9d9a746fa0c38f839df91ff30369adf",
+   "kind": "image",
+   "os": {
+    "eosl": false,
+    "family": "alpine",
+    "name": "3.24.2"
+   },
+   "packages_scanned": 128,
+   "reason": null,
+   "ref": "1.2.18",
+   "scanner": "trivy",
+   "status": "ok"
+  },
+  {
+   "commit_sha": null,
+   "id": "ai-dial-chat-bff-1.2.18",
+   "image": "epam/ai-dial-chat-bff",
+   "image_digest": "ghcr.io/epam/ai-dial-chat-bff@sha256:5f4c22edef45b3511160fd413c3244115481c47a58a5fe97f92bf86b3ae7d1d0",
+   "kind": "image",
+   "os": {
+    "eosl": false,
+    "family": "alpine",
+    "name": "3.24.2"
+   },
+   "packages_scanned": 322,
+   "reason": null,
+   "ref": "1.2.18",
+   "scanner": "trivy",
+   "status": "ok"
+  },
+  {
+   "commit_sha": "ef2f2649a97ad9312180fd72e5bb4a76ca8f405b",
+   "id": "source-1.2.18",
+   "image": null,
+   "image_digest": null,
+   "kind": "fs",
+   "packages_scanned": 1999,
+   "reason": null,
+   "ref": "1.2.18",
+   "scanner": "osv",
+   "status": "ok"
+  },
+  {
+   "commit_sha": null,
+   "id": "ai-dial-chat-1.2.18",
+   "image": "epam/ai-dial-chat",
+   "image_digest": null,
+   "kind": "image",
+   "packages_scanned": 315,
+   "reason": null,
+   "ref": "1.2.18",
+   "scanner": "osv",
+   "status": "ok"
+  },
+  {
+   "commit_sha": null,
+   "id": "ai-dial-chat-mcp-app-sandbox-1.2.18",
+   "image": "epam/ai-dial-chat-mcp-app-sandbox",
+   "image_digest": null,
+   "kind": "image",
+   "packages_scanned": 121,
+   "reason": null,
+   "ref": "1.2.18",
+   "scanner": "osv",
+   "status": "ok"
+  },
+  {
+   "commit_sha": null,
+   "id": "ai-dial-chat-bff-1.2.18",
+   "image": "epam/ai-dial-chat-bff",
+   "image_digest": null,
+   "kind": "image",
+   "packages_scanned": 315,
+   "reason": null,
+   "ref": "1.2.18",
+   "scanner": "osv",
+   "status": "ok"
+  }
+ ],
+ "versions": [
+  {
+   "counts": {
+    "all": 7,
+    "c": 0,
+    "fixable": 6,
+    "h": 1,
+    "l": 1,
+    "m": 3,
+    "unknown": 2
+   },
+   "kind": "release",
+   "latest": true,
+   "packages": [
+    {
+     "class": "lang",
+     "installed": [
+      "2.0.12"
+     ],
+     "pkg": "@hono/node-server",
+     "where": [
+      "source-1.2.18"
+     ]
+    }
+   ],
+   "ref": "1.2.18",
+   "status": "ok",
+   "targets": [
+    "ai-dial-chat-1.2.18",
+    "ai-dial-chat-bff-1.2.18",
+    "ai-dial-chat-mcp-app-sandbox-1.2.18",
+    "source-1.2.18"
+   ],
+   "vulns": [
+    {
+     "accepted": null,
+     "aliases": [],
+     "class": "lang",
+     "cvss": {
+      "score": 5.3,
+      "source": "ghsa",
+      "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N"
+     },
+     "dev": false,
+     "ecosystem": "npm",
+     "fixed": "2.1.3",
+     "id": "CVE-2026-118663",
+     "installed": [
+      "2.0.12"
+     ],
+     "locations": [
+      "package-lock.json"
+     ],
+     "modified": "2026-10-29",
+     "names": [
+      "CVE-2026-118663",
+      "GHSA-rmxm-3fg6-px4f"
+     ],
+     "pkg": "@hono/node-server",
+     "published": "2026-10-28",
+     "relationship": "indirect",
+     "severity": "MEDIUM",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "source-1.2.18"
+     ]
+    }
+   ]
+  }
+ ]
+}

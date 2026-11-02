@@ -1,0 +1,807 @@
+{
+ "repo": "epam/ai-dial-admin-deployment-manager-backend",
+ "run_id": "41489408260",
+ "run_url": "https://github.com/vitado/ai-dial-admin-deployment-manager-backend/actions/runs/41489408260",
+ "schema_version": 4,
+ "targets": [
+  {
+   "commit_sha": "4857b4ab1e095500c53471fd0a38bc79b56f71dd",
+   "id": "source-0.20.0-rc.0",
+   "image": null,
+   "image_digest": null,
+   "kind": "fs",
+   "os": null,
+   "packages_scanned": 446,
+   "reason": null,
+   "ref": "0.20.0-rc.0",
+   "scanner": "trivy",
+   "status": "ok"
+  },
+  {
+   "commit_sha": null,
+   "id": "ai-dial-admin-deployment-manager-backend-0.20.0-rc.0",
+   "image": "epam/ai-dial-admin-deployment-manager-backend",
+   "image_digest": "ghcr.io/epam/ai-dial-admin-deployment-manager-backend@sha256:219f10526d8222d92d4f9dfc26c6a90377d9470ccee2a443f685be47fbc948fb",
+   "kind": "image",
+   "os": {
+    "eosl": false,
+    "family": "alpine",
+    "name": "3.24.1"
+   },
+   "packages_scanned": 352,
+   "reason": null,
+   "ref": "0.20.0-rc.0",
+   "scanner": "trivy",
+   "status": "ok"
+  },
+  {
+   "commit_sha": "4857b4ab1e095500c53471fd0a38bc79b56f71dd",
+   "id": "source-0.20.0-rc.0",
+   "image": null,
+   "image_digest": null,
+   "kind": "fs",
+   "packages_scanned": 446,
+   "reason": null,
+   "ref": "0.20.0-rc.0",
+   "scanner": "osv",
+   "status": "ok"
+  },
+  {
+   "commit_sha": null,
+   "id": "ai-dial-admin-deployment-manager-backend-0.20.0-rc.0",
+   "image": "epam/ai-dial-admin-deployment-manager-backend",
+   "image_digest": null,
+   "kind": "image",
+   "packages_scanned": 461,
+   "reason": null,
+   "ref": "0.20.0-rc.0",
+   "scanner": "osv",
+   "status": "ok"
+  }
+ ],
+ "versions": [
+  {
+   "counts": {
+    "all": 67,
+    "c": 8,
+    "fixable": 67,
+    "h": 18,
+    "l": 12,
+    "m": 24,
+    "unknown": 5
+   },
+   "kind": "candidate",
+   "latest": false,
+   "packages": [
+    {
+     "class": "os",
+     "installed": [
+      "3.5.7-r0"
+     ],
+     "pkg": "libcrypto3",
+     "where": [
+      "ai-dial-admin-deployment-manager-backend-0.20.0-rc.0"
+     ]
+    },
+    {
+     "class": "os",
+     "installed": [
+      "3.5.7-r0"
+     ],
+     "pkg": "libssl3",
+     "where": [
+      "ai-dial-admin-deployment-manager-backend-0.20.0-rc.0"
+     ]
+    }
+   ],
+   "ref": "0.20.0-rc.0",
+   "status": "ok",
+   "targets": [
+    "ai-dial-admin-deployment-manager-backend-0.20.0-rc.0",
+    "source-0.20.0-rc.0"
+   ],
+   "vulns": [
+    {
+     "accepted": null,
+     "aliases": [
+      "ALPINE-CVE-2026-14456"
+     ],
+     "class": "os",
+     "cvss": {
+      "score": 7.5,
+      "source": "redhat",
+      "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+     },
+     "dev": false,
+     "ecosystem": "Alpine:v3.24",
+     "fixed": "3.5.8-r0",
+     "id": "CVE-2026-14456",
+     "installed": [
+      "3.5.7-r0"
+     ],
+     "locations": [],
+     "modified": "2026-10-01",
+     "names": [
+      "CVE-2026-14456"
+     ],
+     "pkg": "libcrypto3",
+     "published": "2026-08-13",
+     "relationship": null,
+     "severity": "HIGH",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-admin-deployment-manager-backend-0.20.0-rc.0"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [
+      "ALPINE-CVE-2026-14457"
+     ],
+     "class": "os",
+     "cvss": {
+      "score": 7.5,
+      "source": "redhat",
+      "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+     },
+     "dev": false,
+     "ecosystem": "Alpine:v3.24",
+     "fixed": "3.5.8-r0",
+     "id": "CVE-2026-14457",
+     "installed": [
+      "3.5.7-r0"
+     ],
+     "locations": [],
+     "modified": "2026-10-01",
+     "names": [
+      "CVE-2026-14457"
+     ],
+     "pkg": "libcrypto3",
+     "published": "2026-08-25",
+     "relationship": null,
+     "severity": "LOW",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-admin-deployment-manager-backend-0.20.0-rc.0"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [
+      "ALPINE-CVE-2026-18798"
+     ],
+     "class": "os",
+     "cvss": {
+      "score": 7.5,
+      "source": "redhat",
+      "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+     },
+     "dev": false,
+     "ecosystem": "Alpine:v3.24",
+     "fixed": "3.5.8-r0",
+     "id": "CVE-2026-18798",
+     "installed": [
+      "3.5.7-r0"
+     ],
+     "locations": [],
+     "modified": "2026-10-01",
+     "names": [
+      "CVE-2026-18798"
+     ],
+     "pkg": "libcrypto3",
+     "published": "2026-08-25",
+     "relationship": null,
+     "severity": "MEDIUM",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-admin-deployment-manager-backend-0.20.0-rc.0"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [
+      "ALPINE-CVE-2026-54874"
+     ],
+     "class": "os",
+     "cvss": {
+      "score": 7.5,
+      "source": "redhat",
+      "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+     },
+     "dev": false,
+     "ecosystem": "Alpine:v3.24",
+     "fixed": "3.5.8-r0",
+     "id": "CVE-2026-54874",
+     "installed": [
+      "3.5.7-r0"
+     ],
+     "locations": [],
+     "modified": "2026-10-01",
+     "names": [
+      "CVE-2026-54874"
+     ],
+     "pkg": "libcrypto3",
+     "published": "2026-08-25",
+     "relationship": null,
+     "severity": "LOW",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-admin-deployment-manager-backend-0.20.0-rc.0"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [
+      "ALPINE-CVE-2026-63072"
+     ],
+     "class": "os",
+     "cvss": {
+      "score": 7.5,
+      "source": "redhat",
+      "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+     },
+     "dev": false,
+     "ecosystem": "Alpine:v3.24",
+     "fixed": "3.5.8-r0, 3.3.7-r1",
+     "id": "CVE-2026-63072",
+     "installed": [
+      "3.5.7-r0"
+     ],
+     "locations": [],
+     "modified": "2026-10-01",
+     "names": [
+      "CVE-2026-63072"
+     ],
+     "pkg": "libcrypto3",
+     "published": "2026-08-25",
+     "relationship": null,
+     "severity": "MEDIUM",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-admin-deployment-manager-backend-0.20.0-rc.0"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [
+      "ALPINE-CVE-2026-63073"
+     ],
+     "class": "os",
+     "cvss": {
+      "score": 5.9,
+      "source": "redhat",
+      "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:N/A:H"
+     },
+     "dev": false,
+     "ecosystem": "Alpine:v3.24",
+     "fixed": "3.5.8-r0, 3.3.7-r1",
+     "id": "CVE-2026-63073",
+     "installed": [
+      "3.5.7-r0"
+     ],
+     "locations": [],
+     "modified": "2026-10-01",
+     "names": [
+      "CVE-2026-63073"
+     ],
+     "pkg": "libcrypto3",
+     "published": "2026-08-25",
+     "relationship": null,
+     "severity": "LOW",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-admin-deployment-manager-backend-0.20.0-rc.0"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [
+      "ALPINE-CVE-2026-63074"
+     ],
+     "class": "os",
+     "cvss": {
+      "score": 7.5,
+      "source": "redhat",
+      "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+     },
+     "dev": false,
+     "ecosystem": "Alpine:v3.24",
+     "fixed": "3.5.8-r0",
+     "id": "CVE-2026-63074",
+     "installed": [
+      "3.5.7-r0"
+     ],
+     "locations": [],
+     "modified": "2026-10-01",
+     "names": [
+      "CVE-2026-63074"
+     ],
+     "pkg": "libcrypto3",
+     "published": "2026-08-25",
+     "relationship": null,
+     "severity": "LOW",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-admin-deployment-manager-backend-0.20.0-rc.0"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [
+      "ALPINE-CVE-2026-63075"
+     ],
+     "class": "os",
+     "cvss": {
+      "score": 7.5,
+      "source": "redhat",
+      "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+     },
+     "dev": false,
+     "ecosystem": "Alpine:v3.24",
+     "fixed": "3.5.8-r0",
+     "id": "CVE-2026-63075",
+     "installed": [
+      "3.5.7-r0"
+     ],
+     "locations": [],
+     "modified": "2026-10-01",
+     "names": [
+      "CVE-2026-63075"
+     ],
+     "pkg": "libcrypto3",
+     "published": "2026-08-25",
+     "relationship": null,
+     "severity": "LOW",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-admin-deployment-manager-backend-0.20.0-rc.0"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [
+      "ALPINE-CVE-2026-63076"
+     ],
+     "class": "os",
+     "cvss": {
+      "score": 7.5,
+      "source": "redhat",
+      "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+     },
+     "dev": false,
+     "ecosystem": "Alpine:v3.24",
+     "fixed": "3.5.8-r0, 3.3.7-r1",
+     "id": "CVE-2026-63076",
+     "installed": [
+      "3.5.7-r0"
+     ],
+     "locations": [],
+     "modified": "2026-10-01",
+     "names": [
+      "CVE-2026-63076"
+     ],
+     "pkg": "libcrypto3",
+     "published": "2026-08-25",
+     "relationship": null,
+     "severity": "MEDIUM",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-admin-deployment-manager-backend-0.20.0-rc.0"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [
+      "ALPINE-CVE-2026-75803"
+     ],
+     "class": "os",
+     "cvss": {
+      "score": 3.7,
+      "source": "redhat",
+      "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N"
+     },
+     "dev": false,
+     "ecosystem": "Alpine:v3.24",
+     "fixed": "3.5.8-r0, 3.3.7-r1",
+     "id": "CVE-2026-75803",
+     "installed": [
+      "3.5.7-r0"
+     ],
+     "locations": [],
+     "modified": "2026-10-01",
+     "names": [
+      "CVE-2026-75803"
+     ],
+     "pkg": "libcrypto3",
+     "published": "2026-08-25",
+     "relationship": null,
+     "severity": "LOW",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-admin-deployment-manager-backend-0.20.0-rc.0"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [
+      "ALPINE-CVE-2026-14456"
+     ],
+     "class": "os",
+     "cvss": {
+      "score": 7.5,
+      "source": "redhat",
+      "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+     },
+     "dev": false,
+     "ecosystem": "Alpine:v3.24",
+     "fixed": "3.5.8-r0",
+     "id": "CVE-2026-14456",
+     "installed": [
+      "3.5.7-r0"
+     ],
+     "locations": [],
+     "modified": "2026-10-01",
+     "names": [
+      "CVE-2026-14456"
+     ],
+     "pkg": "libssl3",
+     "published": "2026-08-13",
+     "relationship": null,
+     "severity": "HIGH",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-admin-deployment-manager-backend-0.20.0-rc.0"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [
+      "ALPINE-CVE-2026-14457"
+     ],
+     "class": "os",
+     "cvss": {
+      "score": 7.5,
+      "source": "redhat",
+      "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+     },
+     "dev": false,
+     "ecosystem": "Alpine:v3.24",
+     "fixed": "3.5.8-r0",
+     "id": "CVE-2026-14457",
+     "installed": [
+      "3.5.7-r0"
+     ],
+     "locations": [],
+     "modified": "2026-10-01",
+     "names": [
+      "CVE-2026-14457"
+     ],
+     "pkg": "libssl3",
+     "published": "2026-08-25",
+     "relationship": null,
+     "severity": "LOW",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-admin-deployment-manager-backend-0.20.0-rc.0"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [
+      "ALPINE-CVE-2026-18798"
+     ],
+     "class": "os",
+     "cvss": {
+      "score": 7.5,
+      "source": "redhat",
+      "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+     },
+     "dev": false,
+     "ecosystem": "Alpine:v3.24",
+     "fixed": "3.5.8-r0",
+     "id": "CVE-2026-18798",
+     "installed": [
+      "3.5.7-r0"
+     ],
+     "locations": [],
+     "modified": "2026-10-01",
+     "names": [
+      "CVE-2026-18798"
+     ],
+     "pkg": "libssl3",
+     "published": "2026-08-25",
+     "relationship": null,
+     "severity": "MEDIUM",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-admin-deployment-manager-backend-0.20.0-rc.0"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [
+      "ALPINE-CVE-2026-54874"
+     ],
+     "class": "os",
+     "cvss": {
+      "score": 7.5,
+      "source": "redhat",
+      "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+     },
+     "dev": false,
+     "ecosystem": "Alpine:v3.24",
+     "fixed": "3.5.8-r0",
+     "id": "CVE-2026-54874",
+     "installed": [
+      "3.5.7-r0"
+     ],
+     "locations": [],
+     "modified": "2026-10-01",
+     "names": [
+      "CVE-2026-54874"
+     ],
+     "pkg": "libssl3",
+     "published": "2026-08-25",
+     "relationship": null,
+     "severity": "LOW",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-admin-deployment-manager-backend-0.20.0-rc.0"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [
+      "ALPINE-CVE-2026-63072"
+     ],
+     "class": "os",
+     "cvss": {
+      "score": 7.5,
+      "source": "redhat",
+      "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+     },
+     "dev": false,
+     "ecosystem": "Alpine:v3.24",
+     "fixed": "3.5.8-r0, 3.3.7-r1",
+     "id": "CVE-2026-63072",
+     "installed": [
+      "3.5.7-r0"
+     ],
+     "locations": [],
+     "modified": "2026-10-01",
+     "names": [
+      "CVE-2026-63072"
+     ],
+     "pkg": "libssl3",
+     "published": "2026-08-25",
+     "relationship": null,
+     "severity": "MEDIUM",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-admin-deployment-manager-backend-0.20.0-rc.0"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [
+      "ALPINE-CVE-2026-63073"
+     ],
+     "class": "os",
+     "cvss": {
+      "score": 5.9,
+      "source": "redhat",
+      "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:N/A:H"
+     },
+     "dev": false,
+     "ecosystem": "Alpine:v3.24",
+     "fixed": "3.5.8-r0, 3.3.7-r1",
+     "id": "CVE-2026-63073",
+     "installed": [
+      "3.5.7-r0"
+     ],
+     "locations": [],
+     "modified": "2026-10-01",
+     "names": [
+      "CVE-2026-63073"
+     ],
+     "pkg": "libssl3",
+     "published": "2026-08-25",
+     "relationship": null,
+     "severity": "LOW",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-admin-deployment-manager-backend-0.20.0-rc.0"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [
+      "ALPINE-CVE-2026-63074"
+     ],
+     "class": "os",
+     "cvss": {
+      "score": 7.5,
+      "source": "redhat",
+      "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+     },
+     "dev": false,
+     "ecosystem": "Alpine:v3.24",
+     "fixed": "3.5.8-r0",
+     "id": "CVE-2026-63074",
+     "installed": [
+      "3.5.7-r0"
+     ],
+     "locations": [],
+     "modified": "2026-10-01",
+     "names": [
+      "CVE-2026-63074"
+     ],
+     "pkg": "libssl3",
+     "published": "2026-08-25",
+     "relationship": null,
+     "severity": "LOW",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-admin-deployment-manager-backend-0.20.0-rc.0"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [
+      "ALPINE-CVE-2026-63075"
+     ],
+     "class": "os",
+     "cvss": {
+      "score": 7.5,
+      "source": "redhat",
+      "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+     },
+     "dev": false,
+     "ecosystem": "Alpine:v3.24",
+     "fixed": "3.5.8-r0",
+     "id": "CVE-2026-63075",
+     "installed": [
+      "3.5.7-r0"
+     ],
+     "locations": [],
+     "modified": "2026-10-01",
+     "names": [
+      "CVE-2026-63075"
+     ],
+     "pkg": "libssl3",
+     "published": "2026-08-25",
+     "relationship": null,
+     "severity": "LOW",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-admin-deployment-manager-backend-0.20.0-rc.0"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [
+      "ALPINE-CVE-2026-63076"
+     ],
+     "class": "os",
+     "cvss": {
+      "score": 7.5,
+      "source": "redhat",
+      "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+     },
+     "dev": false,
+     "ecosystem": "Alpine:v3.24",
+     "fixed": "3.5.8-r0, 3.3.7-r1",
+     "id": "CVE-2026-63076",
+     "installed": [
+      "3.5.7-r0"
+     ],
+     "locations": [],
+     "modified": "2026-10-01",
+     "names": [
+      "CVE-2026-63076"
+     ],
+     "pkg": "libssl3",
+     "published": "2026-08-25",
+     "relationship": null,
+     "severity": "MEDIUM",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-admin-deployment-manager-backend-0.20.0-rc.0"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [
+      "ALPINE-CVE-2026-75803"
+     ],
+     "class": "os",
+     "cvss": {
+      "score": 3.7,
+      "source": "redhat",
+      "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N"
+     },
+     "dev": false,
+     "ecosystem": "Alpine:v3.24",
+     "fixed": "3.5.8-r0, 3.3.7-r1",
+     "id": "CVE-2026-75803",
+     "installed": [
+      "3.5.7-r0"
+     ],
+     "locations": [],
+     "modified": "2026-10-01",
+     "names": [
+      "CVE-2026-75803"
+     ],
+     "pkg": "libssl3",
+     "published": "2026-08-25",
+     "relationship": null,
+     "severity": "LOW",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-admin-deployment-manager-backend-0.20.0-rc.0"
+     ]
+    }
+   ]
+  }
+ ]
+}

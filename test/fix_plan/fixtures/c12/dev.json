@@ -1,0 +1,192 @@
+{
+ "repo": "epam/ai-dial-rag",
+ "run_id": "41491298082",
+ "run_url": "https://github.com/vitado/ai-dial-rag/actions/runs/41491298082",
+ "schema_version": 4,
+ "targets": [
+  {
+   "commit_sha": "82df37abe083c70143264c92d902be2faaa294fd",
+   "id": "source-development",
+   "image": null,
+   "image_digest": null,
+   "kind": "fs",
+   "os": null,
+   "packages_scanned": 265,
+   "reason": null,
+   "ref": "development",
+   "scanner": "trivy",
+   "status": "ok"
+  },
+  {
+   "commit_sha": null,
+   "id": "ai-dial-rag-development",
+   "image": "epam/ai-dial-rag",
+   "image_digest": "ghcr.io/epam/ai-dial-rag@sha256:999b29058f65f14194c8e4a6d7d53be50996460e555734abdde1d7f875af8f7e",
+   "kind": "image",
+   "os": {
+    "eosl": false,
+    "family": "ubuntu",
+    "name": "24.04"
+   },
+   "packages_scanned": 556,
+   "reason": null,
+   "ref": "development",
+   "scanner": "trivy",
+   "status": "ok"
+  },
+  {
+   "commit_sha": "82df37abe083c70143264c92d902be2faaa294fd",
+   "id": "source-development",
+   "image": null,
+   "image_digest": null,
+   "kind": "fs",
+   "packages_scanned": 265,
+   "reason": null,
+   "ref": "development",
+   "scanner": "osv",
+   "status": "ok"
+  },
+  {
+   "commit_sha": null,
+   "id": "ai-dial-rag-development",
+   "image": "epam/ai-dial-rag",
+   "image_digest": null,
+   "image_scan_disabled": true,
+   "kind": "image",
+   "packages_scanned": 262,
+   "reason": "osv image scan disabled for this repository (image too large for the runner disk): OS packages of the image are not checked by OSV",
+   "ref": "development",
+   "scanner": "osv",
+   "status": "ok"
+  }
+ ],
+ "versions": [
+  {
+   "counts": {
+    "all": 447,
+    "c": 11,
+    "fixable": 376,
+    "h": 91,
+    "l": 82,
+    "m": 263,
+    "unknown": 0
+   },
+   "kind": "development",
+   "latest": false,
+   "packages": [
+    {
+     "class": "lang",
+     "installed": [
+      "50.0.0",
+      "50.0.2"
+     ],
+     "pkg": "cryptography",
+     "where": [
+      "ai-dial-rag-development",
+      "source-development"
+     ]
+    },
+    {
+     "class": "lang",
+     "installed": [],
+     "pkg": "pip",
+     "where": []
+    },
+    {
+     "class": "lang",
+     "installed": [
+      "82.0.0",
+      "84.2.1"
+     ],
+     "pkg": "setuptools",
+     "where": [
+      "ai-dial-rag-development",
+      "source-development"
+     ]
+    }
+   ],
+   "ref": "development",
+   "status": "ok",
+   "targets": [
+    "ai-dial-rag-development",
+    "source-development"
+   ],
+   "vulns": [
+    {
+     "accepted": null,
+     "aliases": [
+      "BIT-setuptools-2026-59890"
+     ],
+     "class": "lang",
+     "cvss": {
+      "score": 6.1,
+      "source": "ghsa",
+      "vector": "CVSS:3.1/AV:L/AC:L/PR:N/UI:R/S:U/C:H/I:L/A:N"
+     },
+     "dev": false,
+     "ecosystem": "PyPI",
+     "fixed": "83.0.0",
+     "id": "CVE-2026-59890",
+     "installed": [
+      "82.0.0"
+     ],
+     "locations": [
+      "opt/venv/lib/python3.11/site-packages/setuptools-82.0.0.dist-info/METADATA"
+     ],
+     "modified": "2026-10-25",
+     "names": [
+      "CVE-2026-59890",
+      "GHSA-h35f-9h28-mq5c",
+      "PYSEC-2026-3447"
+     ],
+     "pkg": "setuptools",
+     "published": "2026-07-08",
+     "relationship": "indirect",
+     "severity": "MEDIUM",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-rag-development"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [],
+     "class": "lang",
+     "cvss": {
+      "score": 1,
+      "source": "ghsa",
+      "vector": "CVSS:4.0/AV:L/AC:H/AT:P/PR:L/UI:A/VC:N/VI:L/VA:L/SC:N/SI:N/SA:N"
+     },
+     "dev": false,
+     "ecosystem": "PyPI",
+     "fixed": "84.1.0",
+     "id": "GHSA-xmj3-9gf7-h52w",
+     "installed": [
+      "82.0.0"
+     ],
+     "locations": [
+      "opt/venv/lib/python3.11/site-packages/setuptools-82.0.0.dist-info/METADATA"
+     ],
+     "modified": "2026-10-23",
+     "names": [
+      "GHSA-xmj3-9gf7-h52w"
+     ],
+     "pkg": "setuptools",
+     "published": "2026-10-23",
+     "relationship": "indirect",
+     "severity": "LOW",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-rag-development"
+     ]
+    }
+   ]
+  }
+ ]
+}

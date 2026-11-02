@@ -1,0 +1,441 @@
+{
+ "repo": "epam/ai-dial-mind-map-backend",
+ "run_id": "41489415906",
+ "run_url": "https://github.com/vitado/ai-dial-mind-map-backend/actions/runs/41489415906",
+ "schema_version": 4,
+ "targets": [
+  {
+   "commit_sha": "5e0996b6d17ced160742f19f167ae1c8e32c6def",
+   "id": "source-0.15.1",
+   "image": null,
+   "image_digest": null,
+   "kind": "fs",
+   "os": null,
+   "packages_scanned": 273,
+   "reason": null,
+   "ref": "0.15.1",
+   "scanner": "trivy",
+   "status": "ok"
+  },
+  {
+   "commit_sha": null,
+   "id": "ai-dial-mind-map-backend-0.15.1",
+   "image": "epam/ai-dial-mind-map-backend",
+   "image_digest": "ghcr.io/epam/ai-dial-mind-map-backend@sha256:37ce8b30d7fba1e25cc1da3cdf4ad9d99f5f9582589d79e5ba6203beda4c9ea9",
+   "kind": "image",
+   "os": {
+    "eosl": false,
+    "family": "ubuntu",
+    "name": "24.04"
+   },
+   "packages_scanned": 503,
+   "reason": null,
+   "ref": "0.15.1",
+   "scanner": "trivy",
+   "status": "ok"
+  },
+  {
+   "commit_sha": "5e0996b6d17ced160742f19f167ae1c8e32c6def",
+   "id": "source-0.15.1",
+   "image": null,
+   "image_digest": null,
+   "kind": "fs",
+   "packages_scanned": 273,
+   "reason": null,
+   "ref": "0.15.1",
+   "scanner": "osv",
+   "status": "ok"
+  },
+  {
+   "commit_sha": null,
+   "id": "ai-dial-mind-map-backend-0.15.1",
+   "image": "epam/ai-dial-mind-map-backend",
+   "image_digest": null,
+   "image_scan_disabled": true,
+   "kind": "image",
+   "packages_scanned": 204,
+   "reason": "osv image scan disabled for this repository (image too large for the runner disk): OS packages of the image are not checked by OSV",
+   "ref": "0.15.1",
+   "scanner": "osv",
+   "status": "ok"
+  }
+ ],
+ "versions": [
+  {
+   "counts": {
+    "all": 210,
+    "c": 9,
+    "fixable": 134,
+    "h": 77,
+    "l": 37,
+    "m": 87,
+    "unknown": 0
+   },
+   "kind": "release",
+   "latest": true,
+   "packages": [
+    {
+     "class": "lang",
+     "installed": [
+      "3.29.0"
+     ],
+     "pkg": "filelock",
+     "where": [
+      "ai-dial-mind-map-backend-0.15.1",
+      "source-0.15.1"
+     ]
+    }
+   ],
+   "ref": "0.15.1",
+   "status": "ok",
+   "targets": [
+    "ai-dial-mind-map-backend-0.15.1",
+    "source-0.15.1"
+   ],
+   "vulns": [
+    {
+     "accepted": null,
+     "aliases": [],
+     "class": "lang",
+     "cvss": {
+      "score": 2.5,
+      "source": "ghsa",
+      "vector": "CVSS:3.1/AV:L/AC:H/PR:L/UI:N/S:U/C:N/I:N/A:L"
+     },
+     "dev": false,
+     "ecosystem": "PyPI",
+     "fixed": "4.2.1",
+     "id": "CVE-2026-112907",
+     "installed": [
+      "3.29.0"
+     ],
+     "locations": [
+      "opt/venv/lib/python3.11/site-packages/filelock-3.29.0.dist-info/METADATA",
+      "poetry.lock"
+     ],
+     "modified": "2026-10-23",
+     "names": [
+      "CVE-2026-112907",
+      "GHSA-567q-5qvw-pf92"
+     ],
+     "pkg": "filelock",
+     "published": "2026-10-23",
+     "relationship": "indirect",
+     "severity": "LOW",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-mind-map-backend-0.15.1",
+      "source-0.15.1"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [],
+     "class": "lang",
+     "cvss": {
+      "score": 6.1,
+      "source": "ghsa",
+      "vector": "CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:L/I:H/A:N"
+     },
+     "dev": false,
+     "ecosystem": "PyPI",
+     "fixed": "4.2.1",
+     "id": "CVE-2026-112909",
+     "installed": [
+      "3.29.0"
+     ],
+     "locations": [
+      "opt/venv/lib/python3.11/site-packages/filelock-3.29.0.dist-info/METADATA",
+      "poetry.lock"
+     ],
+     "modified": "2026-10-28",
+     "names": [
+      "CVE-2026-112909",
+      "GHSA-69hj-f68j-2879"
+     ],
+     "pkg": "filelock",
+     "published": "2026-10-20",
+     "relationship": "indirect",
+     "severity": "MEDIUM",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-mind-map-backend-0.15.1",
+      "source-0.15.1"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [],
+     "class": "lang",
+     "cvss": {
+      "score": 5.3,
+      "source": "ghsa",
+      "vector": "CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:L/I:L/A:L"
+     },
+     "dev": false,
+     "ecosystem": "PyPI",
+     "fixed": "4.2.1",
+     "id": "CVE-2026-112910",
+     "installed": [
+      "3.29.0"
+     ],
+     "locations": [
+      "opt/venv/lib/python3.11/site-packages/filelock-3.29.0.dist-info/METADATA",
+      "poetry.lock"
+     ],
+     "modified": "2026-10-28",
+     "names": [
+      "CVE-2026-112910",
+      "GHSA-8mx5-7m5m-r77g"
+     ],
+     "pkg": "filelock",
+     "published": "2026-10-28",
+     "relationship": "indirect",
+     "severity": "MEDIUM",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-mind-map-backend-0.15.1",
+      "source-0.15.1"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [],
+     "class": "lang",
+     "cvss": {
+      "score": 3.3,
+      "source": "ghsa",
+      "vector": "CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:N/I:N/A:L"
+     },
+     "dev": false,
+     "ecosystem": "PyPI",
+     "fixed": "4.2.1",
+     "id": "CVE-2026-112913",
+     "installed": [
+      "3.29.0"
+     ],
+     "locations": [
+      "opt/venv/lib/python3.11/site-packages/filelock-3.29.0.dist-info/METADATA",
+      "poetry.lock"
+     ],
+     "modified": "2026-10-23",
+     "names": [
+      "CVE-2026-112913",
+      "GHSA-9vhv-jxww-xfm5"
+     ],
+     "pkg": "filelock",
+     "published": "2026-10-23",
+     "relationship": "indirect",
+     "severity": "LOW",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-mind-map-backend-0.15.1",
+      "source-0.15.1"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [],
+     "class": "lang",
+     "cvss": {
+      "score": 5.5,
+      "source": "ghsa",
+      "vector": "CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:N/I:N/A:H"
+     },
+     "dev": false,
+     "ecosystem": "PyPI",
+     "fixed": "4.2.1",
+     "id": "CVE-2026-112915",
+     "installed": [
+      "3.29.0"
+     ],
+     "locations": [
+      "opt/venv/lib/python3.11/site-packages/filelock-3.29.0.dist-info/METADATA",
+      "poetry.lock"
+     ],
+     "modified": "2026-10-28",
+     "names": [
+      "CVE-2026-112915",
+      "GHSA-cwqr-hh33-gh44"
+     ],
+     "pkg": "filelock",
+     "published": "2026-10-20",
+     "relationship": "indirect",
+     "severity": "MEDIUM",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-mind-map-backend-0.15.1",
+      "source-0.15.1"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [],
+     "class": "lang",
+     "cvss": {
+      "score": 4.7,
+      "source": "ghsa",
+      "vector": "CVSS:3.1/AV:L/AC:H/PR:L/UI:N/S:U/C:N/I:H/A:N"
+     },
+     "dev": false,
+     "ecosystem": "PyPI",
+     "fixed": "4.2.1",
+     "id": "CVE-2026-112935",
+     "installed": [
+      "3.29.0"
+     ],
+     "locations": [
+      "opt/venv/lib/python3.11/site-packages/filelock-3.29.0.dist-info/METADATA",
+      "poetry.lock"
+     ],
+     "modified": "2026-10-28",
+     "names": [
+      "CVE-2026-112935",
+      "GHSA-fq56-3cx3-fjxp"
+     ],
+     "pkg": "filelock",
+     "published": "2026-10-20",
+     "relationship": "indirect",
+     "severity": "MEDIUM",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-mind-map-backend-0.15.1",
+      "source-0.15.1"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [],
+     "class": "lang",
+     "cvss": {
+      "score": 6.1,
+      "source": "ghsa",
+      "vector": "CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:N/I:H/A:L"
+     },
+     "dev": false,
+     "ecosystem": "PyPI",
+     "fixed": "4.0.9",
+     "id": "CVE-2026-112936",
+     "installed": [
+      "3.29.0"
+     ],
+     "locations": [
+      "opt/venv/lib/python3.11/site-packages/filelock-3.29.0.dist-info/METADATA",
+      "poetry.lock"
+     ],
+     "modified": "2026-10-28",
+     "names": [
+      "CVE-2026-112936",
+      "GHSA-j8f7-rjxc-mr56"
+     ],
+     "pkg": "filelock",
+     "published": "2026-10-20",
+     "relationship": "indirect",
+     "severity": "MEDIUM",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-mind-map-backend-0.15.1",
+      "source-0.15.1"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [],
+     "class": "lang",
+     "cvss": {
+      "score": 4.7,
+      "source": "ghsa",
+      "vector": "CVSS:3.1/AV:L/AC:H/PR:L/UI:N/S:U/C:N/I:H/A:N"
+     },
+     "dev": false,
+     "ecosystem": "PyPI",
+     "fixed": "4.2.1",
+     "id": "CVE-2026-112939",
+     "installed": [
+      "3.29.0"
+     ],
+     "locations": [
+      "opt/venv/lib/python3.11/site-packages/filelock-3.29.0.dist-info/METADATA",
+      "poetry.lock"
+     ],
+     "modified": "2026-10-28",
+     "names": [
+      "CVE-2026-112939",
+      "GHSA-rfpc-qcw5-3pc4"
+     ],
+     "pkg": "filelock",
+     "published": "2026-10-20",
+     "relationship": "indirect",
+     "severity": "MEDIUM",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-mind-map-backend-0.15.1",
+      "source-0.15.1"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [],
+     "class": "lang",
+     "cvss": {
+      "score": 7.1,
+      "source": "ghsa",
+      "vector": "CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:N/I:H/A:H"
+     },
+     "dev": false,
+     "ecosystem": "PyPI",
+     "fixed": "4.2.1",
+     "id": "CVE-2026-112940",
+     "installed": [
+      "3.29.0"
+     ],
+     "locations": [
+      "opt/venv/lib/python3.11/site-packages/filelock-3.29.0.dist-info/METADATA",
+      "poetry.lock"
+     ],
+     "modified": "2026-10-23",
+     "names": [
+      "CVE-2026-112940",
+      "GHSA-v4x8-3wr5-3wq8"
+     ],
+     "pkg": "filelock",
+     "published": "2026-10-20",
+     "relationship": "indirect",
+     "severity": "HIGH",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-mind-map-backend-0.15.1",
+      "source-0.15.1"
+     ]
+    }
+   ]
+  }
+ ]
+}

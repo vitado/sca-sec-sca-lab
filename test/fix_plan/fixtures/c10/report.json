@@ -1,0 +1,294 @@
+{
+ "repo": "epam/ai-dial-admin-frontend",
+ "run_id": "41489604865",
+ "run_url": "https://github.com/vitado/ai-dial-admin-frontend/actions/runs/41489604865",
+ "schema_version": 4,
+ "targets": [
+  {
+   "commit_sha": "cd215b5ad268e1f0611f5e8ac75c35aba7b8ff97",
+   "id": "source-0.22.1",
+   "image": null,
+   "image_digest": null,
+   "kind": "fs",
+   "os": null,
+   "packages_scanned": 1360,
+   "reason": null,
+   "ref": "0.22.1",
+   "scanner": "trivy",
+   "status": "ok"
+  },
+  {
+   "commit_sha": null,
+   "id": "ai-dial-admin-frontend-0.22.1",
+   "image": "epam/ai-dial-admin-frontend",
+   "image_digest": "ghcr.io/epam/ai-dial-admin-frontend@sha256:4f3655004ca653c94aa35665dd0dd70927a1b5d6b87f0f2bb7f8037fe3fe8449",
+   "kind": "image",
+   "os": {
+    "eosl": false,
+    "family": "alpine",
+    "name": "3.24.2"
+   },
+   "packages_scanned": 542,
+   "reason": null,
+   "ref": "0.22.1",
+   "scanner": "trivy",
+   "status": "ok"
+  },
+  {
+   "commit_sha": "cd215b5ad268e1f0611f5e8ac75c35aba7b8ff97",
+   "id": "source-0.22.1",
+   "image": null,
+   "image_digest": null,
+   "kind": "fs",
+   "packages_scanned": 1360,
+   "reason": null,
+   "ref": "0.22.1",
+   "scanner": "osv",
+   "status": "ok"
+  },
+  {
+   "commit_sha": null,
+   "id": "ai-dial-admin-frontend-0.22.1",
+   "image": "epam/ai-dial-admin-frontend",
+   "image_digest": null,
+   "kind": "image",
+   "packages_scanned": 535,
+   "reason": null,
+   "ref": "0.22.1",
+   "scanner": "osv",
+   "status": "ok"
+  }
+ ],
+ "versions": [
+  {
+   "counts": {
+    "all": 39,
+    "c": 2,
+    "fixable": 38,
+    "h": 12,
+    "l": 6,
+    "m": 17,
+    "unknown": 2
+   },
+   "kind": "release",
+   "latest": true,
+   "packages": [
+    {
+     "class": "lang",
+     "installed": [
+      "3.4.16"
+     ],
+     "pkg": "dompurify",
+     "where": [
+      "ai-dial-admin-frontend-0.22.1",
+      "source-0.22.1"
+     ]
+    },
+    {
+     "class": "lang",
+     "installed": [
+      "15.5.27"
+     ],
+     "pkg": "next",
+     "where": [
+      "ai-dial-admin-frontend-0.22.1",
+      "source-0.22.1"
+     ]
+    }
+   ],
+   "ref": "0.22.1",
+   "status": "ok",
+   "targets": [
+    "ai-dial-admin-frontend-0.22.1",
+    "source-0.22.1"
+   ],
+   "vulns": [
+    {
+     "accepted": null,
+     "aliases": [],
+     "class": "lang",
+     "cvss": null,
+     "dev": false,
+     "ecosystem": "npm",
+     "fixed": "3.4.17",
+     "id": "CVE-2026-116802",
+     "installed": [
+      "3.4.16"
+     ],
+     "locations": [
+      "app/node_modules/dompurify/package.json",
+      "package-lock.json"
+     ],
+     "modified": "2026-10-27",
+     "names": [
+      "CVE-2026-116802",
+      "GHSA-c6gr-qvv4-5v3f"
+     ],
+     "pkg": "dompurify",
+     "published": "2026-10-22",
+     "relationship": "direct",
+     "severity": "LOW",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-admin-frontend-0.22.1",
+      "source-0.22.1"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [],
+     "class": "lang",
+     "cvss": {
+      "score": 7.6,
+      "source": "ghsa",
+      "vector": "CVSS:4.0/AV:N/AC:H/AT:P/PR:N/UI:P/VC:H/VI:H/VA:N/SC:N/SI:N/SA:N"
+     },
+     "dev": false,
+     "ecosystem": "npm",
+     "fixed": "3.4.17",
+     "id": "CVE-2026-116803",
+     "installed": [
+      "3.4.16"
+     ],
+     "locations": [
+      "app/node_modules/dompurify/package.json",
+      "package-lock.json"
+     ],
+     "modified": "2026-10-27",
+     "names": [
+      "CVE-2026-116803",
+      "GHSA-mrv2-3pqr-j5jr"
+     ],
+     "pkg": "dompurify",
+     "published": "2026-10-22",
+     "relationship": "direct",
+     "severity": "HIGH",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-admin-frontend-0.22.1",
+      "source-0.22.1"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [],
+     "class": "lang",
+     "cvss": {
+      "score": 9.2,
+      "source": "ghsa",
+      "vector": "CVSS:4.0/AV:N/AC:H/AT:P/PR:N/UI:N/VC:H/VI:H/VA:L/SC:N/SI:N/SA:N"
+     },
+     "dev": false,
+     "ecosystem": "npm",
+     "fixed": "3.4.17",
+     "id": "CVE-2026-116804",
+     "installed": [
+      "3.4.16"
+     ],
+     "locations": [
+      "app/node_modules/dompurify/package.json",
+      "package-lock.json"
+     ],
+     "modified": "2026-10-27",
+     "names": [
+      "CVE-2026-116804",
+      "GHSA-cg2g-xh64-v4q7"
+     ],
+     "pkg": "dompurify",
+     "published": "2026-10-22",
+     "relationship": "direct",
+     "severity": "CRITICAL",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-admin-frontend-0.22.1",
+      "source-0.22.1"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [],
+     "class": "lang",
+     "cvss": {
+      "score": 7.5,
+      "source": "redhat",
+      "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+     },
+     "dev": false,
+     "ecosystem": "npm",
+     "fixed": "15.5.28, 16.4.1",
+     "id": "CVE-2026-94482",
+     "installed": [
+      "15.5.27"
+     ],
+     "locations": [
+      "app/node_modules/next/package.json",
+      "package-lock.json"
+     ],
+     "modified": "2026-10-30",
+     "names": [
+      "CVE-2026-94482",
+      "GHSA-p3m5-59mp-jv5r"
+     ],
+     "pkg": "next",
+     "published": "2026-10-22",
+     "relationship": "direct",
+     "severity": "HIGH",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-admin-frontend-0.22.1",
+      "source-0.22.1"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [],
+     "class": "lang",
+     "cvss": {
+      "score": 9.5,
+      "source": "ghsa",
+      "vector": "CVSS:4.0/AV:N/AC:L/AT:P/PR:N/UI:N/VC:H/VI:H/VA:H/SC:H/SI:H/SA:H"
+     },
+     "dev": false,
+     "ecosystem": "npm",
+     "fixed": "15.5.28, 16.4.1",
+     "id": "GHSA-2464-fhr4-w9xw",
+     "installed": [
+      "15.5.27"
+     ],
+     "locations": [
+      "app/node_modules/next/package.json",
+      "package-lock.json"
+     ],
+     "modified": "2026-10-22",
+     "names": [
+      "GHSA-2464-fhr4-w9xw"
+     ],
+     "pkg": "next",
+     "published": "2026-10-22",
+     "relationship": "direct",
+     "severity": "CRITICAL",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-admin-frontend-0.22.1",
+      "source-0.22.1"
+     ]
+    }
+   ]
+  }
+ ]
+}

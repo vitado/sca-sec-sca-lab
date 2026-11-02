@@ -1,0 +1,661 @@
+{
+ "repo": "epam/ai-dial-adapter-openai",
+ "run_id": "41489382753",
+ "run_url": "https://github.com/vitado/ai-dial-adapter-openai/actions/runs/41489382753",
+ "schema_version": 4,
+ "targets": [
+  {
+   "commit_sha": "437ae6a72d507be5a3be0846982883beb3d941ab",
+   "id": "source-0.45.1",
+   "image": null,
+   "image_digest": null,
+   "kind": "fs",
+   "os": null,
+   "packages_scanned": 124,
+   "reason": null,
+   "ref": "0.45.1",
+   "scanner": "trivy",
+   "status": "ok"
+  },
+  {
+   "commit_sha": null,
+   "id": "ai-dial-adapter-openai-0.45.1",
+   "image": "epam/ai-dial-adapter-openai",
+   "image_digest": "ghcr.io/epam/ai-dial-adapter-openai@sha256:b4384eb54b3d94707d71b0415b9cad5cc340c84478061b8042c0d0d98cb350ad",
+   "kind": "image",
+   "os": {
+    "eosl": false,
+    "family": "alpine",
+    "name": "3.24.3"
+   },
+   "packages_scanned": 144,
+   "reason": null,
+   "ref": "0.45.1",
+   "scanner": "trivy",
+   "status": "ok"
+  },
+  {
+   "commit_sha": "437ae6a72d507be5a3be0846982883beb3d941ab",
+   "id": "source-0.45.1",
+   "image": null,
+   "image_digest": null,
+   "kind": "fs",
+   "packages_scanned": 124,
+   "reason": null,
+   "ref": "0.45.1",
+   "scanner": "osv",
+   "status": "ok"
+  },
+  {
+   "commit_sha": null,
+   "id": "ai-dial-adapter-openai-0.45.1",
+   "image": "epam/ai-dial-adapter-openai",
+   "image_digest": null,
+   "kind": "image",
+   "packages_scanned": 136,
+   "reason": null,
+   "ref": "0.45.1",
+   "scanner": "osv",
+   "status": "ok"
+  }
+ ],
+ "versions": [
+  {
+   "counts": {
+    "all": 22,
+    "c": 0,
+    "fixable": 22,
+    "h": 2,
+    "l": 5,
+    "m": 15,
+    "unknown": 0
+   },
+   "kind": "release",
+   "latest": true,
+   "packages": [
+    {
+     "class": "lang",
+     "installed": [
+      "3.32.7"
+     ],
+     "pkg": "filelock",
+     "where": [
+      "source-0.45.1"
+     ]
+    },
+    {
+     "class": "lang",
+     "installed": [
+      "83.0.0"
+     ],
+     "pkg": "setuptools",
+     "where": [
+      "ai-dial-adapter-openai-0.45.1",
+      "source-0.45.1"
+     ]
+    },
+    {
+     "class": "lang",
+     "installed": [
+      "21.14.12"
+     ],
+     "pkg": "virtualenv",
+     "where": [
+      "source-0.45.1"
+     ]
+    }
+   ],
+   "ref": "0.45.1",
+   "status": "ok",
+   "targets": [
+    "ai-dial-adapter-openai-0.45.1",
+    "source-0.45.1"
+   ],
+   "vulns": [
+    {
+     "accepted": null,
+     "aliases": [],
+     "class": "lang",
+     "cvss": {
+      "score": 2.5,
+      "source": "ghsa",
+      "vector": "CVSS:3.1/AV:L/AC:H/PR:L/UI:N/S:U/C:N/I:N/A:L"
+     },
+     "dev": true,
+     "ecosystem": "PyPI",
+     "fixed": "4.2.1",
+     "id": "CVE-2026-112907",
+     "installed": [
+      "3.32.7"
+     ],
+     "locations": [
+      "poetry.lock"
+     ],
+     "modified": "2026-10-23",
+     "names": [
+      "CVE-2026-112907",
+      "GHSA-567q-5qvw-pf92"
+     ],
+     "pkg": "filelock",
+     "published": "2026-10-23",
+     "relationship": "indirect",
+     "severity": "LOW",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "source-0.45.1"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [],
+     "class": "lang",
+     "cvss": {
+      "score": 5.3,
+      "source": "ghsa",
+      "vector": "CVSS:3.1/AV:L/AC:H/PR:L/UI:N/S:U/C:N/I:H/A:L"
+     },
+     "dev": true,
+     "ecosystem": "PyPI",
+     "fixed": "4.2.1",
+     "id": "CVE-2026-112908",
+     "installed": [
+      "3.32.7"
+     ],
+     "locations": [
+      "poetry.lock"
+     ],
+     "modified": "2026-10-28",
+     "names": [
+      "CVE-2026-112908",
+      "GHSA-6627-m3xw-93mp"
+     ],
+     "pkg": "filelock",
+     "published": "2026-10-28",
+     "relationship": "indirect",
+     "severity": "MEDIUM",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "source-0.45.1"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [],
+     "class": "lang",
+     "cvss": {
+      "score": 6.1,
+      "source": "ghsa",
+      "vector": "CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:L/I:H/A:N"
+     },
+     "dev": true,
+     "ecosystem": "PyPI",
+     "fixed": "4.2.1",
+     "id": "CVE-2026-112909",
+     "installed": [
+      "3.32.7"
+     ],
+     "locations": [
+      "poetry.lock"
+     ],
+     "modified": "2026-10-28",
+     "names": [
+      "CVE-2026-112909",
+      "GHSA-69hj-f68j-2879"
+     ],
+     "pkg": "filelock",
+     "published": "2026-10-20",
+     "relationship": "indirect",
+     "severity": "MEDIUM",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "source-0.45.1"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [],
+     "class": "lang",
+     "cvss": {
+      "score": 5.3,
+      "source": "ghsa",
+      "vector": "CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:L/I:L/A:L"
+     },
+     "dev": true,
+     "ecosystem": "PyPI",
+     "fixed": "4.2.1",
+     "id": "CVE-2026-112910",
+     "installed": [
+      "3.32.7"
+     ],
+     "locations": [
+      "poetry.lock"
+     ],
+     "modified": "2026-10-28",
+     "names": [
+      "CVE-2026-112910",
+      "GHSA-8mx5-7m5m-r77g"
+     ],
+     "pkg": "filelock",
+     "published": "2026-10-28",
+     "relationship": "indirect",
+     "severity": "MEDIUM",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "source-0.45.1"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [],
+     "class": "lang",
+     "cvss": {
+      "score": 6.3,
+      "source": "ghsa",
+      "vector": "CVSS:3.1/AV:L/AC:H/PR:L/UI:N/S:U/C:N/I:H/A:H"
+     },
+     "dev": true,
+     "ecosystem": "PyPI",
+     "fixed": "4.2.1",
+     "id": "CVE-2026-112911",
+     "installed": [
+      "3.32.7"
+     ],
+     "locations": [
+      "poetry.lock"
+     ],
+     "modified": "2026-10-28",
+     "names": [
+      "CVE-2026-112911",
+      "GHSA-9c4x-gm8v-wgc4"
+     ],
+     "pkg": "filelock",
+     "published": "2026-10-20",
+     "relationship": "indirect",
+     "severity": "MEDIUM",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "source-0.45.1"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [],
+     "class": "lang",
+     "cvss": {
+      "score": 2.5,
+      "source": "ghsa",
+      "vector": "CVSS:3.1/AV:L/AC:H/PR:L/UI:N/S:U/C:L/I:N/A:N"
+     },
+     "dev": true,
+     "ecosystem": "PyPI",
+     "fixed": "4.2.1",
+     "id": "CVE-2026-112912",
+     "installed": [
+      "3.32.7"
+     ],
+     "locations": [
+      "poetry.lock"
+     ],
+     "modified": "2026-10-28",
+     "names": [
+      "CVE-2026-112912",
+      "GHSA-9j6q-wvj5-jgjg"
+     ],
+     "pkg": "filelock",
+     "published": "2026-10-20",
+     "relationship": "indirect",
+     "severity": "LOW",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "source-0.45.1"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [],
+     "class": "lang",
+     "cvss": {
+      "score": 3.3,
+      "source": "ghsa",
+      "vector": "CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:N/I:N/A:L"
+     },
+     "dev": true,
+     "ecosystem": "PyPI",
+     "fixed": "4.2.1",
+     "id": "CVE-2026-112913",
+     "installed": [
+      "3.32.7"
+     ],
+     "locations": [
+      "poetry.lock"
+     ],
+     "modified": "2026-10-23",
+     "names": [
+      "CVE-2026-112913",
+      "GHSA-9vhv-jxww-xfm5"
+     ],
+     "pkg": "filelock",
+     "published": "2026-10-23",
+     "relationship": "indirect",
+     "severity": "LOW",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "source-0.45.1"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [],
+     "class": "lang",
+     "cvss": {
+      "score": 5.5,
+      "source": "ghsa",
+      "vector": "CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:N/I:N/A:H"
+     },
+     "dev": true,
+     "ecosystem": "PyPI",
+     "fixed": "4.2.1",
+     "id": "CVE-2026-112915",
+     "installed": [
+      "3.32.7"
+     ],
+     "locations": [
+      "poetry.lock"
+     ],
+     "modified": "2026-10-28",
+     "names": [
+      "CVE-2026-112915",
+      "GHSA-cwqr-hh33-gh44"
+     ],
+     "pkg": "filelock",
+     "published": "2026-10-20",
+     "relationship": "indirect",
+     "severity": "MEDIUM",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "source-0.45.1"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [],
+     "class": "lang",
+     "cvss": {
+      "score": 4.7,
+      "source": "ghsa",
+      "vector": "CVSS:3.1/AV:L/AC:H/PR:L/UI:N/S:U/C:N/I:H/A:N"
+     },
+     "dev": true,
+     "ecosystem": "PyPI",
+     "fixed": "4.2.1",
+     "id": "CVE-2026-112935",
+     "installed": [
+      "3.32.7"
+     ],
+     "locations": [
+      "poetry.lock"
+     ],
+     "modified": "2026-10-28",
+     "names": [
+      "CVE-2026-112935",
+      "GHSA-fq56-3cx3-fjxp"
+     ],
+     "pkg": "filelock",
+     "published": "2026-10-20",
+     "relationship": "indirect",
+     "severity": "MEDIUM",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "source-0.45.1"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [],
+     "class": "lang",
+     "cvss": {
+      "score": 6.1,
+      "source": "ghsa",
+      "vector": "CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:N/I:H/A:L"
+     },
+     "dev": true,
+     "ecosystem": "PyPI",
+     "fixed": "4.0.9",
+     "id": "CVE-2026-112936",
+     "installed": [
+      "3.32.7"
+     ],
+     "locations": [
+      "poetry.lock"
+     ],
+     "modified": "2026-10-28",
+     "names": [
+      "CVE-2026-112936",
+      "GHSA-j8f7-rjxc-mr56"
+     ],
+     "pkg": "filelock",
+     "published": "2026-10-20",
+     "relationship": "indirect",
+     "severity": "MEDIUM",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "source-0.45.1"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [],
+     "class": "lang",
+     "cvss": {
+      "score": 5.8,
+      "source": "ghsa",
+      "vector": "CVSS:3.1/AV:L/AC:H/PR:L/UI:N/S:U/C:L/I:L/A:H"
+     },
+     "dev": true,
+     "ecosystem": "PyPI",
+     "fixed": "4.2.1",
+     "id": "CVE-2026-112938",
+     "installed": [
+      "3.32.7"
+     ],
+     "locations": [
+      "poetry.lock"
+     ],
+     "modified": "2026-10-28",
+     "names": [
+      "CVE-2026-112938",
+      "GHSA-m462-7rxw-wvpg"
+     ],
+     "pkg": "filelock",
+     "published": "2026-10-28",
+     "relationship": "indirect",
+     "severity": "MEDIUM",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "source-0.45.1"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [],
+     "class": "lang",
+     "cvss": {
+      "score": 4.7,
+      "source": "ghsa",
+      "vector": "CVSS:3.1/AV:L/AC:H/PR:L/UI:N/S:U/C:N/I:H/A:N"
+     },
+     "dev": true,
+     "ecosystem": "PyPI",
+     "fixed": "4.2.1",
+     "id": "CVE-2026-112939",
+     "installed": [
+      "3.32.7"
+     ],
+     "locations": [
+      "poetry.lock"
+     ],
+     "modified": "2026-10-28",
+     "names": [
+      "CVE-2026-112939",
+      "GHSA-rfpc-qcw5-3pc4"
+     ],
+     "pkg": "filelock",
+     "published": "2026-10-20",
+     "relationship": "indirect",
+     "severity": "MEDIUM",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "source-0.45.1"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [],
+     "class": "lang",
+     "cvss": {
+      "score": 7.1,
+      "source": "ghsa",
+      "vector": "CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:N/I:H/A:H"
+     },
+     "dev": true,
+     "ecosystem": "PyPI",
+     "fixed": "4.2.1",
+     "id": "CVE-2026-112940",
+     "installed": [
+      "3.32.7"
+     ],
+     "locations": [
+      "poetry.lock"
+     ],
+     "modified": "2026-10-23",
+     "names": [
+      "CVE-2026-112940",
+      "GHSA-v4x8-3wr5-3wq8"
+     ],
+     "pkg": "filelock",
+     "published": "2026-10-20",
+     "relationship": "indirect",
+     "severity": "HIGH",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "source-0.45.1"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [],
+     "class": "lang",
+     "cvss": {
+      "score": 1,
+      "source": "ghsa",
+      "vector": "CVSS:4.0/AV:L/AC:H/AT:P/PR:L/UI:A/VC:N/VI:L/VA:L/SC:N/SI:N/SA:N"
+     },
+     "dev": false,
+     "ecosystem": "PyPI",
+     "fixed": "84.1.0",
+     "id": "GHSA-xmj3-9gf7-h52w",
+     "installed": [
+      "83.0.0"
+     ],
+     "locations": [
+      "poetry.lock",
+      "usr/local/lib/python3.11/site-packages/setuptools-83.0.0.dist-info/METADATA"
+     ],
+     "modified": "2026-10-23",
+     "names": [
+      "GHSA-xmj3-9gf7-h52w"
+     ],
+     "pkg": "setuptools",
+     "published": "2026-10-23",
+     "relationship": "indirect",
+     "severity": "LOW",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-adapter-openai-0.45.1",
+      "source-0.45.1"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [
+      "BIT-virtualenv-2026-115586"
+     ],
+     "class": "lang",
+     "cvss": {
+      "score": 7,
+      "source": "redhat",
+      "vector": "CVSS:3.1/AV:L/AC:H/PR:N/UI:R/S:U/C:H/I:H/A:H"
+     },
+     "dev": true,
+     "ecosystem": "PyPI",
+     "fixed": "21.14.13",
+     "id": "CVE-2026-115586",
+     "installed": [
+      "21.14.12"
+     ],
+     "locations": [
+      "poetry.lock"
+     ],
+     "modified": "2026-10-29",
+     "names": [
+      "CVE-2026-115586",
+      "GHSA-cx6f-vjhg-g3cc"
+     ],
+     "pkg": "virtualenv",
+     "published": "2026-10-23",
+     "relationship": "indirect",
+     "severity": "HIGH",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "source-0.45.1"
+     ]
+    }
+   ]
+  }
+ ]
+}

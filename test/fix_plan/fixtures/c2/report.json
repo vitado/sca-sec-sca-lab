@@ -1,0 +1,258 @@
+{
+ "repo": "epam/ai-dial-chat",
+ "run_id": "41489361755",
+ "run_url": "https://github.com/vitado/ai-dial-chat/actions/runs/41489361755",
+ "schema_version": 4,
+ "targets": [
+  {
+   "commit_sha": "02c424276d8d9443b52a6c4544d9b82344045c85",
+   "id": "source-1.2.21",
+   "image": null,
+   "image_digest": null,
+   "kind": "fs",
+   "os": null,
+   "packages_scanned": 1999,
+   "reason": null,
+   "ref": "1.2.21",
+   "scanner": "trivy",
+   "status": "ok"
+  },
+  {
+   "commit_sha": null,
+   "id": "ai-dial-chat-1.2.21",
+   "image": "epam/ai-dial-chat",
+   "image_digest": "ghcr.io/epam/ai-dial-chat@sha256:716daf1a958a0b569ce7f3b0feac9d0941f70a34186233d672f595a16b60b252",
+   "kind": "image",
+   "os": {
+    "eosl": false,
+    "family": "alpine",
+    "name": "3.24.3"
+   },
+   "packages_scanned": 323,
+   "reason": null,
+   "ref": "1.2.21",
+   "scanner": "trivy",
+   "status": "ok"
+  },
+  {
+   "commit_sha": null,
+   "id": "ai-dial-chat-mcp-app-sandbox-1.2.21",
+   "image": "epam/ai-dial-chat-mcp-app-sandbox",
+   "image_digest": "ghcr.io/epam/ai-dial-chat-mcp-app-sandbox@sha256:8ceadab9f1b6d0101ba0c7665c5d6a23842d5ac856d6195a1826e780949bc3e0",
+   "kind": "image",
+   "os": {
+    "eosl": false,
+    "family": "alpine",
+    "name": "3.24.3"
+   },
+   "packages_scanned": 129,
+   "reason": null,
+   "ref": "1.2.21",
+   "scanner": "trivy",
+   "status": "ok"
+  },
+  {
+   "commit_sha": null,
+   "id": "ai-dial-chat-bff-1.2.21",
+   "image": "epam/ai-dial-chat-bff",
+   "image_digest": "ghcr.io/epam/ai-dial-chat-bff@sha256:651fbd0b5b9d8077b48a8838b69c8ced96a6ae4ededf3d861f2af56408c3c82c",
+   "kind": "image",
+   "os": {
+    "eosl": false,
+    "family": "alpine",
+    "name": "3.24.3"
+   },
+   "packages_scanned": 323,
+   "reason": null,
+   "ref": "1.2.21",
+   "scanner": "trivy",
+   "status": "ok"
+  },
+  {
+   "commit_sha": "02c424276d8d9443b52a6c4544d9b82344045c85",
+   "id": "source-1.2.21",
+   "image": null,
+   "image_digest": null,
+   "kind": "fs",
+   "packages_scanned": 1999,
+   "reason": null,
+   "ref": "1.2.21",
+   "scanner": "osv",
+   "status": "ok"
+  },
+  {
+   "commit_sha": null,
+   "id": "ai-dial-chat-1.2.21",
+   "image": "epam/ai-dial-chat",
+   "image_digest": null,
+   "kind": "image",
+   "packages_scanned": 315,
+   "reason": null,
+   "ref": "1.2.21",
+   "scanner": "osv",
+   "status": "ok"
+  },
+  {
+   "commit_sha": null,
+   "id": "ai-dial-chat-mcp-app-sandbox-1.2.21",
+   "image": "epam/ai-dial-chat-mcp-app-sandbox",
+   "image_digest": null,
+   "kind": "image",
+   "packages_scanned": 121,
+   "reason": null,
+   "ref": "1.2.21",
+   "scanner": "osv",
+   "status": "ok"
+  },
+  {
+   "commit_sha": null,
+   "id": "ai-dial-chat-bff-1.2.21",
+   "image": "epam/ai-dial-chat-bff",
+   "image_digest": null,
+   "kind": "image",
+   "packages_scanned": 315,
+   "reason": null,
+   "ref": "1.2.21",
+   "scanner": "osv",
+   "status": "ok"
+  }
+ ],
+ "versions": [
+  {
+   "counts": {
+    "all": 4,
+    "c": 0,
+    "fixable": 3,
+    "h": 1,
+    "l": 1,
+    "m": 2,
+    "unknown": 0
+   },
+   "kind": "release",
+   "latest": true,
+   "packages": [
+    {
+     "class": "lang",
+     "installed": [
+      "10.5.0",
+      "13.0.6"
+     ],
+     "pkg": "glob",
+     "where": [
+      "ai-dial-chat-1.2.21",
+      "ai-dial-chat-bff-1.2.21",
+      "source-1.2.21"
+     ]
+    },
+    {
+     "class": "lang",
+     "installed": [
+      "10.2.5",
+      "3.1.5",
+      "5.1.9",
+      "9.0.9"
+     ],
+     "pkg": "minimatch",
+     "where": [
+      "ai-dial-chat-1.2.21",
+      "ai-dial-chat-bff-1.2.21",
+      "source-1.2.21"
+     ]
+    }
+   ],
+   "ref": "1.2.21",
+   "status": "ok",
+   "targets": [
+    "ai-dial-chat-1.2.21",
+    "ai-dial-chat-bff-1.2.21",
+    "ai-dial-chat-mcp-app-sandbox-1.2.21",
+    "source-1.2.21"
+   ],
+   "vulns": [
+    {
+     "accepted": null,
+     "aliases": [],
+     "class": "lang",
+     "cvss": {
+      "score": 5.3,
+      "source": "redhat",
+      "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:L"
+     },
+     "dev": false,
+     "ecosystem": "npm",
+     "fixed": "14.0.2",
+     "id": "CVE-2026-118773",
+     "installed": [
+      "10.5.0",
+      "13.0.6"
+     ],
+     "locations": [
+      "app/apps/chat-api/dist/node_modules/glob/package.json",
+      "package-lock.json"
+     ],
+     "modified": "2026-10-30",
+     "names": [
+      "CVE-2026-118773",
+      "GHSA-3g3m-2fjr-6pw4"
+     ],
+     "pkg": "glob",
+     "published": "2026-10-29",
+     "relationship": "indirect",
+     "severity": "MEDIUM",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-chat-1.2.21",
+      "ai-dial-chat-bff-1.2.21",
+      "source-1.2.21"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [],
+     "class": "lang",
+     "cvss": {
+      "score": 7.5,
+      "source": "redhat",
+      "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+     },
+     "dev": false,
+     "ecosystem": "npm",
+     "fixed": "11.0.1",
+     "id": "CVE-2026-118764",
+     "installed": [
+      "10.2.5",
+      "3.1.5",
+      "5.1.9",
+      "9.0.9"
+     ],
+     "locations": [
+      "app/apps/chat-api/dist/node_modules/glob/node_modules/minimatch/package.json",
+      "app/apps/chat-api/dist/node_modules/minimatch/package.json",
+      "package-lock.json"
+     ],
+     "modified": "2026-10-30",
+     "names": [
+      "CVE-2026-118764",
+      "GHSA-g3hv-75wg-m249"
+     ],
+     "pkg": "minimatch",
+     "published": "2026-10-29",
+     "relationship": "indirect",
+     "severity": "MEDIUM",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-chat-1.2.21",
+      "ai-dial-chat-bff-1.2.21",
+      "source-1.2.21"
+     ]
+    }
+   ]
+  }
+ ]
+}

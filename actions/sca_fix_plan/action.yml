@@ -1,0 +1,31 @@
+name: Plan SCA fixes
+description: Plan the fixes of the vulnerable packages of the newest release lines from schema 4 report.json files (fix-plan.json, fix-plan.md)
+
+inputs:
+  reports:
+    description: Newline-separated paths of schema 4 report.json files of one repo (their versions are merged by ref; one of them has the development version)
+    required: true
+  config:
+    description: 'JSON object with the policy, every key optional (severities, severities-previous, fixable-only, include-dev, release-branch, release-lines, methods, allow-major)'
+    default: "{}"
+  output-dir:
+    description: Directory to write the plan into (fix-plan.json, fix-plan.md)
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+      with:
+        python-version: "3.12"
+    - name: Plan the fixes
+      shell: bash
+      env:
+        ACTION_PATH: ${{ github.action_path }}
+        REPORTS: ${{ inputs.reports }}
+        CONFIG: ${{ inputs.config }}
+        OUTPUT_DIR: ${{ inputs.output-dir }}
+      run: |
+        mapfile -t reports < <(printf '%s\n' "$REPORTS" | sed '/^[[:space:]]*$/d')
+        python "$ACTION_PATH/fix_plan.py" --reports "${reports[@]}" --config "$CONFIG" --output-dir "$OUTPUT_DIR"

@@ -1,0 +1,2048 @@
+{
+ "repo": "epam/ai-dial-chat-themes",
+ "run_id": "41489450292",
+ "run_url": "https://github.com/vitado/ai-dial-chat-themes/actions/runs/41489450292",
+ "schema_version": 4,
+ "targets": [
+  {
+   "commit_sha": "6b558a3f05a34e447a9edb75c827547e4cb8e8bb",
+   "id": "source-0.21.0",
+   "image": null,
+   "image_digest": null,
+   "kind": "fs",
+   "os": null,
+   "packages_scanned": 0,
+   "reason": null,
+   "ref": "0.21.0",
+   "scanner": "trivy",
+   "status": "ok"
+  },
+  {
+   "commit_sha": null,
+   "id": "ai-dial-chat-themes-0.21.0",
+   "image": "epam/ai-dial-chat-themes",
+   "image_digest": "ghcr.io/epam/ai-dial-chat-themes@sha256:609c02472c071abc58d3d2467bd6b42222b9f1d74522607efaf1b2777b6faddb",
+   "kind": "image",
+   "os": {
+    "eosl": false,
+    "family": "alpine",
+    "name": "3.24.2"
+   },
+   "packages_scanned": 156,
+   "reason": null,
+   "ref": "0.21.0",
+   "scanner": "trivy",
+   "status": "ok"
+  },
+  {
+   "commit_sha": "6b558a3f05a34e447a9edb75c827547e4cb8e8bb",
+   "id": "source-0.21.0",
+   "image": null,
+   "image_digest": null,
+   "kind": "fs",
+   "packages_scanned": 0,
+   "reason": null,
+   "ref": "0.21.0",
+   "scanner": "osv",
+   "status": "ok"
+  },
+  {
+   "commit_sha": null,
+   "id": "ai-dial-chat-themes-0.21.0",
+   "image": "epam/ai-dial-chat-themes",
+   "image_digest": null,
+   "kind": "image",
+   "packages_scanned": 64,
+   "reason": null,
+   "ref": "0.21.0",
+   "scanner": "osv",
+   "status": "ok"
+  }
+ ],
+ "versions": [
+  {
+   "counts": {
+    "all": 62,
+    "c": 1,
+    "fixable": 62,
+    "h": 4,
+    "l": 44,
+    "m": 7,
+    "unknown": 6
+   },
+   "kind": "release",
+   "latest": true,
+   "packages": [
+    {
+     "class": "os",
+     "installed": [
+      "1.2.0-r1"
+     ],
+     "pkg": "brotli-libs",
+     "where": [
+      "ai-dial-chat-themes-0.21.0"
+     ]
+    },
+    {
+     "class": "os",
+     "installed": [
+      "8.22.0-r0"
+     ],
+     "pkg": "curl",
+     "where": [
+      "ai-dial-chat-themes-0.21.0"
+     ]
+    },
+    {
+     "class": "os",
+     "installed": [
+      "8.22.0-r0"
+     ],
+     "pkg": "libcurl",
+     "where": [
+      "ai-dial-chat-themes-0.21.0"
+     ]
+    },
+    {
+     "class": "os",
+     "installed": [
+      "2.8.5-r0"
+     ],
+     "pkg": "libexpat",
+     "where": [
+      "ai-dial-chat-themes-0.21.0"
+     ]
+    }
+   ],
+   "ref": "0.21.0",
+   "status": "ok",
+   "targets": [
+    "ai-dial-chat-themes-0.21.0",
+    "source-0.21.0"
+   ],
+   "vulns": [
+    {
+     "accepted": null,
+     "aliases": [
+      "ALPINE-CVE-2026-111497"
+     ],
+     "class": "os",
+     "cvss": {
+      "score": 9.8,
+      "source": "nvd",
+      "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+     },
+     "dev": false,
+     "ecosystem": "Alpine:v3.24",
+     "fixed": "1.2.1-r0, 1.1.1-r0",
+     "id": "CVE-2026-111497",
+     "installed": [
+      "1.2.0-r1"
+     ],
+     "locations": [],
+     "modified": "2026-10-30",
+     "names": [
+      "CVE-2026-111497"
+     ],
+     "pkg": "brotli-libs",
+     "published": "2026-10-22",
+     "relationship": null,
+     "severity": "CRITICAL",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-chat-themes-0.21.0"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [
+      "ALPINE-CVE-2026-107928"
+     ],
+     "class": "os",
+     "cvss": {
+      "score": 4.8,
+      "source": "redhat",
+      "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:N/A:L"
+     },
+     "dev": false,
+     "ecosystem": "Alpine:v3.24",
+     "fixed": "8.23.0-r0",
+     "id": "CVE-2026-107928",
+     "installed": [
+      "8.22.0-r0"
+     ],
+     "locations": [],
+     "modified": "2026-10-31",
+     "names": [
+      "CVE-2026-107928"
+     ],
+     "pkg": "curl",
+     "published": "2026-10-20",
+     "relationship": null,
+     "severity": "LOW",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-chat-themes-0.21.0"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [
+      "ALPINE-CVE-2026-107929"
+     ],
+     "class": "os",
+     "cvss": {
+      "score": 3.7,
+      "source": "redhat",
+      "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:N/A:N"
+     },
+     "dev": false,
+     "ecosystem": "Alpine:v3.24",
+     "fixed": "8.23.0-r0",
+     "id": "CVE-2026-107929",
+     "installed": [
+      "8.22.0-r0"
+     ],
+     "locations": [],
+     "modified": "2026-10-31",
+     "names": [
+      "CVE-2026-107929"
+     ],
+     "pkg": "curl",
+     "published": "2026-10-20",
+     "relationship": null,
+     "severity": "LOW",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-chat-themes-0.21.0"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [
+      "ALPINE-CVE-2026-86409"
+     ],
+     "class": "os",
+     "cvss": {
+      "score": 5.3,
+      "source": "redhat",
+      "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:U/C:H/I:N/A:N"
+     },
+     "dev": false,
+     "ecosystem": "Alpine:v3.24",
+     "fixed": "8.23.0-r0",
+     "id": "CVE-2026-86409",
+     "installed": [
+      "8.22.0-r0"
+     ],
+     "locations": [],
+     "modified": "2026-10-30",
+     "names": [
+      "CVE-2026-86409"
+     ],
+     "pkg": "curl",
+     "published": "2026-10-20",
+     "relationship": null,
+     "severity": "LOW",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-chat-themes-0.21.0"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [
+      "ALPINE-CVE-2026-86410"
+     ],
+     "class": "os",
+     "cvss": {
+      "score": 6.8,
+      "source": "redhat",
+      "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:U/C:H/I:H/A:N"
+     },
+     "dev": false,
+     "ecosystem": "Alpine:v3.24",
+     "fixed": "8.23.0-r0",
+     "id": "CVE-2026-86410",
+     "installed": [
+      "8.22.0-r0"
+     ],
+     "locations": [],
+     "modified": "2026-10-30",
+     "names": [
+      "CVE-2026-86410"
+     ],
+     "pkg": "curl",
+     "published": "2026-10-20",
+     "relationship": null,
+     "severity": "LOW",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-chat-themes-0.21.0"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [
+      "ALPINE-CVE-2026-86411"
+     ],
+     "class": "os",
+     "cvss": {
+      "score": 5.9,
+      "source": "redhat",
+      "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:N/A:N"
+     },
+     "dev": false,
+     "ecosystem": "Alpine:v3.24",
+     "fixed": "8.23.0-r0",
+     "id": "CVE-2026-86411",
+     "installed": [
+      "8.22.0-r0"
+     ],
+     "locations": [],
+     "modified": "2026-10-30",
+     "names": [
+      "CVE-2026-86411"
+     ],
+     "pkg": "curl",
+     "published": "2026-10-20",
+     "relationship": null,
+     "severity": "LOW",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-chat-themes-0.21.0"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [
+      "ALPINE-CVE-2026-86412"
+     ],
+     "class": "os",
+     "cvss": {
+      "score": 5.3,
+      "source": "redhat",
+      "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:U/C:N/I:H/A:N"
+     },
+     "dev": false,
+     "ecosystem": "Alpine:v3.24",
+     "fixed": "8.23.0-r0",
+     "id": "CVE-2026-86412",
+     "installed": [
+      "8.22.0-r0"
+     ],
+     "locations": [],
+     "modified": "2026-10-30",
+     "names": [
+      "CVE-2026-86412"
+     ],
+     "pkg": "curl",
+     "published": "2026-10-20",
+     "relationship": null,
+     "severity": "LOW",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-chat-themes-0.21.0"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [
+      "ALPINE-CVE-2026-86413"
+     ],
+     "class": "os",
+     "cvss": {
+      "score": 5.3,
+      "source": "redhat",
+      "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:U/C:H/I:N/A:N"
+     },
+     "dev": false,
+     "ecosystem": "Alpine:v3.24",
+     "fixed": "8.23.0-r0",
+     "id": "CVE-2026-86413",
+     "installed": [
+      "8.22.0-r0"
+     ],
+     "locations": [],
+     "modified": "2026-10-31",
+     "names": [
+      "CVE-2026-86413"
+     ],
+     "pkg": "curl",
+     "published": "2026-10-20",
+     "relationship": null,
+     "severity": "LOW",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-chat-themes-0.21.0"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [
+      "ALPINE-CVE-2026-86414"
+     ],
+     "class": "os",
+     "cvss": {
+      "score": 6.5,
+      "source": "redhat",
+      "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:N/A:N"
+     },
+     "dev": false,
+     "ecosystem": "Alpine:v3.24",
+     "fixed": "8.23.0-r0",
+     "id": "CVE-2026-86414",
+     "installed": [
+      "8.22.0-r0"
+     ],
+     "locations": [],
+     "modified": "2026-10-31",
+     "names": [
+      "CVE-2026-86414"
+     ],
+     "pkg": "curl",
+     "published": "2026-10-20",
+     "relationship": null,
+     "severity": "LOW",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-chat-themes-0.21.0"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [
+      "ALPINE-CVE-2026-86415"
+     ],
+     "class": "os",
+     "cvss": {
+      "score": 3.7,
+      "source": "redhat",
+      "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:N/A:N"
+     },
+     "dev": false,
+     "ecosystem": "Alpine:v3.24",
+     "fixed": "8.23.0-r0",
+     "id": "CVE-2026-86415",
+     "installed": [
+      "8.22.0-r0"
+     ],
+     "locations": [],
+     "modified": "2026-10-31",
+     "names": [
+      "CVE-2026-86415"
+     ],
+     "pkg": "curl",
+     "published": "2026-10-20",
+     "relationship": null,
+     "severity": "LOW",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-chat-themes-0.21.0"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [
+      "ALPINE-CVE-2026-87861"
+     ],
+     "class": "os",
+     "cvss": {
+      "score": 3.7,
+      "source": "redhat",
+      "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:N/A:N"
+     },
+     "dev": false,
+     "ecosystem": "Alpine:v3.24",
+     "fixed": "8.23.0-r0",
+     "id": "CVE-2026-87861",
+     "installed": [
+      "8.22.0-r0"
+     ],
+     "locations": [],
+     "modified": "2026-10-31",
+     "names": [
+      "CVE-2026-87861"
+     ],
+     "pkg": "curl",
+     "published": "2026-10-20",
+     "relationship": null,
+     "severity": "LOW",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-chat-themes-0.21.0"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [
+      "ALPINE-CVE-2026-87862"
+     ],
+     "class": "os",
+     "cvss": {
+      "score": 3.7,
+      "source": "redhat",
+      "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:N/A:N"
+     },
+     "dev": false,
+     "ecosystem": "Alpine:v3.24",
+     "fixed": "8.23.0-r0",
+     "id": "CVE-2026-87862",
+     "installed": [
+      "8.22.0-r0"
+     ],
+     "locations": [],
+     "modified": "2026-10-31",
+     "names": [
+      "CVE-2026-87862"
+     ],
+     "pkg": "curl",
+     "published": "2026-10-20",
+     "relationship": null,
+     "severity": "LOW",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-chat-themes-0.21.0"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [
+      "ALPINE-CVE-2026-87863"
+     ],
+     "class": "os",
+     "cvss": {
+      "score": 3.7,
+      "source": "redhat",
+      "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N"
+     },
+     "dev": false,
+     "ecosystem": "Alpine:v3.24",
+     "fixed": "8.23.0-r0",
+     "id": "CVE-2026-87863",
+     "installed": [
+      "8.22.0-r0"
+     ],
+     "locations": [],
+     "modified": "2026-10-31",
+     "names": [
+      "CVE-2026-87863"
+     ],
+     "pkg": "curl",
+     "published": "2026-10-20",
+     "relationship": null,
+     "severity": "LOW",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-chat-themes-0.21.0"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [
+      "ALPINE-CVE-2026-87864"
+     ],
+     "class": "os",
+     "cvss": {
+      "score": 3.7,
+      "source": "redhat",
+      "vector": "CVSS:3.1/AV:N/AC:H/PR:L/UI:R/S:U/C:L/I:L/A:N"
+     },
+     "dev": false,
+     "ecosystem": "Alpine:v3.24",
+     "fixed": "8.23.0-r0",
+     "id": "CVE-2026-87864",
+     "installed": [
+      "8.22.0-r0"
+     ],
+     "locations": [],
+     "modified": "2026-10-31",
+     "names": [
+      "CVE-2026-87864"
+     ],
+     "pkg": "curl",
+     "published": "2026-10-20",
+     "relationship": null,
+     "severity": "LOW",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-chat-themes-0.21.0"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [
+      "ALPINE-CVE-2026-87865"
+     ],
+     "class": "os",
+     "cvss": {
+      "score": 3.7,
+      "source": "redhat",
+      "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N"
+     },
+     "dev": false,
+     "ecosystem": "Alpine:v3.24",
+     "fixed": "8.23.0-r0",
+     "id": "CVE-2026-87865",
+     "installed": [
+      "8.22.0-r0"
+     ],
+     "locations": [],
+     "modified": "2026-10-31",
+     "names": [
+      "CVE-2026-87865"
+     ],
+     "pkg": "curl",
+     "published": "2026-10-20",
+     "relationship": null,
+     "severity": "LOW",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-chat-themes-0.21.0"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [
+      "ALPINE-CVE-2026-87866"
+     ],
+     "class": "os",
+     "cvss": {
+      "score": 3.7,
+      "source": "redhat",
+      "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N"
+     },
+     "dev": false,
+     "ecosystem": "Alpine:v3.24",
+     "fixed": "8.23.0-r0",
+     "id": "CVE-2026-87866",
+     "installed": [
+      "8.22.0-r0"
+     ],
+     "locations": [],
+     "modified": "2026-10-30",
+     "names": [
+      "CVE-2026-87866"
+     ],
+     "pkg": "curl",
+     "published": "2026-10-20",
+     "relationship": null,
+     "severity": "LOW",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-chat-themes-0.21.0"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [
+      "ALPINE-CVE-2026-92386"
+     ],
+     "class": "os",
+     "cvss": {
+      "score": 4.3,
+      "source": "redhat",
+      "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:N/I:N/A:L"
+     },
+     "dev": false,
+     "ecosystem": "Alpine:v3.24",
+     "fixed": "8.23.0-r0",
+     "id": "CVE-2026-92386",
+     "installed": [
+      "8.22.0-r0"
+     ],
+     "locations": [],
+     "modified": "2026-10-30",
+     "names": [
+      "CVE-2026-92386"
+     ],
+     "pkg": "curl",
+     "published": "2026-10-20",
+     "relationship": null,
+     "severity": "LOW",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-chat-themes-0.21.0"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [
+      "ALPINE-CVE-2026-92387"
+     ],
+     "class": "os",
+     "cvss": {
+      "score": 3.7,
+      "source": "redhat",
+      "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:N/A:L"
+     },
+     "dev": false,
+     "ecosystem": "Alpine:v3.24",
+     "fixed": "8.23.0-r0",
+     "id": "CVE-2026-92387",
+     "installed": [
+      "8.22.0-r0"
+     ],
+     "locations": [],
+     "modified": "2026-10-30",
+     "names": [
+      "CVE-2026-92387"
+     ],
+     "pkg": "curl",
+     "published": "2026-10-20",
+     "relationship": null,
+     "severity": "LOW",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-chat-themes-0.21.0"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [
+      "ALPINE-CVE-2026-92388"
+     ],
+     "class": "os",
+     "cvss": {
+      "score": 6.5,
+      "source": "redhat",
+      "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:H"
+     },
+     "dev": false,
+     "ecosystem": "Alpine:v3.24",
+     "fixed": "8.23.0-r0",
+     "id": "CVE-2026-92388",
+     "installed": [
+      "8.22.0-r0"
+     ],
+     "locations": [],
+     "modified": "2026-10-31",
+     "names": [
+      "CVE-2026-92388"
+     ],
+     "pkg": "curl",
+     "published": "2026-10-20",
+     "relationship": null,
+     "severity": "MEDIUM",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-chat-themes-0.21.0"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [
+      "ALPINE-CVE-2026-92389"
+     ],
+     "class": "os",
+     "cvss": {
+      "score": 3.7,
+      "source": "redhat",
+      "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:N/A:N"
+     },
+     "dev": false,
+     "ecosystem": "Alpine:v3.24",
+     "fixed": "8.23.0-r0",
+     "id": "CVE-2026-92389",
+     "installed": [
+      "8.22.0-r0"
+     ],
+     "locations": [],
+     "modified": "2026-10-31",
+     "names": [
+      "CVE-2026-92389"
+     ],
+     "pkg": "curl",
+     "published": "2026-10-20",
+     "relationship": null,
+     "severity": "LOW",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-chat-themes-0.21.0"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [
+      "ALPINE-CVE-2026-92390"
+     ],
+     "class": "os",
+     "cvss": {
+      "score": 6.5,
+      "source": "redhat",
+      "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:N/I:H/A:N"
+     },
+     "dev": false,
+     "ecosystem": "Alpine:v3.24",
+     "fixed": "8.23.0-r0",
+     "id": "CVE-2026-92390",
+     "installed": [
+      "8.22.0-r0"
+     ],
+     "locations": [],
+     "modified": "2026-10-31",
+     "names": [
+      "CVE-2026-92390"
+     ],
+     "pkg": "curl",
+     "published": "2026-10-20",
+     "relationship": null,
+     "severity": "LOW",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-chat-themes-0.21.0"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [
+      "ALPINE-CVE-2026-92391"
+     ],
+     "class": "os",
+     "cvss": {
+      "score": 3.7,
+      "source": "redhat",
+      "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:N/A:L"
+     },
+     "dev": false,
+     "ecosystem": "Alpine:v3.24",
+     "fixed": "8.23.0-r0",
+     "id": "CVE-2026-92391",
+     "installed": [
+      "8.22.0-r0"
+     ],
+     "locations": [],
+     "modified": "2026-10-31",
+     "names": [
+      "CVE-2026-92391"
+     ],
+     "pkg": "curl",
+     "published": "2026-10-20",
+     "relationship": null,
+     "severity": "LOW",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-chat-themes-0.21.0"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [
+      "ALPINE-CVE-2026-92392"
+     ],
+     "class": "os",
+     "cvss": {
+      "score": 8.1,
+      "source": "redhat",
+      "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H"
+     },
+     "dev": false,
+     "ecosystem": "Alpine:v3.24",
+     "fixed": "8.23.0-r0, 8.14.1-r3, 8.14.1-r4",
+     "id": "CVE-2026-92392",
+     "installed": [
+      "8.22.0-r0"
+     ],
+     "locations": [],
+     "modified": "2026-10-25",
+     "names": [
+      "CVE-2026-92392"
+     ],
+     "pkg": "curl",
+     "published": "2026-10-14",
+     "relationship": null,
+     "severity": "HIGH",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-chat-themes-0.21.0"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [
+      "ALPINE-CVE-2026-94265"
+     ],
+     "class": "os",
+     "cvss": {
+      "score": 3.1,
+      "source": "redhat",
+      "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:U/C:L/I:N/A:N"
+     },
+     "dev": false,
+     "ecosystem": "Alpine:v3.24",
+     "fixed": "8.23.0-r0",
+     "id": "CVE-2026-94265",
+     "installed": [
+      "8.22.0-r0"
+     ],
+     "locations": [],
+     "modified": "2026-10-31",
+     "names": [
+      "CVE-2026-94265"
+     ],
+     "pkg": "curl",
+     "published": "2026-10-20",
+     "relationship": null,
+     "severity": "LOW",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-chat-themes-0.21.0"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [
+      "ALPINE-CVE-2026-94266"
+     ],
+     "class": "os",
+     "cvss": {
+      "score": 3.3,
+      "source": "redhat",
+      "vector": "CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:L/I:N/A:N"
+     },
+     "dev": false,
+     "ecosystem": "Alpine:v3.24",
+     "fixed": "8.23.0-r0",
+     "id": "CVE-2026-94266",
+     "installed": [
+      "8.22.0-r0"
+     ],
+     "locations": [],
+     "modified": "2026-10-31",
+     "names": [
+      "CVE-2026-94266"
+     ],
+     "pkg": "curl",
+     "published": "2026-10-20",
+     "relationship": null,
+     "severity": "LOW",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-chat-themes-0.21.0"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [
+      "ALPINE-CVE-2026-107928"
+     ],
+     "class": "os",
+     "cvss": {
+      "score": 4.8,
+      "source": "redhat",
+      "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:N/A:L"
+     },
+     "dev": false,
+     "ecosystem": "Alpine:v3.24",
+     "fixed": "8.23.0-r0",
+     "id": "CVE-2026-107928",
+     "installed": [
+      "8.22.0-r0"
+     ],
+     "locations": [],
+     "modified": "2026-10-31",
+     "names": [
+      "CVE-2026-107928"
+     ],
+     "pkg": "libcurl",
+     "published": "2026-10-20",
+     "relationship": null,
+     "severity": "LOW",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-chat-themes-0.21.0"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [
+      "ALPINE-CVE-2026-107929"
+     ],
+     "class": "os",
+     "cvss": {
+      "score": 3.7,
+      "source": "redhat",
+      "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:N/A:N"
+     },
+     "dev": false,
+     "ecosystem": "Alpine:v3.24",
+     "fixed": "8.23.0-r0",
+     "id": "CVE-2026-107929",
+     "installed": [
+      "8.22.0-r0"
+     ],
+     "locations": [],
+     "modified": "2026-10-31",
+     "names": [
+      "CVE-2026-107929"
+     ],
+     "pkg": "libcurl",
+     "published": "2026-10-20",
+     "relationship": null,
+     "severity": "LOW",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-chat-themes-0.21.0"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [
+      "ALPINE-CVE-2026-86409"
+     ],
+     "class": "os",
+     "cvss": {
+      "score": 5.3,
+      "source": "redhat",
+      "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:U/C:H/I:N/A:N"
+     },
+     "dev": false,
+     "ecosystem": "Alpine:v3.24",
+     "fixed": "8.23.0-r0",
+     "id": "CVE-2026-86409",
+     "installed": [
+      "8.22.0-r0"
+     ],
+     "locations": [],
+     "modified": "2026-10-30",
+     "names": [
+      "CVE-2026-86409"
+     ],
+     "pkg": "libcurl",
+     "published": "2026-10-20",
+     "relationship": null,
+     "severity": "LOW",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-chat-themes-0.21.0"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [
+      "ALPINE-CVE-2026-86410"
+     ],
+     "class": "os",
+     "cvss": {
+      "score": 6.8,
+      "source": "redhat",
+      "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:U/C:H/I:H/A:N"
+     },
+     "dev": false,
+     "ecosystem": "Alpine:v3.24",
+     "fixed": "8.23.0-r0",
+     "id": "CVE-2026-86410",
+     "installed": [
+      "8.22.0-r0"
+     ],
+     "locations": [],
+     "modified": "2026-10-30",
+     "names": [
+      "CVE-2026-86410"
+     ],
+     "pkg": "libcurl",
+     "published": "2026-10-20",
+     "relationship": null,
+     "severity": "LOW",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-chat-themes-0.21.0"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [
+      "ALPINE-CVE-2026-86411"
+     ],
+     "class": "os",
+     "cvss": {
+      "score": 5.9,
+      "source": "redhat",
+      "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:N/A:N"
+     },
+     "dev": false,
+     "ecosystem": "Alpine:v3.24",
+     "fixed": "8.23.0-r0",
+     "id": "CVE-2026-86411",
+     "installed": [
+      "8.22.0-r0"
+     ],
+     "locations": [],
+     "modified": "2026-10-30",
+     "names": [
+      "CVE-2026-86411"
+     ],
+     "pkg": "libcurl",
+     "published": "2026-10-20",
+     "relationship": null,
+     "severity": "LOW",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-chat-themes-0.21.0"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [
+      "ALPINE-CVE-2026-86412"
+     ],
+     "class": "os",
+     "cvss": {
+      "score": 5.3,
+      "source": "redhat",
+      "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:U/C:N/I:H/A:N"
+     },
+     "dev": false,
+     "ecosystem": "Alpine:v3.24",
+     "fixed": "8.23.0-r0",
+     "id": "CVE-2026-86412",
+     "installed": [
+      "8.22.0-r0"
+     ],
+     "locations": [],
+     "modified": "2026-10-30",
+     "names": [
+      "CVE-2026-86412"
+     ],
+     "pkg": "libcurl",
+     "published": "2026-10-20",
+     "relationship": null,
+     "severity": "LOW",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-chat-themes-0.21.0"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [
+      "ALPINE-CVE-2026-86413"
+     ],
+     "class": "os",
+     "cvss": {
+      "score": 5.3,
+      "source": "redhat",
+      "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:U/C:H/I:N/A:N"
+     },
+     "dev": false,
+     "ecosystem": "Alpine:v3.24",
+     "fixed": "8.23.0-r0",
+     "id": "CVE-2026-86413",
+     "installed": [
+      "8.22.0-r0"
+     ],
+     "locations": [],
+     "modified": "2026-10-31",
+     "names": [
+      "CVE-2026-86413"
+     ],
+     "pkg": "libcurl",
+     "published": "2026-10-20",
+     "relationship": null,
+     "severity": "LOW",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-chat-themes-0.21.0"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [
+      "ALPINE-CVE-2026-86414"
+     ],
+     "class": "os",
+     "cvss": {
+      "score": 6.5,
+      "source": "redhat",
+      "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:N/A:N"
+     },
+     "dev": false,
+     "ecosystem": "Alpine:v3.24",
+     "fixed": "8.23.0-r0",
+     "id": "CVE-2026-86414",
+     "installed": [
+      "8.22.0-r0"
+     ],
+     "locations": [],
+     "modified": "2026-10-31",
+     "names": [
+      "CVE-2026-86414"
+     ],
+     "pkg": "libcurl",
+     "published": "2026-10-20",
+     "relationship": null,
+     "severity": "LOW",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-chat-themes-0.21.0"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [
+      "ALPINE-CVE-2026-86415"
+     ],
+     "class": "os",
+     "cvss": {
+      "score": 3.7,
+      "source": "redhat",
+      "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:N/A:N"
+     },
+     "dev": false,
+     "ecosystem": "Alpine:v3.24",
+     "fixed": "8.23.0-r0",
+     "id": "CVE-2026-86415",
+     "installed": [
+      "8.22.0-r0"
+     ],
+     "locations": [],
+     "modified": "2026-10-31",
+     "names": [
+      "CVE-2026-86415"
+     ],
+     "pkg": "libcurl",
+     "published": "2026-10-20",
+     "relationship": null,
+     "severity": "LOW",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-chat-themes-0.21.0"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [
+      "ALPINE-CVE-2026-87861"
+     ],
+     "class": "os",
+     "cvss": {
+      "score": 3.7,
+      "source": "redhat",
+      "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:N/A:N"
+     },
+     "dev": false,
+     "ecosystem": "Alpine:v3.24",
+     "fixed": "8.23.0-r0",
+     "id": "CVE-2026-87861",
+     "installed": [
+      "8.22.0-r0"
+     ],
+     "locations": [],
+     "modified": "2026-10-31",
+     "names": [
+      "CVE-2026-87861"
+     ],
+     "pkg": "libcurl",
+     "published": "2026-10-20",
+     "relationship": null,
+     "severity": "LOW",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-chat-themes-0.21.0"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [
+      "ALPINE-CVE-2026-87862"
+     ],
+     "class": "os",
+     "cvss": {
+      "score": 3.7,
+      "source": "redhat",
+      "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:N/A:N"
+     },
+     "dev": false,
+     "ecosystem": "Alpine:v3.24",
+     "fixed": "8.23.0-r0",
+     "id": "CVE-2026-87862",
+     "installed": [
+      "8.22.0-r0"
+     ],
+     "locations": [],
+     "modified": "2026-10-31",
+     "names": [
+      "CVE-2026-87862"
+     ],
+     "pkg": "libcurl",
+     "published": "2026-10-20",
+     "relationship": null,
+     "severity": "LOW",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-chat-themes-0.21.0"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [
+      "ALPINE-CVE-2026-87863"
+     ],
+     "class": "os",
+     "cvss": {
+      "score": 3.7,
+      "source": "redhat",
+      "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N"
+     },
+     "dev": false,
+     "ecosystem": "Alpine:v3.24",
+     "fixed": "8.23.0-r0",
+     "id": "CVE-2026-87863",
+     "installed": [
+      "8.22.0-r0"
+     ],
+     "locations": [],
+     "modified": "2026-10-31",
+     "names": [
+      "CVE-2026-87863"
+     ],
+     "pkg": "libcurl",
+     "published": "2026-10-20",
+     "relationship": null,
+     "severity": "LOW",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-chat-themes-0.21.0"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [
+      "ALPINE-CVE-2026-87864"
+     ],
+     "class": "os",
+     "cvss": {
+      "score": 3.7,
+      "source": "redhat",
+      "vector": "CVSS:3.1/AV:N/AC:H/PR:L/UI:R/S:U/C:L/I:L/A:N"
+     },
+     "dev": false,
+     "ecosystem": "Alpine:v3.24",
+     "fixed": "8.23.0-r0",
+     "id": "CVE-2026-87864",
+     "installed": [
+      "8.22.0-r0"
+     ],
+     "locations": [],
+     "modified": "2026-10-31",
+     "names": [
+      "CVE-2026-87864"
+     ],
+     "pkg": "libcurl",
+     "published": "2026-10-20",
+     "relationship": null,
+     "severity": "LOW",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-chat-themes-0.21.0"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [
+      "ALPINE-CVE-2026-87865"
+     ],
+     "class": "os",
+     "cvss": {
+      "score": 3.7,
+      "source": "redhat",
+      "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N"
+     },
+     "dev": false,
+     "ecosystem": "Alpine:v3.24",
+     "fixed": "8.23.0-r0",
+     "id": "CVE-2026-87865",
+     "installed": [
+      "8.22.0-r0"
+     ],
+     "locations": [],
+     "modified": "2026-10-31",
+     "names": [
+      "CVE-2026-87865"
+     ],
+     "pkg": "libcurl",
+     "published": "2026-10-20",
+     "relationship": null,
+     "severity": "LOW",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-chat-themes-0.21.0"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [
+      "ALPINE-CVE-2026-87866"
+     ],
+     "class": "os",
+     "cvss": {
+      "score": 3.7,
+      "source": "redhat",
+      "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N"
+     },
+     "dev": false,
+     "ecosystem": "Alpine:v3.24",
+     "fixed": "8.23.0-r0",
+     "id": "CVE-2026-87866",
+     "installed": [
+      "8.22.0-r0"
+     ],
+     "locations": [],
+     "modified": "2026-10-30",
+     "names": [
+      "CVE-2026-87866"
+     ],
+     "pkg": "libcurl",
+     "published": "2026-10-20",
+     "relationship": null,
+     "severity": "LOW",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-chat-themes-0.21.0"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [
+      "ALPINE-CVE-2026-92386"
+     ],
+     "class": "os",
+     "cvss": {
+      "score": 4.3,
+      "source": "redhat",
+      "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:N/I:N/A:L"
+     },
+     "dev": false,
+     "ecosystem": "Alpine:v3.24",
+     "fixed": "8.23.0-r0",
+     "id": "CVE-2026-92386",
+     "installed": [
+      "8.22.0-r0"
+     ],
+     "locations": [],
+     "modified": "2026-10-30",
+     "names": [
+      "CVE-2026-92386"
+     ],
+     "pkg": "libcurl",
+     "published": "2026-10-20",
+     "relationship": null,
+     "severity": "LOW",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-chat-themes-0.21.0"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [
+      "ALPINE-CVE-2026-92387"
+     ],
+     "class": "os",
+     "cvss": {
+      "score": 3.7,
+      "source": "redhat",
+      "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:N/A:L"
+     },
+     "dev": false,
+     "ecosystem": "Alpine:v3.24",
+     "fixed": "8.23.0-r0",
+     "id": "CVE-2026-92387",
+     "installed": [
+      "8.22.0-r0"
+     ],
+     "locations": [],
+     "modified": "2026-10-30",
+     "names": [
+      "CVE-2026-92387"
+     ],
+     "pkg": "libcurl",
+     "published": "2026-10-20",
+     "relationship": null,
+     "severity": "LOW",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-chat-themes-0.21.0"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [
+      "ALPINE-CVE-2026-92388"
+     ],
+     "class": "os",
+     "cvss": {
+      "score": 6.5,
+      "source": "redhat",
+      "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:H"
+     },
+     "dev": false,
+     "ecosystem": "Alpine:v3.24",
+     "fixed": "8.23.0-r0",
+     "id": "CVE-2026-92388",
+     "installed": [
+      "8.22.0-r0"
+     ],
+     "locations": [],
+     "modified": "2026-10-31",
+     "names": [
+      "CVE-2026-92388"
+     ],
+     "pkg": "libcurl",
+     "published": "2026-10-20",
+     "relationship": null,
+     "severity": "MEDIUM",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-chat-themes-0.21.0"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [
+      "ALPINE-CVE-2026-92389"
+     ],
+     "class": "os",
+     "cvss": {
+      "score": 3.7,
+      "source": "redhat",
+      "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:N/A:N"
+     },
+     "dev": false,
+     "ecosystem": "Alpine:v3.24",
+     "fixed": "8.23.0-r0",
+     "id": "CVE-2026-92389",
+     "installed": [
+      "8.22.0-r0"
+     ],
+     "locations": [],
+     "modified": "2026-10-31",
+     "names": [
+      "CVE-2026-92389"
+     ],
+     "pkg": "libcurl",
+     "published": "2026-10-20",
+     "relationship": null,
+     "severity": "LOW",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-chat-themes-0.21.0"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [
+      "ALPINE-CVE-2026-92390"
+     ],
+     "class": "os",
+     "cvss": {
+      "score": 6.5,
+      "source": "redhat",
+      "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:N/I:H/A:N"
+     },
+     "dev": false,
+     "ecosystem": "Alpine:v3.24",
+     "fixed": "8.23.0-r0",
+     "id": "CVE-2026-92390",
+     "installed": [
+      "8.22.0-r0"
+     ],
+     "locations": [],
+     "modified": "2026-10-31",
+     "names": [
+      "CVE-2026-92390"
+     ],
+     "pkg": "libcurl",
+     "published": "2026-10-20",
+     "relationship": null,
+     "severity": "LOW",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-chat-themes-0.21.0"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [
+      "ALPINE-CVE-2026-92391"
+     ],
+     "class": "os",
+     "cvss": {
+      "score": 3.7,
+      "source": "redhat",
+      "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:N/A:L"
+     },
+     "dev": false,
+     "ecosystem": "Alpine:v3.24",
+     "fixed": "8.23.0-r0",
+     "id": "CVE-2026-92391",
+     "installed": [
+      "8.22.0-r0"
+     ],
+     "locations": [],
+     "modified": "2026-10-31",
+     "names": [
+      "CVE-2026-92391"
+     ],
+     "pkg": "libcurl",
+     "published": "2026-10-20",
+     "relationship": null,
+     "severity": "LOW",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-chat-themes-0.21.0"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [
+      "ALPINE-CVE-2026-92392"
+     ],
+     "class": "os",
+     "cvss": {
+      "score": 8.1,
+      "source": "redhat",
+      "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H"
+     },
+     "dev": false,
+     "ecosystem": "Alpine:v3.24",
+     "fixed": "8.23.0-r0, 8.14.1-r3, 8.14.1-r4",
+     "id": "CVE-2026-92392",
+     "installed": [
+      "8.22.0-r0"
+     ],
+     "locations": [],
+     "modified": "2026-10-25",
+     "names": [
+      "CVE-2026-92392"
+     ],
+     "pkg": "libcurl",
+     "published": "2026-10-14",
+     "relationship": null,
+     "severity": "HIGH",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-chat-themes-0.21.0"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [
+      "ALPINE-CVE-2026-94265"
+     ],
+     "class": "os",
+     "cvss": {
+      "score": 3.1,
+      "source": "redhat",
+      "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:U/C:L/I:N/A:N"
+     },
+     "dev": false,
+     "ecosystem": "Alpine:v3.24",
+     "fixed": "8.23.0-r0",
+     "id": "CVE-2026-94265",
+     "installed": [
+      "8.22.0-r0"
+     ],
+     "locations": [],
+     "modified": "2026-10-31",
+     "names": [
+      "CVE-2026-94265"
+     ],
+     "pkg": "libcurl",
+     "published": "2026-10-20",
+     "relationship": null,
+     "severity": "LOW",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-chat-themes-0.21.0"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [
+      "ALPINE-CVE-2026-94266"
+     ],
+     "class": "os",
+     "cvss": {
+      "score": 3.3,
+      "source": "redhat",
+      "vector": "CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:L/I:N/A:N"
+     },
+     "dev": false,
+     "ecosystem": "Alpine:v3.24",
+     "fixed": "8.23.0-r0",
+     "id": "CVE-2026-94266",
+     "installed": [
+      "8.22.0-r0"
+     ],
+     "locations": [],
+     "modified": "2026-10-31",
+     "names": [
+      "CVE-2026-94266"
+     ],
+     "pkg": "libcurl",
+     "published": "2026-10-20",
+     "relationship": null,
+     "severity": "LOW",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-chat-themes-0.21.0"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [
+      "ALPINE-CVE-2026-102633"
+     ],
+     "class": "os",
+     "cvss": {
+      "score": 5.9,
+      "source": "redhat",
+      "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:N/A:H"
+     },
+     "dev": false,
+     "ecosystem": "Alpine:v3.24",
+     "fixed": "2.9.0-r0",
+     "id": "CVE-2026-102633",
+     "installed": [
+      "2.8.5-r0"
+     ],
+     "locations": [],
+     "modified": "2026-10-18",
+     "names": [
+      "CVE-2026-102633"
+     ],
+     "pkg": "libexpat",
+     "published": "2026-09-29",
+     "relationship": null,
+     "severity": "MEDIUM",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-chat-themes-0.21.0"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [
+      "ALPINE-CVE-2026-113351"
+     ],
+     "class": "os",
+     "cvss": {
+      "score": null,
+      "source": "osv",
+      "vector": "CVSS:4.0/AV:N/AC:L/AT:P/PR:N/UI:N/VC:N/VI:N/VA:H/SC:N/SI:N/SA:N/E:X/CR:X/IR:X/AR:X/MAV:X/MAC:X/MAT:X/MPR:X/MUI:X/MVC:X/MVI:X/MVA:X/MSC:X/MSI:X/MSA:X/S:X/AU:X/R:X/V:X/RE:X/U:X"
+     },
+     "dev": false,
+     "ecosystem": "Alpine:v3.24",
+     "fixed": "2.10.0-r0",
+     "id": "CVE-2026-113351",
+     "installed": [
+      "2.8.5-r0"
+     ],
+     "locations": [],
+     "modified": "2026-11-02",
+     "names": [
+      "CVE-2026-113351"
+     ],
+     "pkg": "libexpat",
+     "published": "2026-10-20",
+     "relationship": null,
+     "severity": "UNKNOWN",
+     "sources": [
+      "osv"
+     ],
+     "where": [
+      "ai-dial-chat-themes-0.21.0"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [
+      "ALPINE-CVE-2026-115506"
+     ],
+     "class": "os",
+     "cvss": {
+      "score": null,
+      "source": "osv",
+      "vector": "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:N/VI:N/VA:H/SC:N/SI:N/SA:N/E:X/CR:X/IR:X/AR:X/MAV:X/MAC:X/MAT:X/MPR:X/MUI:X/MVC:X/MVI:X/MVA:X/MSC:X/MSI:X/MSA:X/S:X/AU:X/R:X/V:X/RE:X/U:X"
+     },
+     "dev": false,
+     "ecosystem": "Alpine:v3.24",
+     "fixed": "2.10.0-r0",
+     "id": "CVE-2026-115506",
+     "installed": [
+      "2.8.5-r0"
+     ],
+     "locations": [],
+     "modified": "2026-11-02",
+     "names": [
+      "CVE-2026-115506"
+     ],
+     "pkg": "libexpat",
+     "published": "2026-10-22",
+     "relationship": null,
+     "severity": "UNKNOWN",
+     "sources": [
+      "osv"
+     ],
+     "where": [
+      "ai-dial-chat-themes-0.21.0"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [
+      "ALPINE-CVE-2026-117610"
+     ],
+     "class": "os",
+     "cvss": {
+      "score": null,
+      "source": "osv",
+      "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:N/A:H"
+     },
+     "dev": false,
+     "ecosystem": "Alpine:v3.24",
+     "fixed": "2.10.0-r0",
+     "id": "CVE-2026-117610",
+     "installed": [
+      "2.8.5-r0"
+     ],
+     "locations": [],
+     "modified": "2026-11-02",
+     "names": [
+      "CVE-2026-117610"
+     ],
+     "pkg": "libexpat",
+     "published": "2026-10-28",
+     "relationship": null,
+     "severity": "UNKNOWN",
+     "sources": [
+      "osv"
+     ],
+     "where": [
+      "ai-dial-chat-themes-0.21.0"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [
+      "ALPINE-CVE-2026-118370"
+     ],
+     "class": "os",
+     "cvss": {
+      "score": null,
+      "source": "osv",
+      "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:N/A:H"
+     },
+     "dev": false,
+     "ecosystem": "Alpine:v3.24",
+     "fixed": "2.10.0-r0",
+     "id": "CVE-2026-118370",
+     "installed": [
+      "2.8.5-r0"
+     ],
+     "locations": [],
+     "modified": "2026-11-02",
+     "names": [
+      "CVE-2026-118370"
+     ],
+     "pkg": "libexpat",
+     "published": "2026-10-28",
+     "relationship": null,
+     "severity": "UNKNOWN",
+     "sources": [
+      "osv"
+     ],
+     "where": [
+      "ai-dial-chat-themes-0.21.0"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [
+      "ALPINE-CVE-2026-77214"
+     ],
+     "class": "os",
+     "cvss": {
+      "score": 8.2,
+      "source": "redhat",
+      "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:L"
+     },
+     "dev": false,
+     "ecosystem": "Alpine:v3.24",
+     "fixed": "2.9.0-r0",
+     "id": "CVE-2026-77214",
+     "installed": [
+      "2.8.5-r0"
+     ],
+     "locations": [],
+     "modified": "2026-10-18",
+     "names": [
+      "CVE-2026-77214"
+     ],
+     "pkg": "libexpat",
+     "published": "2026-10-07",
+     "relationship": null,
+     "severity": "HIGH",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-chat-themes-0.21.0"
+     ]
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,107 @@
+{
+ "repo": "epam/ai-dial-core",
+ "run_id": "41491236617",
+ "run_url": "https://github.com/vitado/ai-dial-core/actions/runs/41491236617",
+ "schema_version": 4,
+ "targets": [
+  {
+   "commit_sha": "e99be9b37e43526f90b3e771de0f6c858d5a3919",
+   "id": "source-development",
+   "image": null,
+   "image_digest": null,
+   "kind": "fs",
+   "os": null,
+   "packages_scanned": 332,
+   "reason": null,
+   "ref": "development",
+   "scanner": "trivy",
+   "status": "ok"
+  },
+  {
+   "commit_sha": null,
+   "id": "ai-dial-core-development",
+   "image": "epam/ai-dial-core",
+   "image_digest": "ghcr.io/epam/ai-dial-core@sha256:f184ae6562881b279008ca12d3e704193a13f289c7555d127c4d02b9ba7596f9",
+   "kind": "image",
+   "os": {
+    "eosl": false,
+    "family": "alpine",
+    "name": "3.24.3"
+   },
+   "packages_scanned": 334,
+   "reason": null,
+   "ref": "development",
+   "scanner": "trivy",
+   "status": "ok"
+  },
+  {
+   "commit_sha": "e99be9b37e43526f90b3e771de0f6c858d5a3919",
+   "id": "source-development",
+   "image": null,
+   "image_digest": null,
+   "kind": "fs",
+   "packages_scanned": 332,
+   "reason": null,
+   "ref": "development",
+   "scanner": "osv",
+   "status": "ok"
+  },
+  {
+   "commit_sha": null,
+   "id": "ai-dial-core-development",
+   "image": "epam/ai-dial-core",
+   "image_digest": null,
+   "kind": "image",
+   "packages_scanned": 385,
+   "reason": null,
+   "ref": "development",
+   "scanner": "osv",
+   "status": "ok"
+  }
+ ],
+ "versions": [
+  {
+   "counts": {
+    "all": 4,
+    "c": 0,
+    "fixable": 4,
+    "h": 0,
+    "l": 0,
+    "m": 0,
+    "unknown": 4
+   },
+   "kind": "development",
+   "latest": false,
+   "packages": [
+    {
+     "class": "lang",
+     "installed": [
+      "1.67.0"
+     ],
+     "pkg": "io.opentelemetry:opentelemetry-api",
+     "where": [
+      "ai-dial-core-development",
+      "source-development"
+     ]
+    },
+    {
+     "class": "os",
+     "installed": [
+      "1.2.1-r0"
+     ],
+     "pkg": "brotli-libs",
+     "where": [
+      "ai-dial-core-development"
+     ]
+    }
+   ],
+   "ref": "development",
+   "status": "ok",
+   "targets": [
+    "ai-dial-core-development",
+    "source-development"
+   ],
+   "vulns": []
+  }
+ ]
+}

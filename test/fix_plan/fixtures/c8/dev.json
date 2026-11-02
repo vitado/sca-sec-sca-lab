@@ -1,0 +1,85 @@
+{
+ "repo": "epam/ai-dial-admin-deployment-manager-backend",
+ "run_id": "41491270293",
+ "run_url": "https://github.com/vitado/ai-dial-admin-deployment-manager-backend/actions/runs/41491270293",
+ "schema_version": 4,
+ "targets": [
+  {
+   "commit_sha": "8dd56119c908dac381434afadb5ea551cf052bed",
+   "id": "source-development",
+   "image": null,
+   "image_digest": null,
+   "kind": "fs",
+   "os": null,
+   "packages_scanned": 446,
+   "reason": null,
+   "ref": "development",
+   "scanner": "trivy",
+   "status": "ok"
+  },
+  {
+   "commit_sha": null,
+   "id": "ai-dial-admin-deployment-manager-backend-development",
+   "image": "epam/ai-dial-admin-deployment-manager-backend",
+   "image_digest": "ghcr.io/epam/ai-dial-admin-deployment-manager-backend@sha256:1812c3ffcb0fdb85b1ad0e861c486d8eda0d3f1076888144b1292c8cd88f1976",
+   "kind": "image",
+   "os": {
+    "eosl": false,
+    "family": "alpine",
+    "name": "3.24.2"
+   },
+   "packages_scanned": 353,
+   "reason": null,
+   "ref": "development",
+   "scanner": "trivy",
+   "status": "ok"
+  },
+  {
+   "commit_sha": "8dd56119c908dac381434afadb5ea551cf052bed",
+   "id": "source-development",
+   "image": null,
+   "image_digest": null,
+   "kind": "fs",
+   "packages_scanned": 446,
+   "reason": null,
+   "ref": "development",
+   "scanner": "osv",
+   "status": "ok"
+  },
+  {
+   "commit_sha": null,
+   "id": "ai-dial-admin-deployment-manager-backend-development",
+   "image": "epam/ai-dial-admin-deployment-manager-backend",
+   "image_digest": null,
+   "kind": "image",
+   "packages_scanned": 463,
+   "reason": null,
+   "ref": "development",
+   "scanner": "osv",
+   "status": "ok"
+  }
+ ],
+ "versions": [
+  {
+   "counts": {
+    "all": 7,
+    "c": 0,
+    "fixable": 7,
+    "h": 3,
+    "l": 0,
+    "m": 2,
+    "unknown": 2
+   },
+   "kind": "development",
+   "latest": false,
+   "packages": [],
+   "ref": "development",
+   "status": "ok",
+   "targets": [
+    "ai-dial-admin-deployment-manager-backend-development",
+    "source-development"
+   ],
+   "vulns": []
+  }
+ ]
+}
