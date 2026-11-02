@@ -1,0 +1,92 @@
+name: Apply SCA fixes
+description: Apply the automated items of one release line of a fix plan (Dependabot jobs, base image bump), prove them with a rescan and deliver them as one pull request (see fix_apply.py)
+
+inputs:
+  command:
+    description: "apply, publish or summary"
+    required: true
+  plan:
+    description: Path of fix-plan.json
+    required: true
+  branch:
+    description: Release branch of the plan line (apply, publish)
+    default: ""
+  tree:
+    description: Checked-out working tree of the branch (apply, publish)
+    default: "."
+  repo:
+    description: Repository (owner/name) the pull request is opened in (apply, publish)
+    default: ${{ github.repository }}
+  output-dir:
+    description: Directory for result.json and pr-body.md (apply, publish)
+    default: ""
+  results-dir:
+    description: Directory with the result.json files of the lines (summary)
+    default: ""
+  dependabot:
+    description: Path of the Dependabot CLI binary (apply)
+    default: ""
+  updater-images:
+    description: "JSON object: package manager -> updater image reference (apply)"
+    default: "{}"
+  proxy-image:
+    description: Dependabot proxy image reference (apply)
+    default: ""
+  lockfile-command:
+    description: Shell command that writes the Gradle lockfiles into the tree it runs in (apply, Gradle repositories)
+    default: ""
+  docker-build-args:
+    description: Docker build arguments for the image rescan, newline-separated (apply)
+    default: ""
+  dry-run:
+    description: Do everything except the push and the pull request (publish)
+    default: "false"
+  token:
+    description: Token for the Dependabot git source, the push and the pull request
+    default: ${{ github.token }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+      with:
+        python-version: "3.12"
+    - name: Run ${{ inputs.command }}
+      shell: bash
+      env:
+        ACTION_PATH: ${{ github.action_path }}
+        COMMAND: ${{ inputs.command }}
+        PLAN: ${{ inputs.plan }}
+        BRANCH: ${{ inputs.branch }}
+        TREE: ${{ inputs.tree }}
+        REPO: ${{ inputs.repo }}
+        OUTPUT_DIR: ${{ inputs.output-dir }}
+        RESULTS_DIR: ${{ inputs.results-dir }}
+        DEPENDABOT: ${{ inputs.dependabot }}
+        UPDATER_IMAGES: ${{ inputs.updater-images }}
+        PROXY_IMAGE: ${{ inputs.proxy-image }}
+        LOCKFILE_COMMAND: ${{ inputs.lockfile-command }}
+        DOCKER_BUILD_ARGS: ${{ inputs.docker-build-args }}
+        DRY_RUN: ${{ inputs.dry-run }}
+        GH_TOKEN: ${{ inputs.token }}
+      run: |
+        args=("$COMMAND" --plan "$PLAN")
+        case "$COMMAND" in
+          apply)
+            args+=(--branch "$BRANCH" --tree "$TREE" --repo "$REPO" --output-dir "$OUTPUT_DIR"
+              --dependabot "$DEPENDABOT" --updater-images "$UPDATER_IMAGES" --proxy-image "$PROXY_IMAGE"
+              --lockfile-command "$LOCKFILE_COMMAND")
+            while IFS= read -r arg; do
+              [ -n "$arg" ] && args+=(--docker-build-arg "$arg")
+            done <<< "$DOCKER_BUILD_ARGS"
+            ;;
+          publish)
+            args+=(--branch "$BRANCH" --tree "$TREE" --repo "$REPO" --output-dir "$OUTPUT_DIR")
+            [ "$DRY_RUN" = "true" ] && args+=(--dry-run)
+            ;;
+          summary)
+            args+=(--results-dir "$RESULTS_DIR")
+            ;;
+        esac
+        python "$ACTION_PATH/fix_apply.py" "${args[@]}"

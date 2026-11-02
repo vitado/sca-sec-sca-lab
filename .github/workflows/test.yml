@@ -26,3 +26,5 @@ jobs:
         run: python -m pytest test/sca
       - name: Run fix planner tests
         run: python -m pytest test/fix_plan
+      - name: Run fix applier tests
+        run: python -m pytest test/fix_apply
