@@ -69,7 +69,8 @@ def publish(
     token: str,
 ) -> dict[str, Any]:
     """Force-push ``sca-fix/<branch>`` with one commit of ``files`` on the tip of the
-    branch; update the open pull request from it or create one.
+    branch and open or update the pull request. The branch stays pushed when the pull
+    request cannot be opened (the result says ``failed`` with the reason).
     """
     head = f"sca-fix/{branch}"
     run(["git", "checkout", "-B", head], tree)
@@ -88,6 +89,16 @@ def publish(
         tree,
     )
     run(["git", "push", "--force", "origin", f"HEAD:refs/heads/{head}"], tree)
+    try:
+        return open_pull_request(repo, branch, head, title, body_file, token)
+    except PublishError as exc:
+        return {"head": head, "action": "failed", "reason": str(exc)}
+
+
+def open_pull_request(
+    repo: str, branch: str, head: str, title: str, body_file: Path, token: str
+) -> dict[str, Any]:
+    """Update the open pull request from ``head`` or create one."""
     found = json.loads(
         run(
             [

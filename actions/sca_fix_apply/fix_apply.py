@@ -98,7 +98,7 @@ def cmd_publish(args: argparse.Namespace) -> int:
             return 1
     write_json(args.output_dir / "result.json", result)
     print(json.dumps(result["pr"]))
-    return 0
+    return 1 if result["pr"]["action"] == "failed" else 0
 
 
 def cmd_summary(args: argparse.Namespace) -> int:

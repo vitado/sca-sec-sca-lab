@@ -94,6 +94,8 @@ def pr_note(result: Mapping[str, Any]) -> str:
         return "not published"
     if pr["action"] == "none":
         return f"no pull request: {pr['reason']}"
+    if pr["action"] == "failed":
+        return f"branch {pr['head']} pushed, pull request failed: {pr['reason']}"
     return f"pull request {pr['action']}: {pr['url']}"
 
 
