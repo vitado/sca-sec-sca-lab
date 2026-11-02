@@ -17,8 +17,10 @@ def target(
     image: str | None = None,
     packages: int = 10,
     status: str = "ok",
+    commit_sha: str | None = None,
 ) -> dict[str, Any]:
     return {
+        "commit_sha": commit_sha,
         "id": id,
         "scanner": "trivy",
         "kind": kind,

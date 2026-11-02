@@ -28,6 +28,7 @@ VersionKey = tuple[tuple[int, ...], int, int, int, str]
 
 _VERSION = re.compile(r"^v?(\d+(?:\.\d+)*)(.*)$", re.DOTALL)
 _ALPINE_REVISION = re.compile(r"^-r(\d+)$")
+_LINE_REF = re.compile(r"^(\d+)\.(\d+)\.(\d+)(?:[-+].*)?$")
 _QUALIFIER = re.compile(r"^([-._]?)([A-Za-z]+)[-._]?(\d*)(.*)$", re.DOTALL)
 
 _DEV, _PRE, _RELEASE, _POST = 0, 1, 5, 6
@@ -86,6 +87,16 @@ def version_key(version: str) -> VersionKey:
             raise VersionError(version)
         return release, _PRE, 0, 0, rest.lower()
     return release, stage, int(number or 0), 0, tail.lower()
+
+
+def line_of(ref: str) -> tuple[int, int] | None:
+    """The release line ``(major, minor)`` of a ref ``X.Y.Z`` or ``X.Y.Z-suffix``, or
+    None for a ref that is not one.
+    """
+    match = _LINE_REF.match(ref)
+    if match is None:
+        return None
+    return int(match.group(1)), int(match.group(2))
 
 
 def compare(left: str, right: str) -> int:

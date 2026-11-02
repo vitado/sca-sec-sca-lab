@@ -10,11 +10,10 @@ from typing import Any
 
 from config import Config
 from reports import ReportError, Reports, Version
-from versions import VersionError, compare, major, version_key
+from versions import VersionError, compare, line_of, major, version_key
 
 SCHEMA_VERSION = 1
 
-_LINE_REF = re.compile(r"^(\d+)\.(\d+)\.(\d+)(?:[-+].*)?$")
 _ECOSYSTEM_METHODS = {
     "npm": ("dependabot", "npm-override"),
     "PyPI": ("dependabot", "manual"),
@@ -60,17 +59,16 @@ def select_lines(
     for version in reports.versions:
         if version.kind not in ("release", "candidate"):
             continue
-        match = _LINE_REF.match(version.ref)
+        line = line_of(version.ref)
         try:
             key = version_key(version.ref)
         except VersionError:
-            match = None
-        if match is None:
+            line = None
+        if line is None:
             skipped.append(
                 {"ref": version.ref, "reason": "ref is not X.Y.Z or X.Y.Z-suffix"}
             )
             continue
-        line = (int(match.group(1)), int(match.group(2)))
         if line not in newest or key > version_key(newest[line].ref):
             newest[line] = version
     lines = sorted(newest.items(), key=lambda item: item[0], reverse=True)
