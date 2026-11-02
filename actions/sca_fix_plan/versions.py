@@ -15,8 +15,9 @@ would plan a downgrade or a version that does not fix anything.
   * ``Final``, ``GA``, ``RELEASE`` and no qualifier are the release; ``postN`` sorts
     after it. The Alpine revision ``-rN`` is compared numerically after the release
     part.
-  * Not understood: epochs, Debian and Ubuntu revisions (``1.2-3ubuntu1``), Alpine
-    suffixes such as ``_p1``, and any other qualifier word.
+  * Not understood: epochs, Debian and Ubuntu versions (``1.2-3ubuntu1``,
+    ``1.35+dfsg-3``), build metadata (``+build5``), Alpine suffixes such as
+    ``_p1``, and any other qualifier word.
 """
 
 from __future__ import annotations
@@ -68,7 +69,7 @@ def version_key(version: str) -> VersionKey:
     release = release_part(version)
     while len(release) > 1 and release[-1] == 0:
         release = release[:-1]
-    rest = match.group(2).split("+", 1)[0]
+    rest = match.group(2)
     if not rest:
         return release, _RELEASE, 0, 0, ""
     revision = _ALPINE_REVISION.match(rest)

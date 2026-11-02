@@ -41,7 +41,6 @@ def test_order(older: str, newer: str) -> None:
         ("4.2.16.Final", "4.2.16"),
         ("1.0-GA", "1.0"),
         ("3.5.8-r0", "3.5.8"),
-        ("2.0.0+build5", "2.0.0"),
         ("v1.2.3", "1.2.3"),
     ],
 )
@@ -51,7 +50,17 @@ def test_equal(left: str, right: str) -> None:
 
 @pytest.mark.parametrize(
     "version",
-    ["", "latest", "1.2-3ubuntu1", "1:2.3", "1.2.3_p1", "10.2.4.jre11", "1.0foo"],
+    [
+        "",
+        "latest",
+        "1.2-3ubuntu1",
+        "1:2.3",
+        "1.2.3_p1",
+        "10.2.4.jre11",
+        "1.0foo",
+        "1.35+dfsg-3",
+        "2.0.0+build5",
+    ],
 )
 def test_not_understood(version: str) -> None:
     with pytest.raises(VersionError):
