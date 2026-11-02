@@ -208,6 +208,24 @@ def build_item(
             for r in sorted(records, key=lambda r: r["id"])
         ],
     }
+    if item["class"] == "os":
+        # a base image bump fixes it and the rescan proves it: distro versions are
+        # not compared, the fixed versions are information only
+        item["targets"] = [
+            {
+                "installed": current,
+                "target": None,
+                "fixed": sorted(
+                    {r["fixed"] for r in records if current in r["installed"]}
+                ),
+                "evidence": "base image bump, verified by rescan",
+            }
+            for current in installed
+        ]
+        item["method"], item["fallback"], item["reason"] = choose_method(
+            "os", item["ecosystem"], where, version, config
+        )
+        return item
     reason: str | None = None
     try:
         for current in installed:

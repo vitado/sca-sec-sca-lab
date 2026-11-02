@@ -304,6 +304,24 @@ def test_os_package_is_docker_tag() -> None:
     dev = development(targets=[target(DEV_IMAGE, "image", "app")])
     item = single(plan(dev, os_release()), "zlib")
     assert (item["method"], item["fallback"]) == ("docker-tag", "manual")
+    assert item["targets"] == [
+        {
+            "installed": "1.3.2-r0",
+            "target": None,
+            "fixed": ["1.3.2-r1"],
+            "evidence": "base image bump, verified by rescan",
+        }
+    ]
+
+
+def test_os_versions_are_not_compared() -> None:
+    rec = os_record()
+    rec.update(installed=["1:2.3-1ubuntu1"], fixed="1:2.3-1ubuntu2")
+    dev = development(targets=[target(DEV_IMAGE, "image", "app")])
+    rel = release(rec, targets=[target("image-app-1.2.3", "image", "app")])
+    item = single(plan(dev, rel), "zlib")
+    assert (item["method"], item["reason"]) == ("docker-tag", None)
+    assert item["targets"][0]["fixed"] == ["1:2.3-1ubuntu2"]
 
 
 def test_methods_gate() -> None:

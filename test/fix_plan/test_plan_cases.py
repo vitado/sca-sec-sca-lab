@@ -12,9 +12,12 @@ from cases import CASES, load_case
 
 DEV = "development runs "
 SAME_MAJOR = "lowest fixed version in the same major"
+BUMP = "base image bump, verified by rescan"
 
 # case -> package -> (targets, method, fallback, evidence or reason fragment)
-PLANNED: dict[str, dict[str, tuple[list[tuple[str, str]], str, str | None, str]]] = {
+PLANNED: dict[
+    str, dict[str, tuple[list[tuple[str, str | None]], str, str | None, str]]
+] = {
     "c1": {
         "@hono/node-server": ([("2.0.12", "2.1.5")], "dependabot", "npm-override", DEV)
     },
@@ -42,7 +45,7 @@ PLANNED: dict[str, dict[str, tuple[list[tuple[str, str]], str, str | None, str]]
             "manual",
             DEV,
         ),
-        "brotli-libs": ([("1.2.0-r1", "1.2.1-r0")], "docker-tag", "manual", DEV),
+        "brotli-libs": ([("1.2.0-r1", None)], "docker-tag", "manual", BUMP),
     },
     "c5": {
         "filelock": ([("3.32.7", "4.2.4")], "dependabot", "manual", DEV),
@@ -71,8 +74,8 @@ PLANNED: dict[str, dict[str, tuple[list[tuple[str, str]], str, str | None, str]]
         ),
     },
     "c8": {
-        "libcrypto3": ([("3.5.7-r0", "3.5.8-r0")], "docker-tag", "manual", SAME_MAJOR),
-        "libssl3": ([("3.5.7-r0", "3.5.8-r0")], "docker-tag", "manual", SAME_MAJOR),
+        "libcrypto3": ([("3.5.7-r0", None)], "docker-tag", "manual", BUMP),
+        "libssl3": ([("3.5.7-r0", None)], "docker-tag", "manual", BUMP),
     },
     "c9a": {},
     "c9b": {},
@@ -81,12 +84,12 @@ PLANNED: dict[str, dict[str, tuple[list[tuple[str, str]], str, str | None, str]]
         "next": ([("15.5.27", "15.5.28")], "dependabot", "npm-override", DEV),
     },
     "c11": {
-        "brotli-libs": ([("1.2.0-r1", "1.2.1-r0")], "docker-tag", "manual", DEV),
-        "curl": ([("8.22.0-r0", "8.23.0-r0")], "docker-tag", "manual", DEV),
-        "libcurl": ([("8.22.0-r0", "8.23.0-r0")], "docker-tag", "manual", DEV),
+        "brotli-libs": ([("1.2.0-r1", None)], "docker-tag", "manual", BUMP),
+        "curl": ([("8.22.0-r0", None)], "docker-tag", "manual", BUMP),
+        "libcurl": ([("8.22.0-r0", None)], "docker-tag", "manual", BUMP),
         # the spec expects "skipped: not fixed in development"; development is clean
         # of the records of the case (its libexpat findings are other, UNKNOWN ones)
-        "libexpat": ([("2.8.5-r0", "2.9.0-r0")], "docker-tag", "manual", DEV),
+        "libexpat": ([("2.8.5-r0", None)], "docker-tag", "manual", BUMP),
     },
     "c12": {
         "cryptography": ([("48.0.1", "50.0.0")], "dependabot", "manual", DEV),
