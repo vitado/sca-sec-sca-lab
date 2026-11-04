@@ -87,7 +87,8 @@ def satisfies(version: tuple[int, int, int], spec: str) -> bool:
 def detect_node(tree: Path, dockerfiles: Sequence[str]) -> tuple[str, str] | None:
     """The node version of the branch and where it came from: ``.nvmrc``,
     ``.node-version``, ``volta.node``, ``engines.node`` (the lowest LTS major that
-    satisfies it), the newest ``FROM node:`` of the Dockerfiles.
+    satisfies it), the newest ``FROM node:`` of the root Dockerfiles (``Dockerfile``,
+    ``Dockerfile.*``), then of the other Dockerfiles.
     """
 
     def text(name: str) -> str:
@@ -112,17 +113,22 @@ def detect_node(tree: Path, dockerfiles: Sequence[str]) -> tuple[str, str] | Non
                 (major, 999, 999), engines
             ):
                 return str(major), "package.json engines.node"
-    found = [
-        (numbers(m), m, name)
-        for name in dockerfiles
-        for m in re.findall(
-            r"(?im)^\s*FROM\s+(?:--\S+\s+)*node:v?(\d+(?:\.\d+){0,2})", text(name)
-        )
-    ]
-    if found:
+
+    def newest(names: Sequence[str]) -> tuple[str, str] | None:
+        found = [
+            (numbers(m), m, name)
+            for name in names
+            for m in re.findall(
+                r"(?im)^\s*FROM\s+(?:--\S+\s+)*node:v?(\d+(?:\.\d+){0,2})", text(name)
+            )
+        ]
+        if not found:
+            return None
         _, version, name = max(found)
         return version, name
-    return None
+
+    root = [n for n in dockerfiles if "/" not in n]
+    return newest(root) or newest([n for n in dockerfiles if n not in root])
 
 
 def skip(text: str, i: int) -> int:

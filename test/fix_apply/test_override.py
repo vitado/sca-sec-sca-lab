@@ -124,6 +124,17 @@ def test_node_version_sources_in_order(tmp_path: Path) -> None:
     assert detect_node(tmp_path, docker) == ("22", ".nvmrc")
 
 
+def test_node_version_prefers_root_dockerfile(tmp_path: Path) -> None:
+    write(tmp_path, "apps/sandbox/Dockerfile", "FROM node:24.22.2-alpine\n")
+    write(tmp_path, "Dockerfile.prod", "FROM node:20.11\n")
+    write(tmp_path, "Dockerfile", "FROM node:18\n")
+    docker = ["Dockerfile", "Dockerfile.prod", "apps/sandbox/Dockerfile"]
+    assert detect_node(tmp_path, docker) == ("20.11", "Dockerfile.prod")
+    assert detect_node(tmp_path, docker[2:]) == ("24.22.2", "apps/sandbox/Dockerfile")
+    write(tmp_path, "Dockerfile.prod", "FROM alpine\n")
+    assert detect_node(tmp_path, docker) == ("18", "Dockerfile")
+
+
 def test_node_version_not_found(tmp_path: Path) -> None:
     write(tmp_path, ".nvmrc", "lts/*\n")
     write(tmp_path, "package.json", '{"engines": {"node": "<10"}}')
