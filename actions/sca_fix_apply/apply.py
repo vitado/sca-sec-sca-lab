@@ -8,11 +8,36 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from dependabot import JobError, Outcome, docker_job, job_directories, security_job
+from dependabot import (
+    TIMEOUT,
+    JobError,
+    Outcome,
+    docker_job,
+    job_directories,
+    security_job,
+)
 from files import Journal
-from scan import Finding, ScanError, gate, new_serious
+from override import (
+    LOCKFILE,
+    OverrideError,
+    add_overrides,
+    changed_other,
+    detect_node,
+    lock_format,
+    numbers,
+    same_line,
+)
+from scan import NOT_IN_BASELINE, Finding, ScanError, gate, new_serious
 
-OVERRIDE_NOT_IMPLEMENTED = "npm-override not implemented yet (P3)"
+NOT_NEEDED = "security_update_not_needed"
+# What Dependabot says when it cannot make the change: the npm items go on to the
+# override step. Not "not needed" (already fixed) and not a failed rescan.
+FALLBACK_ON = {
+    "security_update_not_possible",
+    "security_update_dependency_not_found",
+    "dependabot produced no change",
+    TIMEOUT,
+}
 
 
 @dataclass(frozen=True)
@@ -24,6 +49,9 @@ class Tools:
     dependabot: Callable[[Mapping[str, Any], str], Outcome]
     scan_tree: Callable[[], set[Finding]]
     scan_image: Callable[[Path, str], set[Finding]]
+    npm_install: Callable[[], str | None]
+    npm_ls: Callable[[str], list[tuple[str, str]]]
+    npm_version: Callable[[], str]
 
 
 def dockerfiles(tree: Path) -> list[str]:
@@ -65,15 +93,20 @@ def new_record(item: Mapping[str, Any]) -> dict[str, Any]:
     }
 
 
-def fail(
-    record: dict[str, Any], item: Mapping[str, Any], reason: str
-) -> dict[str, Any]:
-    """The item stays a recommendation. An npm item would go on to the override step
-    (not built yet); the Dependabot reason is kept either way.
+def fail(record: dict[str, Any], reason: str) -> dict[str, Any]:
+    """The item stays a recommendation (an npm item may still go to the override
+    step, which looks at the detail).
     """
-    record["detail"] = reason
-    record["reason"] = (
-        OVERRIDE_NOT_IMPLEMENTED if item["fallback"] == "npm-override" else reason
+    record["detail"] = record["reason"] = reason
+    return record
+
+
+def already_fixed(record: dict[str, Any], why: str) -> dict[str, Any]:
+    """Nothing to apply: the branch no longer has the vulnerabilities."""
+    record.update(
+        status="already_fixed",
+        detail=why,
+        reason=f"already fixed on the branch ({why})",
     )
     return record
 
@@ -91,7 +124,7 @@ def apply_security(
     try:
         manager, directories = job_directories(journal.tree, item)
     except JobError as exc:
-        return fail(record, item, str(exc)), current
+        return fail(record, str(exc)), current
     record["package_manager"], record["directories"] = manager, directories
     outcome = tools.dependabot(
         security_job(item, manager, repo, branch, directories), manager
@@ -100,22 +133,108 @@ def apply_security(
     checkpoint = journal.checkpoint()
     changed, left_out = journal.apply(outcome.files)
     if not changed:
-        return fail(
-            record, item, outcome.error or "dependabot produced no change"
-        ), current
+        if outcome.error == NOT_NEEDED:
+            return already_fixed(record, NOT_NEEDED), current
+        return fail(record, outcome.error or "dependabot produced no change"), current
     record["changes"], record["left_out"] = changes(outcome), left_out
     try:
         after = tools.scan_tree()
     except ScanError as exc:
         journal.restore(checkpoint)
         record["reverted"] = True
-        return fail(record, item, f"rescan failed: {exc}"), current
+        return fail(record, f"rescan failed: {exc}"), current
     why = gate(item, current, after, baseline)
     if why:
         journal.restore(checkpoint)
         record["reverted"] = True
-        return fail(record, item, f"rescan gate: {why}"), current
+        if why == NOT_IN_BASELINE:
+            return already_fixed(record, why), current
+        return fail(record, f"rescan gate: {why}"), current
     record.update(status="applied", reason=None, files=changed)
+    return record, after
+
+
+def apply_override(
+    item: Mapping[str, Any],
+    record: dict[str, Any],
+    journal: Journal,
+    tools: Tools,
+    baseline: set[Finding],
+    current: set[Finding],
+    node: tuple[str, str] | None,
+) -> tuple[dict[str, Any], set[Finding]]:
+    """The npm-override step for an item Dependabot could not fix: overrides in the
+    root ``package.json``, the lockfile updated by npm, the installed copies
+    checked, then the rescan gate. Any failure puts the files back.
+    """
+    pkg, tree = item["pkg"], journal.tree
+    record["dependabot_result"] = record["detail"]
+
+    def manual(reason: str) -> tuple[dict[str, Any], set[Finding]]:
+        record["reason"] = reason
+        return record, current
+
+    def revert(reason: str) -> tuple[dict[str, Any], set[Finding]]:
+        journal.restore(checkpoint)
+        record["reverted"] = True
+        return manual(reason)
+
+    def read(name: str) -> str:
+        return (tree / name).read_bytes().decode("utf-8")
+
+    if item["relationship"] == "direct":
+        return manual("direct dependency: an override would conflict with its spec")
+    if LOCKFILE not in item["locations"] or not (tree / "package.json").is_file():
+        return manual("no package.json and package-lock.json at the root")
+    if node is None:
+        return manual("node version of the branch not found")
+    record["node_version"], record["node_source"] = node
+    pairs = [(t["installed"], t["target"]) for t in item["targets"] if t["target"]]
+    checkpoint = journal.checkpoint()
+    package, lock = read("package.json"), read(LOCKFILE)
+    try:
+        edited, record["override_keys"] = add_overrides(package, pkg, pairs)
+    except (OverrideError, ValueError) as exc:
+        return manual(str(exc))
+    journal.write("package.json", edited)
+    journal.write(LOCKFILE, lock)
+    record["npm_version"] = tools.npm_version()
+    error = tools.npm_install()
+    if error:
+        return revert(error)
+    after_lock = read(LOCKFILE)
+    if lock_format(after_lock) != lock_format(lock):
+        return revert(f"npm {record['npm_version']} would rewrite the lockfile format")
+    try:
+        copies = tools.npm_ls(pkg)
+    except OverrideError as exc:
+        return revert(str(exc))
+    short = [
+        path
+        for path, version in copies
+        for _, target in pairs
+        if same_line(version, target) and numbers(version) < numbers(target)
+    ]
+    if short:
+        return revert(f"override did not reach {short[0]}")
+    try:
+        after = tools.scan_tree()
+    except ScanError as exc:
+        return revert(f"rescan failed: {exc}")
+    why = gate(item, current, after, baseline)
+    if why:
+        journal.restore(checkpoint)
+        record["reverted"] = True
+        if why == NOT_IN_BASELINE:
+            return already_fixed(record, why), current
+        return manual(f"rescan gate: {why}")
+    record.update(
+        status="applied",
+        reason=None,
+        files=["package.json", LOCKFILE],
+        method_used="npm-override",
+        changed_other=changed_other(lock, after_lock, pkg),
+    )
     return record, after
 
 
@@ -197,7 +316,9 @@ def apply_docker(
             if serious
             else gate(item, before, after, before)
         )
-        if why:
+        if why == NOT_IN_BASELINE:
+            already_fixed(record, why)
+        elif why:
             record["reason"] = f"image rescan gate: {why}"
         else:
             record.update(
@@ -231,6 +352,18 @@ def process_line(
             )
         elif item["method"] != "docker-tag":
             records[index] = new_record(item)
+    due = [
+        i
+        for i, record in records.items()
+        if items[i]["fallback"] == "npm-override"
+        and record["status"] == "manual"
+        and record.get("detail") in FALLBACK_ON
+    ]
+    node = detect_node(tree, dockerfiles(tree)) if due else None
+    for i in due:
+        records[i], current = apply_override(
+            items[i], records[i], journal, tools, baseline, current, node
+        )
     docker = [
         (i, item) for i, item in enumerate(items) if item["method"] == "docker-tag"
     ]

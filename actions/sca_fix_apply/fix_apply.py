@@ -6,6 +6,8 @@
            ``pr-body.md``
   publish  commit the applied files, force-push ``sca-fix/<branch>`` and open or
            update the pull request (nothing when nothing was applied or on a dry run)
+  node     the node version of the branch (workflow output ``version`` and ``source``,
+           empty when none is found)
   summary  the job summary of all lines of a plan from the result files
 
 Standard library only; it reads the plan of ``sca_fix_plan`` as JSON and shares no
@@ -23,8 +25,9 @@ from functools import partial
 from pathlib import Path
 from typing import Any
 
-from apply import Tools, process_line
+from apply import Tools, dockerfiles, process_line
 from dependabot import JobError, Outcome, Settings, run_job
+from override import detect_node, npm_install, npm_ls, npm_version
 from publish import PublishError, baseline_ci, publish
 from scan import ScanError, scan_image, scan_tree
 from texts import pr_body, summary
@@ -51,7 +54,11 @@ def cmd_apply(args: argparse.Namespace) -> int:
     line = plan_line(plan, args.branch)
     token = os.environ.get("GH_TOKEN", "")
     settings = Settings(
-        args.dependabot, json.loads(args.updater_images), args.proxy_image, token
+        args.dependabot,
+        json.loads(args.updater_images),
+        args.proxy_image,
+        token,
+        round(args.dependabot_timeout_minutes * 60),
     )
     tree = args.tree.resolve()
 
@@ -62,6 +69,9 @@ def cmd_apply(args: argparse.Namespace) -> int:
         dependabot=dependabot,
         scan_tree=partial(scan_tree, tree, args.lockfile_command),
         scan_image=partial(scan_image, build_args=args.docker_build_arg),
+        npm_install=partial(npm_install, tree),
+        npm_ls=partial(npm_ls, tree),
+        npm_version=npm_version,
     )
     try:
         result = process_line(line, args.repo, tree, tools)
@@ -102,6 +112,22 @@ def cmd_publish(args: argparse.Namespace) -> int:
     return 1 if result["pr"]["action"] == "failed" else 0
 
 
+def cmd_node(args: argparse.Namespace) -> int:
+    tree = args.tree.resolve()
+    found = (
+        detect_node(tree, dockerfiles(tree))
+        if (tree / "package.json").is_file()
+        else None
+    )
+    version, source = found or ("", "")
+    print(f"node version: {version or 'not found'} ({source})")
+    target = os.environ.get("GITHUB_OUTPUT")
+    if target:
+        with open(target, "a", encoding="utf-8", newline="\n") as f:
+            f.write(f"version={version}\nsource={source}\n")
+    return 0
+
+
 def cmd_summary(args: argparse.Namespace) -> int:
     plan = read_json(args.plan)
     results = {}
@@ -139,6 +165,12 @@ def build_parser() -> argparse.ArgumentParser:
         help="shell command that writes the Gradle lockfiles into the tree it runs in",
     )
     apply_parser.add_argument("--docker-build-arg", action="append", default=[])
+    apply_parser.add_argument(
+        "--dependabot-timeout-minutes",
+        type=float,
+        default=8,
+        help="time limit of one Dependabot job; a timeout counts as 'cannot'",
+    )
     apply_parser.set_defaults(handler=cmd_apply)
     publish_parser = sub.add_parser("publish", parents=[plan, line])
     publish_parser.add_argument("--dry-run", action="store_true")
@@ -149,6 +181,9 @@ def build_parser() -> argparse.ArgumentParser:
         help="which token opens the pull request, as the summary tells it",
     )
     publish_parser.set_defaults(handler=cmd_publish)
+    node_parser = sub.add_parser("node")
+    node_parser.add_argument("--tree", required=True, type=Path)
+    node_parser.set_defaults(handler=cmd_node)
     summary_parser = sub.add_parser("summary", parents=[plan])
     summary_parser.add_argument("--results-dir", required=True, type=Path)
     summary_parser.set_defaults(handler=cmd_summary)

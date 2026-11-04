@@ -27,6 +27,7 @@ TRIVY_ENV = {
     "TRIVY_DISABLE_VEX_NOTICE": "true",
 }
 SERIOUS = ("HIGH", "CRITICAL")
+NOT_IN_BASELINE = "the item's vulnerabilities are not in the baseline scan"
 
 
 class ScanError(RuntimeError):
@@ -135,7 +136,7 @@ def gate(
     scan of the untouched branch: the change must not bring a new serious one.
     """
     if not present(item, before):
-        return "the item's vulnerabilities are not in the baseline scan"
+        return NOT_IN_BASELINE
     left = present(item, after)
     if left:
         return "still present after the change: " + ", ".join(

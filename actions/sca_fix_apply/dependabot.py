@@ -33,6 +33,7 @@ MANIFESTS = {
 GENERATED_LOCKFILE = "gradle.lockfile"
 GRADLE_BUILD_FILES = ("build.gradle", "build.gradle.kts")
 JOB_TIMEOUT = 3600
+TIMEOUT = "dependabot_timeout"  # the error of a job that hit its time limit
 
 
 class JobError(RuntimeError):
@@ -47,6 +48,7 @@ class Settings:
     updater_images: Mapping[str, str]
     proxy_image: str
     token: str = field(default="", repr=False)
+    timeout: int = JOB_TIMEOUT
 
 
 @dataclass
@@ -180,6 +182,19 @@ def read_events(document: Mapping[str, Any]) -> Outcome:
     return outcome
 
 
+def remove_containers(*images: str) -> None:
+    """Stop what a killed CLI left running: the updater and proxy containers."""
+    filters = [x for image in images for x in ("--filter", f"ancestor={image}")]
+    ids = subprocess.run(
+        ["docker", "ps", "-aq", *filters], capture_output=True, check=False, text=True
+    ).stdout.split()
+    if ids:
+        subprocess.run(["docker", "rm", "-f", *ids], capture_output=True, check=False)
+    subprocess.run(
+        ["docker", "network", "prune", "-f"], capture_output=True, check=False
+    )
+
+
 def run_job(
     job: Mapping[str, Any], tree: Path, settings: Settings, manager: str
 ) -> Outcome:
@@ -203,27 +218,32 @@ def run_job(
             json.dumps({"job": job, "credentials": credentials}), encoding="utf-8"
         )
         started = time.monotonic()
-        done = subprocess.run(
-            [
-                settings.binary,
-                "update",
-                "-f",
-                str(job_file),
-                "-o",
-                str(out_file),
-                "--local",
-                str(tree),
-                "--updater-image",
-                image,
-                "--proxy-image",
-                settings.proxy_image,
-            ],
-            env={**os.environ, TOKEN_ENV: settings.token},
-            capture_output=True,
-            check=False,
-            text=True,
-            timeout=JOB_TIMEOUT,
-        )
+        command = [
+            settings.binary,
+            "update",
+            "-f",
+            str(job_file),
+            "-o",
+            str(out_file),
+            "--local",
+            str(tree),
+            "--updater-image",
+            image,
+            "--proxy-image",
+            settings.proxy_image,
+        ]
+        try:
+            done = subprocess.run(
+                command,
+                env={**os.environ, TOKEN_ENV: settings.token},
+                capture_output=True,
+                check=False,
+                text=True,
+                timeout=settings.timeout,
+            )
+        except subprocess.TimeoutExpired:
+            remove_containers(image, settings.proxy_image)
+            return Outcome(error=TIMEOUT, seconds=round(time.monotonic() - started))
         seconds = round(time.monotonic() - started)
         if not out_file.is_file():
             tail = (done.stderr or done.stdout).strip()[-500:]

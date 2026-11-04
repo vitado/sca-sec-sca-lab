@@ -1,10 +1,11 @@
-from collections.abc import Mapping
+import json
+from collections.abc import Callable, Mapping
 from pathlib import Path
 from typing import Any
 
-from apply import OVERRIDE_NOT_IMPLEMENTED, process_line
+from apply import Tools, process_line
 from builders import file, finding, item, line, outcome, tools
-from dependabot import Outcome
+from dependabot import TIMEOUT, Outcome
 from scan import Finding, ScanError
 
 
@@ -38,7 +39,7 @@ def test_applied_item(tmp_path: Path) -> None:
     assert result["baseline_findings"] == 1
 
 
-def test_no_change_is_manual_with_the_override_fallback(tmp_path: Path) -> None:
+def test_no_change_goes_on_to_the_override_step(tmp_path: Path) -> None:
     tree = lockfile_tree(tmp_path)
     result = process_line(
         line(item()),
@@ -48,9 +49,40 @@ def test_no_change_is_manual_with_the_override_fallback(tmp_path: Path) -> None:
     )
     record = result["items"][0]
     assert record["status"] == "manual"
-    assert record["reason"] == OVERRIDE_NOT_IMPLEMENTED
-    assert record["detail"] == "dependabot produced no change"
+    assert record["reason"] == "no package.json and package-lock.json at the root"
+    assert record["dependabot_result"] == "dependabot produced no change"
     assert result["files"] == []
+
+
+def test_not_needed_is_already_fixed_without_the_override_step(tmp_path: Path) -> None:
+    tree = lockfile_tree(tmp_path)
+    result = process_line(
+        line(item()),
+        "o/r",
+        tree,
+        tools(
+            lambda job, manager: outcome(error="security_update_not_needed"),
+            [{finding()}],
+        ),
+    )
+    record = result["items"][0]
+    assert record["status"] == "already_fixed"
+    assert "dependabot_result" not in record
+    assert "security_update_not_needed" in record["reason"]
+
+
+def test_gate_without_baseline_findings_is_already_fixed(tmp_path: Path) -> None:
+    tree = lockfile_tree(tmp_path)
+    result = process_line(
+        line(item()),
+        "o/r",
+        tree,
+        tools(lambda job, manager: outcome(file("new")), [set(), set()]),
+    )
+    record = result["items"][0]
+    assert record["status"] == "already_fixed"
+    assert record["reverted"] is True
+    assert (tree / "package-lock.json").read_text(encoding="utf-8") == "old"
 
 
 def test_dependabot_error_is_the_reason_without_a_fallback(tmp_path: Path) -> None:
@@ -97,12 +129,13 @@ def test_rescan_failure_reverts_the_item(tmp_path: Path) -> None:
         except StopIteration:
             raise ScanError("boom") from None
 
-    from apply import Tools
-
     fake = Tools(
         dependabot=lambda job, manager: outcome(file("new")),
         scan_tree=fail_second,
         scan_image=lambda t, p: set(),
+        npm_install=lambda: None,
+        npm_ls=lambda pkg: [],
+        npm_version=lambda: "10",
     )
     result = process_line(line(item()), "o/r", tree, fake)
     assert "rescan failed: boom" in result["items"][0]["detail"]
@@ -229,3 +262,158 @@ def test_docker_step_without_a_change(tmp_path: Path) -> None:
     )
     assert result["items"][0]["reason"] == "dependabot produced no change"
     assert result["docker"]["status"] == "none"
+
+
+PACKAGE = '{\n  "name": "app",\n  "version": "1.0.0"\n}\n'
+NODE = '{\n  "name": "app",\n  "engines": {\n    "node": ">=20"\n  }\n}\n'
+
+
+def lock(version: str, **extra: str) -> str:
+    packages: dict[str, Any] = {"": {"name": "app"}}
+    packages["node_modules/hono"] = {"version": version}
+    packages.update({f"node_modules/{n}": {"version": v} for n, v in extra.items()})
+    return json.dumps({"lockfileVersion": 3, "packages": packages}, indent=2) + "\n"
+
+
+def override_tree(tmp_path: Path, package: str = NODE) -> Path:
+    return tree_with(
+        tmp_path, **{"package.json": package, "package-lock.json": lock("2.0.12")}
+    )
+
+
+def run_override(
+    tree: Path,
+    scans: list[set[Finding]],
+    install: Callable[[], str | None] | None = None,
+    ls: Callable[[str], list[tuple[str, str]]] | None = None,
+    relationship: str = "indirect",
+) -> dict[str, Any]:
+    def write_lock() -> str | None:
+        text = lock("2.1.5", ms="1.0.1")
+        (tree / "package-lock.json").write_text(text, encoding="utf-8")
+        return None
+
+    one = item()
+    one["relationship"] = relationship
+    return process_line(
+        line(one),
+        "o/r",
+        tree,
+        tools(
+            lambda job, manager: outcome(error="security_update_not_possible"),
+            scans,
+            npm_install=install or write_lock,
+            npm_ls=ls or (lambda pkg: [("hono", "2.1.5")]),
+        ),
+    )
+
+
+def test_override_step_applies_and_proves(tmp_path: Path) -> None:
+    tree = override_tree(tmp_path)
+    result = run_override(tree, [{finding()}, set()])
+    record = result["items"][0]
+    assert record["status"] == "applied"
+    assert record["method_used"] == "npm-override"
+    assert record["override_keys"] == ["hono@^2.0.0"]
+    assert (record["node_version"], record["node_source"]) == (
+        "20",
+        "package.json engines.node",
+    )
+    assert record["changed_other"] == ["ms 1.0.1 (new)"]
+    assert record["dependabot_result"] == "security_update_not_possible"
+    assert result["files"] == ["package-lock.json", "package.json"]
+    written = (tree / "package.json").read_text(encoding="utf-8")
+    assert '"hono@^2.0.0": "^2.1.5"' in written
+
+
+def test_override_step_leaves_direct_dependencies_alone(tmp_path: Path) -> None:
+    tree = override_tree(tmp_path)
+    result = run_override(tree, [{finding()}], relationship="direct")
+    assert result["items"][0]["reason"].startswith("direct dependency")
+    assert result["files"] == []
+
+
+def test_override_step_needs_a_node_version(tmp_path: Path) -> None:
+    tree = override_tree(tmp_path, PACKAGE)
+    result = run_override(tree, [{finding()}])
+    assert result["items"][0]["reason"] == "node version of the branch not found"
+
+
+def test_npm_failure_reverts(tmp_path: Path) -> None:
+    tree = override_tree(tmp_path)
+
+    def broken() -> str | None:
+        (tree / "package-lock.json").write_text("{}", encoding="utf-8")
+        return "npm error code ERESOLVE"
+
+    result = run_override(tree, [{finding()}], install=broken)
+    record = result["items"][0]
+    assert record["reason"] == "npm error code ERESOLVE"
+    assert record["reverted"] is True
+    assert (tree / "package.json").read_text(encoding="utf-8") == NODE
+    assert (tree / "package-lock.json").read_text(encoding="utf-8") == lock("2.0.12")
+    assert result["files"] == []
+
+
+def test_lockfile_format_change_reverts(tmp_path: Path) -> None:
+    tree = override_tree(tmp_path)
+
+    def rewrite() -> str | None:
+        (tree / "package-lock.json").write_text(
+            '{"lockfileVersion": 2}', encoding="utf-8"
+        )
+        return None
+
+    record = run_override(tree, [{finding()}], install=rewrite)["items"][0]
+    assert record["reason"] == "npm 10.9.2 would rewrite the lockfile format"
+    assert (tree / "package-lock.json").read_text(encoding="utf-8") == lock("2.0.12")
+
+
+def test_copy_below_the_target_reverts(tmp_path: Path) -> None:
+    tree = override_tree(tmp_path)
+
+    def copies(pkg: str) -> list[tuple[str, str]]:
+        return [("a > hono", "2.1.5"), ("b > hono", "2.0.12")]
+
+    result = run_override(tree, [{finding()}], ls=copies)
+    assert result["items"][0]["reason"] == "override did not reach b > hono"
+    assert result["files"] == []
+    assert (tree / "package.json").read_text(encoding="utf-8") == NODE
+
+
+def test_failed_gate_reverts_the_override(tmp_path: Path) -> None:
+    tree = override_tree(tmp_path)
+    vuln = finding()
+    result = run_override(tree, [{vuln}, {vuln}])
+    record = result["items"][0]
+    assert record["reason"].startswith("rescan gate: still present")
+    assert record["reverted"] is True
+    assert result["files"] == []
+
+
+def test_existing_nested_override_stays_manual(tmp_path: Path) -> None:
+    package = (
+        '{\n  "overrides": {\n    "a": {\n      "hono": {"x": "1"}\n    }\n  },\n'
+        '  "engines": {"node": ">=20"}\n}\n'
+    )
+    tree = override_tree(tmp_path, package)
+    result = run_override(tree, [{finding()}])
+    reason = result["items"][0]["reason"]
+    assert reason == "existing override for hono needs a manual change"
+    assert (tree / "package.json").read_text(encoding="utf-8") == package
+
+
+def test_timeout_goes_on_to_the_override_step(tmp_path: Path) -> None:
+    tree = override_tree(tmp_path)
+    result = process_line(
+        line(item()),
+        "o/r",
+        tree,
+        tools(
+            lambda job, manager: outcome(error=TIMEOUT),
+            [{finding()}, set()],
+            npm_ls=lambda pkg: [("hono", "2.1.5")],
+        ),
+    )
+    assert result["items"][0]["status"] == "applied"
+    assert result["items"][0]["dependabot_result"] == TIMEOUT

@@ -93,6 +93,8 @@ def tools(
     dependabot: Callable[[Mapping[str, Any], str], Outcome],
     scans: list[set[Finding]],
     images: Callable[[Path, str], set[Finding]] | None = None,
+    npm_install: Callable[[], str | None] = lambda: None,
+    npm_ls: Callable[[str], list[tuple[str, str]]] = lambda pkg: [],
 ) -> Tools:
     """Fake tools: the tree scans answer from ``scans`` in order."""
     queue = list(scans)
@@ -100,4 +102,7 @@ def tools(
         dependabot=dependabot,
         scan_tree=lambda: queue.pop(0),
         scan_image=images or (lambda tree, path: set()),
+        npm_install=npm_install,
+        npm_ls=npm_ls,
+        npm_version=lambda: "10.9.2",
     )

@@ -3,11 +3,11 @@ description: Apply the automated items of one release line of a fix plan (Depend
 
 inputs:
   command:
-    description: "apply, publish or summary"
+    description: "apply, publish, node or summary"
     required: true
   plan:
-    description: Path of fix-plan.json
-    required: true
+    description: Path of fix-plan.json (apply, publish, summary)
+    default: ""
   branch:
     description: Release branch of the plan line (apply, publish)
     default: ""
@@ -38,6 +38,9 @@ inputs:
   docker-build-args:
     description: Docker build arguments for the image rescan, newline-separated (apply)
     default: ""
+  dependabot-timeout-minutes:
+    description: Time limit of one Dependabot job in minutes; a timeout counts as "Dependabot could not" and an npm item goes on to the override step (apply)
+    default: "8"
   dry-run:
     description: Do everything except the push and the pull request (publish)
     default: "false"
@@ -48,6 +51,14 @@ inputs:
     description: Token for the Dependabot git source, the push and the pull request
     default: ${{ github.token }}
 
+outputs:
+  version:
+    description: Node version of the branch, empty when none is found (node)
+    value: ${{ steps.run.outputs.version }}
+  source:
+    description: Where the node version was found (node)
+    value: ${{ steps.run.outputs.source }}
+
 runs:
   using: "composite"
   steps:
@@ -56,6 +67,7 @@ runs:
       with:
         python-version: "3.12"
     - name: Run ${{ inputs.command }}
+      id: run
       shell: bash
       env:
         ACTION_PATH: ${{ github.action_path }}
@@ -71,6 +83,7 @@ runs:
         PROXY_IMAGE: ${{ inputs.proxy-image }}
         LOCKFILE_COMMAND: ${{ inputs.lockfile-command }}
         DOCKER_BUILD_ARGS: ${{ inputs.docker-build-args }}
+        DEPENDABOT_TIMEOUT_MINUTES: ${{ inputs.dependabot-timeout-minutes }}
         DRY_RUN: ${{ inputs.dry-run }}
         TOKEN_KIND: ${{ inputs.token-kind }}
         GH_TOKEN: ${{ inputs.token }}
@@ -80,7 +93,7 @@ runs:
           apply)
             args+=(--branch "$BRANCH" --tree "$TREE" --repo "$REPO" --output-dir "$OUTPUT_DIR"
               --dependabot "$DEPENDABOT" --updater-images "$UPDATER_IMAGES" --proxy-image "$PROXY_IMAGE"
-              --lockfile-command "$LOCKFILE_COMMAND")
+              --lockfile-command "$LOCKFILE_COMMAND" --dependabot-timeout-minutes "$DEPENDABOT_TIMEOUT_MINUTES")
             while IFS= read -r arg; do
               [ -n "$arg" ] && args+=(--docker-build-arg "$arg")
             done <<< "$DOCKER_BUILD_ARGS"
@@ -89,6 +102,9 @@ runs:
             args+=(--branch "$BRANCH" --tree "$TREE" --repo "$REPO" --output-dir "$OUTPUT_DIR")
             args+=(--token-kind "$TOKEN_KIND")
             [ "$DRY_RUN" = "true" ] && args+=(--dry-run)
+            ;;
+          node)
+            args=(node --tree "$TREE")
             ;;
           summary)
             args+=(--results-dir "$RESULTS_DIR")

@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Any
 
 import fix_apply
+import pytest
 from builders import item, line
 from texts import pr_body, summary
 
@@ -117,3 +118,35 @@ def test_dry_run_publishes_nothing(tmp_path: Path) -> None:
     )
     written = json.loads((tmp_path / "result.json").read_text(encoding="utf-8"))
     assert written["pr"]["reason"] == "dry run"
+
+
+def test_pr_body_shows_overrides_and_already_fixed_items() -> None:
+    applied = {
+        **result()["items"][0],
+        "pkg": "follow-redirects",
+        "method_used": "npm-override",
+        "override_keys": ["follow-redirects@^1.0.0"],
+        "changed_other": ["ms 1.0.0 -> 1.0.1"],
+        "changes": [],
+    }
+    fixed = {
+        **applied,
+        "pkg": "hono",
+        "status": "already_fixed",
+        "reason": "already fixed on the branch (x)",
+    }
+    body = pr_body(line(item()), result(items=[applied, fixed]), "success")
+    assert "| follow-redirects | follow-redirects@^1.0.0 | ms 1.0.0 -> 1.0.1 |" in body
+    assert "- hono: already fixed on the branch (x)" in body
+    assert "Not applied" not in body
+
+
+def test_node_command_writes_the_workflow_outputs(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    (tmp_path / "package.json").write_text("{}", encoding="utf-8")
+    (tmp_path / ".nvmrc").write_text("22\n", encoding="utf-8")
+    out = tmp_path / "out.txt"
+    monkeypatch.setenv("GITHUB_OUTPUT", str(out))
+    assert fix_apply.main(["node", "--tree", str(tmp_path)]) == 0
+    assert out.read_text(encoding="utf-8") == "version=22\nsource=.nvmrc\n"

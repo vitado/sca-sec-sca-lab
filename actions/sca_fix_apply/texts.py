@@ -37,7 +37,8 @@ def pr_body(
     line: Mapping[str, Any], result: Mapping[str, Any], baseline_ci: str
 ) -> str:
     applied = [r for r in result["items"] if r["status"] == "applied"]
-    manual = [r for r in result["items"] if r["status"] != "applied"]
+    fixed = [r for r in result["items"] if r["status"] == "already_fixed"]
+    manual = [r for r in result["items"] if r["status"] == "manual"]
     out = [
         f"Security fixes for `{result['branch']}` ({result['ref']}).",
         "",
@@ -50,13 +51,33 @@ def pr_body(
             [
                 r["pkg"],
                 installed_to_new(r),
-                r["method"],
+                r.get("method_used", r["method"]),
                 ", ".join(r["vulns"]),
                 "rescan: item vulnerabilities gone, no new HIGH or CRITICAL",
             ]
             for r in applied
         ],
     )
+    overridden = [r for r in applied if r.get("method_used") == "npm-override"]
+    if overridden:
+        out += [
+            (
+                "Overrides in the root `package.json`, lockfile updated by "
+                "`npm install --package-lock-only`:"
+            ),
+            "",
+        ]
+        out += table(
+            ["Package", "Override keys", "Also changed by npm resolution"],
+            [
+                [
+                    r["pkg"],
+                    ", ".join(r["override_keys"]),
+                    "; ".join(r["changed_other"]) or "-",
+                ]
+                for r in overridden
+            ],
+        )
     docker = result["docker"]
     if docker["status"] == "applied":
         out += ["Base image changes (Dependabot, no major version):", ""]
@@ -74,6 +95,9 @@ def pr_body(
         f"CI of the latest completed run on the branch before this change: {baseline_ci}.",
         "",
     ]
+    if fixed:
+        out += ["Already fixed on the branch, nothing to apply:", ""]
+        out += [f"- {r['pkg']}: {r['reason']}" for r in fixed] + [""]
     if manual:
         out += ["Not applied, left for a human:", ""]
         out += table(
@@ -145,8 +169,8 @@ def summary(plan: Mapping[str, Any], results: Mapping[str, Mapping[str, Any]]) -
             [
                 [
                     r["pkg"],
-                    r["method"],
-                    "applied" if r["status"] == "applied" else "manual",
+                    r.get("method_used", r["method"]),
+                    r["status"],
                     r["reason"] or installed_to_new(r),
                 ]
                 for r in result["items"]
