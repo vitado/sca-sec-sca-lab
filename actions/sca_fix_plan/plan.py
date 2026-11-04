@@ -153,10 +153,13 @@ def choose_method(
     where: Sequence[str],
     version: Version,
     config: Config,
+    hint: str = "",
 ) -> tuple[str, str | None, str | None]:
     """``(method, fallback, reason)`` of an item that has a target."""
     fallback: str | None
     if item_class == "os":
+        if "docker-tag" not in config.methods:
+            return "manual", None, f"rebuild the image to pick up the fixes{hint}"
         method, fallback = "docker-tag", "manual"
     elif not any(version.targets.get(i, {}).get("kind") == "fs" for i in where):
         return "manual", None, "only in the image, not in a manifest"
@@ -171,11 +174,42 @@ def choose_method(
     return method, fallback, None
 
 
+def newer_os(where: Sequence[str], version: Version, dev: Version) -> str:
+    """The hint for an os item: the OS release of the development image of the same
+    image when it is newer than the one of the release line, else an empty string.
+    """
+    for i in where:
+        target = version.targets.get(i, {})
+        os_now = target.get("os") or {}
+        for other in dev.targets.values():
+            os_dev = other.get("os") or {}
+            if (
+                other.get("image") != target.get("image")
+                or not usable(other)
+                or os_dev.get("family") != os_now.get("family")
+                or not os_dev.get("name")
+                or not os_now.get("name")
+            ):
+                continue
+            try:
+                newer = compare(os_dev["name"], os_now["name"]) > 0
+            except VersionError:
+                continue
+            if newer:
+                return (
+                    f" (development image runs {os_dev['family']} {os_dev['name']},"
+                    f" the line {os_now['name']}; a base tag of that release or"
+                    " newer is a candidate)"
+                )
+    return ""
+
+
 def build_item(
     records: Sequence[Record],
     version: Version,
     dev_versions: Sequence[str],
     config: Config,
+    dev: Version,
 ) -> dict[str, Any]:
     """One item: every record of one package in one line."""
     installed = sorted({v for r in records for v in r["installed"]})
@@ -221,7 +255,12 @@ def build_item(
             for current in installed
         ]
         item["method"], item["fallback"], item["reason"] = choose_method(
-            "os", item["ecosystem"], where, version, config
+            "os",
+            item["ecosystem"],
+            where,
+            version,
+            config,
+            newer_os(where, version, dev),
         )
         return item
     reason: str | None = None
@@ -306,7 +345,7 @@ def plan_line(
         "branch": config.branch(*line),
         "partial": version.status != "ok",
         "items": [
-            build_item(records, version, dev_installed.get(key, []), config)
+            build_item(records, version, dev_installed.get(key, []), config, dev)
             for key, records in sorted(kept.items())
         ],
         "skipped": [skipped[k] for k in sorted(skipped)],

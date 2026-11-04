@@ -6,7 +6,7 @@ inputs:
     description: Newline-separated paths of schema 4 report.json files of one repo (their versions are merged by ref; one of them has the development version)
     required: true
   config:
-    description: 'JSON object with the policy, every key optional (severities, severities-previous, fixable-only, include-dev, release-branch, release-lines, methods, allow-major)'
+    description: 'JSON object with the policy, every key optional (severities, severities-previous, fixable-only, include-dev, release-branch, release-lines, methods, allow-major); defaults: methods dependabot,npm-override (docker-tag is opt-in, os items are manual: rebuild the image), allow-major none (dev-proven is opt-in; a target in another major is manual)'
     default: "{}"
   output-dir:
     description: Directory to write the plan into (fix-plan.json, fix-plan.md)

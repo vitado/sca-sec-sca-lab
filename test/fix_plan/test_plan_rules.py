@@ -179,7 +179,9 @@ def test_development_data_must_cover_the_image() -> None:
     assert plan(development(targets=[empty]), os_release())["lines"][0]["items"] == []
     ok = target(DEV_IMAGE, "image", "app")
     assert (
-        single(plan(development(targets=[ok]), os_release()), "zlib")["method"]
+        single(plan(development(targets=[ok]), os_release(), config=DOCKER), "zlib")[
+            "method"
+        ]
         == "docker-tag"
     )
 
@@ -201,9 +203,11 @@ def test_development_version_below_the_fix_is_no_evidence() -> None:
 def test_development_in_another_major() -> None:
     dev = development(packages=[inventory("lib", ["3.0.0"])])
     rec = record("lib", "1.0.0", "1.0.5, 3.0.0")
-    item = single(plan(dev, release(rec)))
+    item = single(
+        plan(dev, release(rec), config=config('{"allow-major": "dev-proven"}'))
+    )
     assert item["targets"][0]["target"] == "3.0.0"
-    strict = single(plan(dev, release(rec), config=config('{"allow-major": "none"}')))
+    strict = single(plan(dev, release(rec)))
     assert strict["targets"][0]["target"] == "1.0.5"
 
 
@@ -213,7 +217,7 @@ def test_another_major_needs_a_human() -> None:
     assert item["method"] == "manual"
     assert item["reason"] == "fix needs another major (2.0.0), no development evidence"
     dev = development(packages=[inventory("lib", ["2.0.0"])])
-    strict = single(plan(dev, release(rec), config=config('{"allow-major": "none"}')))
+    strict = single(plan(dev, release(rec)))
     assert strict["reason"] == (
         "fix needs another major (2.0.0), development runs it, allow-major is none"
     )
@@ -300,9 +304,37 @@ def test_library_only_in_an_image() -> None:
     )
 
 
-def test_os_package_is_docker_tag() -> None:
+DOCKER = config('{"methods": ["docker-tag"]}')
+
+
+def test_os_package_is_manual_by_default() -> None:
     dev = development(targets=[target(DEV_IMAGE, "image", "app")])
     item = single(plan(dev, os_release()), "zlib")
+    assert (item["method"], item["fallback"]) == ("manual", None)
+    assert item["reason"] == "rebuild the image to pick up the fixes"
+
+
+def test_os_hint_names_the_newer_os_of_development() -> None:
+    def image(id: str, name: str, family: str = "alpine") -> dict[str, Any]:
+        return {
+            **target(id, "image", "app", packages=50),
+            "os": {"family": family, "name": name},
+        }
+
+    rel = release(os_record(), targets=[image("image-app-1.2.3", "3.24.2")])
+    reason = single(
+        plan(development(targets=[image(DEV_IMAGE, "3.24.5")]), rel), "zlib"
+    )["reason"]
+    assert reason.startswith("rebuild the image to pick up the fixes (development")
+    assert "alpine 3.24.5" in reason
+    for dev_image in (image(DEV_IMAGE, "3.24.2"), image(DEV_IMAGE, "3.25", "debian")):
+        item = single(plan(development(targets=[dev_image]), rel), "zlib")
+        assert item["reason"] == "rebuild the image to pick up the fixes"
+
+
+def test_os_package_is_docker_tag() -> None:
+    dev = development(targets=[target(DEV_IMAGE, "image", "app")])
+    item = single(plan(dev, os_release(), config=DOCKER), "zlib")
     assert (item["method"], item["fallback"]) == ("docker-tag", "manual")
     assert item["targets"] == [
         {
@@ -319,7 +351,7 @@ def test_os_versions_are_not_compared() -> None:
     rec.update(installed=["1:2.3-1ubuntu1"], fixed="1:2.3-1ubuntu2")
     dev = development(targets=[target(DEV_IMAGE, "image", "app")])
     rel = release(rec, targets=[target("image-app-1.2.3", "image", "app")])
-    item = single(plan(dev, rel), "zlib")
+    item = single(plan(dev, rel, config=DOCKER), "zlib")
     assert (item["method"], item["reason"]) == ("docker-tag", None)
     assert item["targets"][0]["fixed"] == ["1:2.3-1ubuntu2"]
 

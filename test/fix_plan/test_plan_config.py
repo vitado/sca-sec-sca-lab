@@ -10,8 +10,8 @@ def test_defaults() -> None:
         "include-dev": True,
         "release-branch": "release-{major}.{minor}",
         "release-lines": 2,
-        "methods": ["dependabot", "docker-tag", "npm-override"],
-        "allow-major": "dev-proven",
+        "methods": ["dependabot", "npm-override"],
+        "allow-major": "none",
     }
     assert parse_config("") == Config()
 

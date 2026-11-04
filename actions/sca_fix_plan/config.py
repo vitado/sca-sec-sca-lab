@@ -23,8 +23,8 @@ class Config:
     include_dev: bool = True
     release_branch: str = "release-{major}.{minor}"
     release_lines: int = 2
-    methods: tuple[str, ...] = METHODS
-    allow_major: str = "dev-proven"
+    methods: tuple[str, ...] = ("dependabot", "npm-override")
+    allow_major: str = "none"
 
     def previous_severities(self) -> tuple[str, ...]:
         if self.severities_previous is None:

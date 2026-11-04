@@ -108,9 +108,14 @@ SKIPPED: dict[str, dict[str, str]] = {
 }
 
 
-def run(case: str, tmp_path: Path) -> dict[str, Any]:
+# the former defaults, to keep the coverage of the docker-tag and major-bump paths
+OPT_IN = '{"methods": ["dependabot", "docker-tag", "npm-override"], "allow-major": "dev-proven"}'
+
+
+def run(case: str, tmp_path: Path, config: str = "{}") -> dict[str, Any]:
     reports = [str(p) for p in load_case(case)]
-    assert fix_plan.main(["--reports", *reports, "--output-dir", str(tmp_path)]) == 0
+    args = ["--reports", *reports, "--config", config, "--output-dir", str(tmp_path)]
+    assert fix_plan.main(args) == 0
     return json.loads((tmp_path / "fix-plan.json").read_text(encoding="utf-8"))
 
 
@@ -124,7 +129,7 @@ def skipped(result: dict[str, Any]) -> dict[str, str]:
 
 @pytest.mark.parametrize("case", CASES)
 def test_case(case: str, tmp_path: Path) -> None:
-    result = run(case, tmp_path)
+    result = run(case, tmp_path, OPT_IN)
     by_pkg = lookup(result)
     for pkg, (targets, method, fallback, evidence) in PLANNED[case].items():
         item = by_pkg[pkg]
@@ -150,3 +155,25 @@ def test_c5_setuptools_is_not_image_only() -> None:
     assert records
     assert {r["severity"] for r in records} == {"LOW"}
     assert "poetry.lock" in records[0]["locations"]
+
+
+# case -> package -> reason fragment of an item that the default config leaves manual
+DEFAULT_MANUAL: dict[str, dict[str, str]] = {
+    "c2": {"glob": "fix needs another major (14.0.2)"},
+    "c3": {"glob": "fix needs another major (14.0.2)"},
+    "c4": {"brotli-libs": "rebuild the image"},
+    "c5": {"filelock": "fix needs another major (4.2.1)"},
+    "c8": {"libcrypto3": "rebuild the image", "libssl3": "rebuild the image"},
+    "c11": {"curl": "rebuild the image", "libexpat": "rebuild the image"},
+    "c12": {"cryptography": "fix needs another major (50.0.0)"},
+}
+
+
+@pytest.mark.parametrize("case", DEFAULT_MANUAL)
+def test_case_defaults_leave_majors_and_os_to_a_human(
+    case: str, tmp_path: Path
+) -> None:
+    by_pkg = lookup(run(case, tmp_path))
+    for pkg, reason in DEFAULT_MANUAL[case].items():
+        assert by_pkg[pkg]["method"] == "manual", pkg
+        assert reason in by_pkg[pkg]["reason"], pkg
