@@ -41,6 +41,9 @@ inputs:
   dry-run:
     description: Do everything except the push and the pull request (publish)
     default: "false"
+  token-kind:
+    description: "Which token the input token is: workflow (the default workflow token), token (a token given by the caller) or app (a GitHub App installation token); the summary warns about the pull request workflows only for workflow (publish)"
+    default: workflow
   token:
     description: Token for the Dependabot git source, the push and the pull request
     default: ${{ github.token }}
@@ -69,6 +72,7 @@ runs:
         LOCKFILE_COMMAND: ${{ inputs.lockfile-command }}
         DOCKER_BUILD_ARGS: ${{ inputs.docker-build-args }}
         DRY_RUN: ${{ inputs.dry-run }}
+        TOKEN_KIND: ${{ inputs.token-kind }}
         GH_TOKEN: ${{ inputs.token }}
       run: |
         args=("$COMMAND" --plan "$PLAN")
@@ -83,6 +87,7 @@ runs:
             ;;
           publish)
             args+=(--branch "$BRANCH" --tree "$TREE" --repo "$REPO" --output-dir "$OUTPUT_DIR")
+            args+=(--token-kind "$TOKEN_KIND")
             [ "$DRY_RUN" = "true" ] && args+=(--dry-run)
             ;;
           summary)

@@ -78,6 +78,7 @@ def cmd_apply(args: argparse.Namespace) -> int:
 
 def cmd_publish(args: argparse.Namespace) -> int:
     result = read_json(args.output_dir / "result.json")
+    result["token_kind"] = args.token_kind
     if not result["files"]:
         result["pr"] = {"action": "none", "reason": "nothing applied"}
     elif args.dry_run:
@@ -141,6 +142,12 @@ def build_parser() -> argparse.ArgumentParser:
     apply_parser.set_defaults(handler=cmd_apply)
     publish_parser = sub.add_parser("publish", parents=[plan, line])
     publish_parser.add_argument("--dry-run", action="store_true")
+    publish_parser.add_argument(
+        "--token-kind",
+        choices=("workflow", "token", "app"),
+        default="workflow",
+        help="which token opens the pull request, as the summary tells it",
+    )
     publish_parser.set_defaults(handler=cmd_publish)
     summary_parser = sub.add_parser("summary", parents=[plan])
     summary_parser.add_argument("--results-dir", required=True, type=Path)

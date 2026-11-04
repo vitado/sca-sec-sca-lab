@@ -56,6 +56,18 @@ def test_summary_names_every_line() -> None:
     assert "workflow token" in text
 
 
+def test_summary_notes_the_workflow_token_only_for_that_token() -> None:
+    plan = {"repo": "o/r", "lines": [line(item())]}
+    pr = {"action": "created", "url": "u"}
+    for kind in ("app", "token"):
+        text = summary(plan, {"release-1.2": result(pr=pr, token_kind=kind)})
+        assert "workflow token" not in text
+    text = summary(plan, {"release-1.2": result(pr=pr, token_kind="workflow")})
+    assert "workflow token" in text
+    text = summary(plan, {"release-1.2": result(pr={"action": "none", "reason": "r"})})
+    assert "workflow token" not in text
+
+
 def test_publish_without_files_opens_nothing(tmp_path: Path) -> None:
     (tmp_path / "result.json").write_text(
         json.dumps({"files": [], "branch": "b"}), encoding="utf-8"
@@ -73,11 +85,14 @@ def test_publish_without_files_opens_nothing(tmp_path: Path) -> None:
             "o/r",
             "--output-dir",
             str(tmp_path),
+            "--token-kind",
+            "app",
         ]
     )
     assert code == 0
     written = json.loads((tmp_path / "result.json").read_text(encoding="utf-8"))
     assert written["pr"] == {"action": "none", "reason": "nothing applied"}
+    assert written["token_kind"] == "app"
 
 
 def test_dry_run_publishes_nothing(tmp_path: Path) -> None:

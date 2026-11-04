@@ -104,6 +104,7 @@ def summary(plan: Mapping[str, Any], results: Mapping[str, Mapping[str, Any]]) -
     out = [f"# Fix run for {plan['repo']}", ""]
     if any(
         r.get("pr", {}).get("action") in ("created", "updated")
+        and r.get("token_kind", "workflow") == "workflow"
         for r in results.values()
     ):
         out += [
