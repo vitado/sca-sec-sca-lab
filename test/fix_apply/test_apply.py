@@ -6,7 +6,7 @@ from typing import Any
 from apply import Tools, process_line
 from builders import file, finding, item, line, outcome, tools
 from dependabot import TIMEOUT, Outcome
-from scan import Finding, ScanError
+from scan import Finding, ScanError, parse_trivy
 
 
 def tree_with(tmp_path: Path, **files: str) -> Path:
@@ -417,3 +417,51 @@ def test_timeout_goes_on_to_the_override_step(tmp_path: Path) -> None:
     )
     assert result["items"][0]["status"] == "applied"
     assert result["items"][0]["dependabot_result"] == TIMEOUT
+
+
+def recorded_trivy(*vulns: tuple[str, str, str, str]) -> set[Finding]:
+    """The findings of a Trivy JSON document of the shape ``trivy fs --format json`` writes."""
+    document = {
+        "SchemaVersion": 2,
+        "Results": [
+            {
+                "Target": "package-lock.json",
+                "Class": "lang-pkgs",
+                "Type": "npm",
+                "Vulnerabilities": [
+                    {
+                        "VulnerabilityID": vid,
+                        "PkgName": name,
+                        "InstalledVersion": version,
+                        "Severity": severity,
+                    }
+                    for name, version, vid, severity in vulns
+                ],
+            }
+        ],
+    }
+    return parse_trivy(json.loads(json.dumps(document)))
+
+
+def test_new_high_in_the_rescan_reverts_the_item_to_manual(tmp_path: Path) -> None:
+    tree = lockfile_tree(tmp_path)
+    hono = ("hono", "2.0.12", "CVE-hono", "HIGH")
+    baseline = recorded_trivy(hono, ("next", "15.5.27", "CVE-next-old", "MEDIUM"))
+    after = recorded_trivy(
+        ("next", "15.5.27", "CVE-next-old", "MEDIUM"),
+        ("tar-fs", "3.0.0", "CVE-new", "HIGH"),
+    )
+    result = process_line(
+        line(item()),
+        "o/r",
+        tree,
+        tools(lambda job, manager: outcome(file("new")), [baseline, after]),
+    )
+    record = result["items"][0]
+    assert record["status"] == "manual"
+    assert record["reverted"] is True
+    assert record["detail"] == (
+        "rescan gate: new HIGH or CRITICAL after the change: tar-fs CVE-new"
+    )
+    assert (tree / "package-lock.json").read_text(encoding="utf-8") == "old"
+    assert result["files"] == []

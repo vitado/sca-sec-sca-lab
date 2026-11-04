@@ -95,6 +95,11 @@ def pr_body(
         f"CI of the latest completed run on the branch before this change: {baseline_ci}.",
         "",
     ]
+    if baseline_ci.startswith(("failure", "cancelled", "timed_out")):
+        out[-2] += (
+            " The baseline is red: failures that were there before this change are not"
+            " caused by it and the rescan gate does not look at them."
+        )
     if fixed:
         out += ["Already fixed on the branch, nothing to apply:", ""]
         out += [f"- {r['pkg']}: {r['reason']}" for r in fixed] + [""]

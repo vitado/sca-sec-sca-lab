@@ -4,7 +4,7 @@ from typing import Any
 
 import publish as publish_module
 import pytest
-from publish import PublishError, publish
+from publish import PublishError, baseline_ci, publish
 
 
 def git(cwd: Path, *args: str) -> str:
@@ -64,3 +64,36 @@ def test_a_pull_request_failure_keeps_the_pushed_branch(
         "reason": "not permitted",
     }
     assert git(clone, "ls-remote", "--heads", "origin", "sca-fix/release-1.2")
+
+
+def test_baseline_ci_reports_a_failing_commit_status(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls: list[list[str]] = []
+
+    def gh(cmd: list[str], cwd: Path | None = None, token: str = "") -> str:
+        calls.append(cmd)
+        return "ci/build, ci/lint" if "status" in cmd[2] else "success"
+
+    monkeypatch.setattr(publish_module, "run", gh)
+    assert (
+        baseline_ci("o/r", "w/release-1.2", "t")
+        == "failure (commit status: ci/build, ci/lint)"
+    )
+    assert calls[0][2] == "repos/o/r/commits/w/release-1.2/status"
+
+
+def test_baseline_ci_falls_back_to_the_latest_workflow_run(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def gh(cmd: list[str], cwd: Path | None = None, token: str = "") -> str:
+        return "" if "status" in cmd[2] else "cancelled"
+
+    monkeypatch.setattr(publish_module, "run", gh)
+    assert baseline_ci("o/r", "b", "t") == "cancelled"
+
+    def refused(cmd: list[str], cwd: Path | None = None, token: str = "") -> str:
+        raise PublishError("403")
+
+    monkeypatch.setattr(publish_module, "run", refused)
+    assert baseline_ci("o/r", "b", "t") == "unknown"

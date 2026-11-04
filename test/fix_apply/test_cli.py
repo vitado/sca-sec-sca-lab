@@ -120,6 +120,12 @@ def test_dry_run_publishes_nothing(tmp_path: Path) -> None:
     assert written["pr"]["reason"] == "dry run"
 
 
+def test_pr_body_states_a_red_baseline() -> None:
+    red = pr_body(line(item()), result(), "failure (commit status: ci/build)")
+    assert "The baseline is red" in red
+    assert "The baseline is red" not in pr_body(line(item()), result(), "success")
+
+
 def test_pr_body_shows_overrides_and_already_fixed_items() -> None:
     applied = {
         **result()["items"][0],

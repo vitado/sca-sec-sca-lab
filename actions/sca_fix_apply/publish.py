@@ -9,6 +9,10 @@ from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
 
+FAILING_STATUSES = (
+    '[.statuses[] | select(.state == "failure" or .state == "error")'
+    ' | .context] | join(", ")'
+)
 BOT_NAME = "github-actions[bot]"
 BOT_EMAIL = "41898282+github-actions[bot]@users.noreply.github.com"
 
@@ -34,7 +38,25 @@ def run(cmd: Sequence[str], cwd: Path | None = None, token: str = "") -> str:
 
 
 def baseline_ci(repo: str, branch: str, token: str) -> str:
-    """The conclusion of the latest completed workflow run on the branch, or ``none``."""
+    """The CI state of the untouched branch: the conclusion of its latest completed
+    workflow run (``none`` without one), or ``failure`` when a commit status on the tip
+    is failing (CI systems that report statuses and not workflow runs).
+    """
+    try:
+        failing = run(
+            [
+                "gh",
+                "api",
+                f"repos/{repo}/commits/{branch}/status",
+                "--jq",
+                FAILING_STATUSES,
+            ],
+            token=token,
+        )
+    except PublishError:
+        failing = ""
+    if failing:
+        return f"failure (commit status: {failing})"
     try:
         out = run(
             [
