@@ -31,6 +31,14 @@ def same_line(a: str, b: str) -> bool:
     return x[0] == y[0] and (x[0] > 0 or x[1] == y[1])
 
 
+def below_target(version: str, targets: Sequence[str]) -> bool:
+    """The copy is below the target of its line; a copy of a line the targets do not
+    have (the fix crosses a major) is below when it is under the lowest target.
+    """
+    line = [t for t in targets if same_line(version, t)]
+    return numbers(version) < numbers(min(line or targets, key=numbers))
+
+
 def selector(installed: str) -> str:
     x = numbers(installed)
     return f"~0.{x[1]}.0" if x[0] == 0 else f"^{x[0]}.0.0"

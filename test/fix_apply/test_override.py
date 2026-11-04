@@ -7,6 +7,7 @@ from dependabot import TIMEOUT, Settings, run_job
 from override import (
     OverrideError,
     add_overrides,
+    below_target,
     changed_other,
     detect_node,
     numbers,
@@ -160,3 +161,12 @@ def test_dependabot_time_limit_is_the_timeout_error(
     outcome = run_job({}, tmp_path, settings, "npm_and_yarn")
     assert outcome.error == TIMEOUT
     assert ["docker", "rm", "-f", "abc"] in calls
+
+
+def test_below_target_by_line_and_across_a_major() -> None:
+    assert below_target("1.20.8", ["1.20.9", "2.4.0"])
+    assert not below_target("2.4.1", ["1.20.9", "2.4.0"])
+    assert not below_target("1.20.9", ["1.20.9", "2.4.0"])
+    assert below_target("10.5.0", ["14.0.3"])
+    assert below_target("13.0.6", ["14.0.3", "14.0.3"])
+    assert not below_target("14.0.3", ["14.0.3"])

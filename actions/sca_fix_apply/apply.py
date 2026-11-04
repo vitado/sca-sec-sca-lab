@@ -21,11 +21,10 @@ from override import (
     LOCKFILE,
     OverrideError,
     add_overrides,
+    below_target,
     changed_other,
     detect_node,
     lock_format,
-    numbers,
-    same_line,
 )
 from scan import NOT_IN_BASELINE, Finding, ScanError, gate, new_serious
 
@@ -210,10 +209,7 @@ def apply_override(
     except OverrideError as exc:
         return revert(str(exc))
     short = [
-        path
-        for path, version in copies
-        for _, target in pairs
-        if same_line(version, target) and numbers(version) < numbers(target)
+        path for path, version in copies if below_target(version, [t for _, t in pairs])
     ]
     if short:
         return revert(f"override did not reach {short[0]}")
