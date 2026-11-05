@@ -74,6 +74,13 @@ def test_existing_entry_is_raised_in_its_form() -> None:
     assert new == text.replace("~10.4.1", "~10.5.1").replace(">=10.5.0", ">=10.5.1")
 
 
+def test_n5_4_rule_1_existing_value_without_a_prefix_is_raised_in_place() -> None:
+    text = '{\n  "overrides": {\n    "glob": "10.4.1",\n    "y": {"glob": "=10.4.1"}\n  }\n}\n'
+    new, keys = add_overrides(text, "glob", [("10.4.1", "10.5.1")])
+    assert keys == ["glob", "y > glob"]
+    assert new == text.replace('"10.4.1"', '"10.5.1"').replace("=10.4.1", "=10.5.1")
+
+
 def test_existing_entry_that_cannot_be_raised_is_manual() -> None:
     for value in ('"$glob"', '{"a": "1.0.0"}', '"^11.0.0"', '"^10.9.0"', '"latest"'):
         text = f'{{\n  "overrides": {{\n    "glob": {value}\n  }}\n}}\n'

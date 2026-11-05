@@ -53,7 +53,11 @@ def pr_body(
                 installed_to_new(r),
                 r.get("method_used", r["method"]),
                 ", ".join(r["vulns"]),
-                "rescan: item vulnerabilities gone, no new HIGH or CRITICAL",
+                (
+                    "fixed with " + ", ".join(r["fixed_with"])
+                    if r.get("fixed_with")
+                    else "rescan: item vulnerabilities gone, no new HIGH or CRITICAL"
+                ),
             ]
             for r in applied
         ],

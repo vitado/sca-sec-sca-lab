@@ -27,15 +27,28 @@ from override import (
     detect_node,
     lock_format,
 )
-from scan import NOT_IN_BASELINE, Finding, ScanError, gate, new_serious, present
+from scan import (
+    EARLIER,
+    NOT_IN_BASELINE,
+    BuildError,
+    Finding,
+    ScanError,
+    gate,
+    new_serious,
+    present,
+)
 
 NOT_NEEDED = "security_update_not_needed"
 NO_CHANGE = "dependabot produced no change"
 # the Dependabot error types that mean "cannot make this change"
 REFUSALS = {"security_update_not_possible", "security_update_dependency_not_found"}
 # What Dependabot says when it cannot make the change: the npm items go on to the
-# override step. Not "not needed" (already fixed) and not a failed rescan.
-FALLBACK_ON = {*REFUSALS, NO_CHANGE, TIMEOUT}
+# override step. "Not needed" counts when the detector still finds the item; a failed
+# rescan does not count.
+FALLBACK_ON = {*REFUSALS, NOT_NEEDED, NO_CHANGE, TIMEOUT}
+# the detector result after each kept change of the line, from the baseline on, with
+# the package of the change
+Kept = list[tuple[str, set[Finding]]]
 
 
 @dataclass(frozen=True)
@@ -126,6 +139,45 @@ def already_fixed(record: dict[str, Any], why: str) -> dict[str, Any]:
     return record
 
 
+def fixed_with(
+    record: dict[str, Any], item: Mapping[str, Any], kept: Kept
+) -> dict[str, Any]:
+    """The item's vulnerabilities went with kept changes of this line: applied
+    without a change of its own, ``fixed_with`` names the packages of the changes
+    after which its records were gone.
+    """
+    names = [
+        pkg
+        for (_, was), (pkg, now) in zip(kept, kept[1:])
+        if present(item, was) and not present(item, now)
+    ]
+    record.update(
+        status="applied",
+        reason=None,
+        reason_code=None,
+        files=[],
+        changes=[],
+        fixed_with=list(dict.fromkeys(names)),
+    )
+    return record
+
+
+def settle(
+    record: dict[str, Any],
+    item: Mapping[str, Any],
+    verdict: tuple[str, str],
+    kept: Kept,
+) -> dict[str, Any] | None:
+    """The record of an item the gate found nothing to apply for (rules 1a, 1b), or
+    None for any other verdict.
+    """
+    if verdict[0] == codes.NOT_IN_BASELINE:
+        return already_fixed(record, verdict[1])
+    if verdict[0] == EARLIER:
+        return fixed_with(record, item, kept)
+    return None
+
+
 def apply_security(
     item: Mapping[str, Any],
     repo: str,
@@ -134,6 +186,7 @@ def apply_security(
     tools: Tools,
     baseline: set[Finding],
     current: set[Finding],
+    kept: Kept,
 ) -> tuple[dict[str, Any], set[Finding]]:
     record = new_record(item)
     try:
@@ -150,10 +203,12 @@ def apply_security(
     if not changed:
         if outcome.error == NOT_NEEDED:
             # Dependabot's word is not enough: the detector decides on the unchanged tree
-            if present(item, current):
+            verdict = gate(item, current, current, baseline)
+            settled = verdict and settle(record, item, verdict, kept)
+            if not settled:
                 return fail(record, NOT_NEEDED, codes.DEPENDABOT_REFUSED), current
-            record["dependabot_result"] = NOT_NEEDED
-            return already_fixed(record, NOT_IN_BASELINE), current
+            settled["dependabot_result"] = NOT_NEEDED
+            return settled, current
         detail = outcome.error or NO_CHANGE
         return fail(record, detail, dependabot_code(detail)), current
     record["changes"], record["left_out"] = changes(outcome), left_out
@@ -168,10 +223,12 @@ def apply_security(
         code, why = verdict
         journal.restore(checkpoint)
         record["reverted"] = True
-        if code == codes.NOT_IN_BASELINE:
-            return already_fixed(record, why), current
+        settled = settle(record, item, verdict, kept)
+        if settled:
+            return settled, current
         return fail(record, f"rescan gate: {why}", code), current
     record.update(status="applied", reason=None, reason_code=None, files=changed)
+    kept.append((item["pkg"], after))
     return record, after
 
 
@@ -183,6 +240,7 @@ def apply_override(
     baseline: set[Finding],
     current: set[Finding],
     node: tuple[str, str] | None,
+    kept: Kept,
 ) -> tuple[dict[str, Any], set[Finding]]:
     """The npm-override step for an item Dependabot could not fix: overrides in the
     root ``package.json``, the lockfile updated by npm, the installed copies
@@ -207,6 +265,11 @@ def apply_override(
         return manual(
             "direct dependency: an override would conflict with its spec",
             codes.OVERRIDE_DIRECT,
+        )
+    if item["relationship"] != "indirect":
+        return manual(
+            "the plan does not say whether the dependency is direct",
+            codes.OVERRIDE_RELATIONSHIP_UNKNOWN,
         )
     if (
         LOCKFILE not in item["locations"]
@@ -257,9 +320,11 @@ def apply_override(
         code, why = verdict
         journal.restore(checkpoint)
         record["reverted"] = True
-        if code == codes.NOT_IN_BASELINE:
-            return already_fixed(record, why), current
+        settled = settle(record, item, verdict, kept)
+        if settled:
+            return settled, current
         return manual(f"rescan gate: {why}", code)
+    kept.append((pkg, after))
     record.update(
         status="applied",
         reason=None,
@@ -322,7 +387,7 @@ def apply_docker(
             try:
                 found |= tools.scan_image(journal.tree, path)
             except ScanError as exc:
-                raise ScanError(f"{label} of {path}: {exc}") from exc
+                raise type(exc)(f"{label} of {path}: {exc}") from exc
             finally:
                 step["builds"].append(
                     {
@@ -335,7 +400,7 @@ def apply_docker(
 
     try:
         before = scan_all("baseline build")
-    except ScanError as exc:
+    except BuildError as exc:
         step["status"] = "none"
         return all_manual(f"image build failed: {exc}", codes.IMAGE_BUILD_FAILED)
     journal.apply(outcome.files)
@@ -344,7 +409,9 @@ def apply_docker(
     except ScanError as exc:
         journal.restore(checkpoint)
         step["status"] = "reverted"
-        return all_manual(f"image build failed: {exc}", codes.IMAGE_BUILD_FAILED)
+        if isinstance(exc, BuildError):
+            return all_manual(f"image build failed: {exc}", codes.IMAGE_BUILD_FAILED)
+        return all_manual(f"rescan failed: {exc}", codes.RESCAN_FAILED)
     serious = new_serious(after, before)
     for record, item in zip(records, items, strict=True):
         verdict = (
@@ -388,11 +455,12 @@ def process_line(
     security = [i for i in items if i["method"] == "dependabot"]
     baseline = tools.scan_tree() if security else set()
     current = baseline
+    kept: Kept = [("", baseline)]
     records: dict[int, dict[str, Any]] = {}
     for index, item in enumerate(items):
         if item["method"] == "dependabot":
             records[index], current = apply_security(
-                item, repo, line["branch"], journal, tools, baseline, current
+                item, repo, line["branch"], journal, tools, baseline, current, kept
             )
         elif item["method"] != "docker-tag":
             records[index] = new_record(item)
@@ -406,7 +474,7 @@ def process_line(
     node = detect_node(tree, dockerfiles(tree)) if due else None
     for i in due:
         records[i], current = apply_override(
-            items[i], records[i], journal, tools, baseline, current, node
+            items[i], records[i], journal, tools, baseline, current, node, kept
         )
     docker = [
         (i, item) for i, item in enumerate(items) if item["method"] == "docker-tag"

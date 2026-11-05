@@ -3,10 +3,11 @@ from collections.abc import Callable, Mapping
 from pathlib import Path
 from typing import Any
 
+import pytest
 from apply import Tools, process_line
 from builders import file, finding, item, line, outcome, tools
 from dependabot import TIMEOUT, Outcome
-from scan import Finding, ScanError
+from scan import BuildError, Finding, ScanError
 
 
 def tree_with(tmp_path: Path, **files: str) -> Path:
@@ -78,10 +79,36 @@ def test_n5_2_not_needed_is_already_fixed_when_the_detector_does_not_find_it(
 def test_n5_2_not_needed_is_not_believed_when_the_detector_finds_it(
     tmp_path: Path,
 ) -> None:
-    record = not_needed(tmp_path, {finding()})
+    result = process_line(
+        line(item(fallback="manual")),
+        "o/r",
+        lockfile_tree(tmp_path),
+        tools(
+            lambda job, manager: outcome(error="security_update_not_needed"),
+            [{finding()}],
+        ),
+    )
+    record = result["items"][0]
     assert record["status"] == "manual"
     assert record["reason_code"] == "dependabot_refused"
     assert record["detail"] == "security_update_not_needed"
+
+
+def test_n5_3_not_needed_with_the_item_still_detected_goes_to_the_fallback(
+    tmp_path: Path,
+) -> None:
+    record = not_needed(tmp_path, {finding()})
+    assert record["status"] == "manual"
+    # the fallback ran (the tree has no package.json) and kept the Dependabot outcome
+    assert record["reason_code"] == "override_no_root_lockfile"
+    assert record["dependabot_result"] == "security_update_not_needed"
+
+
+def test_n5_3_not_needed_with_the_item_gone_does_not_run_the_fallback(
+    tmp_path: Path,
+) -> None:
+    record = not_needed(tmp_path, set())
+    assert record["reason_code"] == "not_in_baseline"
 
 
 def test_gate_without_baseline_findings_is_already_fixed(tmp_path: Path) -> None:
@@ -250,7 +277,7 @@ def test_docker_build_failure_makes_items_manual(tmp_path: Path) -> None:
 
     def image(root: Path, path: str) -> set[Finding]:
         if "a:2" in (root / path).read_text(encoding="utf-8"):
-            raise ScanError("docker build failed: nope")
+            raise BuildError("docker build failed: nope")
         return {finding("brotli-libs", cls="os")}
 
     result = process_line(
@@ -265,6 +292,7 @@ def test_docker_build_failure_makes_items_manual(tmp_path: Path) -> None:
     )
     reason = result["items"][0]["reason"]
     assert reason.startswith("image build failed: build after the bump of Dockerfile")
+    assert result["items"][0]["reason_code"] == "image_build_failed"
     assert result["docker"]["status"] == "reverted"
     assert (tree / "Dockerfile").read_text(encoding="utf-8") == "FROM a:1\n"
 
@@ -461,3 +489,143 @@ def test_new_high_in_the_rescan_reverts_the_item_to_manual(tmp_path: Path) -> No
     )
     assert (tree / "package-lock.json").read_text(encoding="utf-8") == "old"
     assert result["files"] == []
+
+
+def test_n6_3_rule_4_detector_failure_after_the_docker_bump_is_rescan_failed(
+    tmp_path: Path,
+) -> None:
+    tree = docker_tree(tmp_path)
+
+    def image(root: Path, path: str) -> set[Finding]:
+        if "a:2" in (root / path).read_text(encoding="utf-8"):
+            raise ScanError("osv-scanner failed: boom")
+        return {finding("brotli-libs", cls="os")}
+
+    result = process_line(
+        line(os_item()),
+        "o/r",
+        tree,
+        tools(
+            lambda job, manager: outcome(file("FROM a:2\n", "/", "Dockerfile")),
+            [],
+            image,
+        ),
+    )
+    record = result["items"][0]
+    assert record["reason_code"] == "rescan_failed"
+    assert record["reason"].startswith("rescan failed: build after the bump")
+    assert result["docker"]["status"] == "reverted"
+    assert (tree / "Dockerfile").read_text(encoding="utf-8") == "FROM a:1\n"
+
+
+def test_n6_3_rule_4_detector_failure_of_the_docker_baseline_fails_the_line(
+    tmp_path: Path,
+) -> None:
+    tree = docker_tree(tmp_path)
+
+    def image(root: Path, path: str) -> set[Finding]:
+        raise ScanError("trivy image failed")
+
+    with pytest.raises(ScanError, match="baseline build"):
+        process_line(
+            line(os_item()),
+            "o/r",
+            tree,
+            tools(
+                lambda job, manager: outcome(file("FROM a:2\n", "/", "Dockerfile")),
+                [],
+                image,
+            ),
+        )
+    assert (tree / "Dockerfile").read_text(encoding="utf-8") == "FROM a:1\n"
+
+
+def changing() -> Callable[[Mapping[str, Any], str], Outcome]:
+    """Dependabot that changes the lockfile to new content on every call."""
+    calls: list[int] = []
+
+    def run(job: Mapping[str, Any], manager: str) -> Outcome:
+        calls.append(1)
+        return outcome(file(f"new{len(calls)}"))
+
+    return run
+
+
+def two_items(tmp_path: Path, scans: list[set[Finding]]) -> tuple[Path, dict[str, Any]]:
+    """Items ``a`` and ``b``, each with its own Dependabot change."""
+    tree = lockfile_tree(tmp_path)
+    a, b = item("a", fallback="manual"), item("b", fallback="manual")
+    result = process_line(
+        line(a, b),
+        "o/r",
+        tree,
+        tools(changing(), scans),
+    )
+    return tree, result
+
+
+def test_n6_3_rule_1b_change_of_one_item_also_fixes_another(tmp_path: Path) -> None:
+    fa, fb = finding("a"), finding("b")
+    # baseline {a, b}; the change for a removes both; b then needs no change
+    tree, result = two_items(tmp_path, [{fa, fb}, set(), set()])
+    first, second = result["items"]
+    assert first["status"] == "applied"
+    assert (second["status"], second["reason_code"]) == ("applied", None)
+    assert second["files"] == []
+    assert second["fixed_with"] == ["a"]
+    assert second["reverted"] is True
+    assert result["files"] == ["package-lock.json"]
+    assert (tree / "package-lock.json").read_text(encoding="utf-8") == "new1"
+
+
+def test_n6_3_rule_1b_names_the_change_that_removed_the_records(
+    tmp_path: Path,
+) -> None:
+    fa, fb, fc = finding("a"), finding("b"), finding("c")
+    items = [item(n, fallback="manual") for n in "abc"]
+    result = process_line(
+        line(*items),
+        "o/r",
+        lockfile_tree(tmp_path),
+        # a's change removes a only; b's change removes b and c
+        tools(changing(), [{fa, fb, fc}, {fb, fc}, set(), set()]),
+    )
+    assert [r["status"] for r in result["items"]] == ["applied"] * 3
+    assert result["items"][2]["fixed_with"] == ["b"]
+    assert "fixed_with" not in result["items"][1]
+
+
+def test_n6_3_rule_1a_absent_in_the_baseline_is_already_fixed_first(
+    tmp_path: Path,
+) -> None:
+    # b was never in the baseline: already_fixed, not fixed_with
+    _, result = two_items(tmp_path, [{finding("a")}, set(), set()])
+    second = result["items"][1]
+    assert (second["status"], second["reason_code"]) == (
+        "already_fixed",
+        "not_in_baseline",
+    )
+    assert "fixed_with" not in second
+
+
+def test_n6_3_rule_1b_for_a_not_needed_answer_of_dependabot(tmp_path: Path) -> None:
+    fa, fb = finding("a"), finding("b")
+    answers = [outcome(file("new1")), outcome(error="security_update_not_needed")]
+    result = process_line(
+        line(item("a", fallback="manual"), item("b", fallback="manual")),
+        "o/r",
+        lockfile_tree(tmp_path),
+        tools(lambda job, manager: answers.pop(0), [{fa, fb}, set()]),
+    )
+    second = result["items"][1]
+    assert (second["status"], second["fixed_with"]) == ("applied", ["a"])
+    assert second["dependabot_result"] == "security_update_not_needed"
+
+
+def test_n5_4_relationship_null_is_override_relationship_unknown(
+    tmp_path: Path,
+) -> None:
+    result = run_override(override_tree(tmp_path), [{finding()}], relationship=None)  # type: ignore[arg-type]
+    record = result["items"][0]
+    assert record["reason_code"] == "override_relationship_unknown"
+    assert record["dependabot_result"] == "security_update_not_possible"

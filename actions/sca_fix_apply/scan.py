@@ -35,11 +35,18 @@ TRIVY_ENV = {
 }
 SERIOUS = ("HIGH", "CRITICAL")
 NOT_IN_BASELINE = "the item's vulnerabilities are not in the baseline scan"
+# the gate verdict of rule 1b: not a reason code, the item is applied
+EARLIER = "fixed_by_earlier_change"
+EARLIER_TEXT = "the item's vulnerabilities were gone after an earlier change of the line"
 TARGET = "target"  # the id the detector gives its one target
 
 
 class ScanError(RuntimeError):
     """A scan or a build that could not be completed."""
+
+
+class BuildError(ScanError):
+    """The image of a Dockerfile could not be built (not a detector failure)."""
 
 
 class Finding(NamedTuple):
@@ -90,7 +97,10 @@ def detect(
     results are normalized and merged into records by the engine.
     """
     osv = work / "osv.json"
-    status, reason = scan_target(native, work / "bom.json", osv, run, ref)
+    try:
+        status, reason = scan_target(native, work / "bom.json", osv, run, ref)
+    except OSError as exc:
+        raise ScanError(f"osv-scanner failed: {exc}") from exc
     if status != "ok":
         raise ScanError(f"osv-scanner failed: {reason}")
     findings: Findings = {}
@@ -100,7 +110,14 @@ def detect(
         normalize_trivy(TARGET, trivy, findings, inventory)
         osv_result = json.loads(osv.read_text(encoding="utf-8"))
         normalize_osv(TARGET, osv_result, findings, inventory)
-    except (KeyError, TypeError, AttributeError, IndexError, ValueError) as exc:
+    except (
+        OSError,
+        KeyError,
+        TypeError,
+        AttributeError,
+        IndexError,
+        ValueError,
+    ) as exc:
         raise ScanError(f"unexpected scan result: {exc!r}") from exc
     records = records_of(list(findings.values()), {TARGET} if source else set())
     return {finding_of(r) for r in records}
@@ -108,14 +125,17 @@ def detect(
 
 def run_trivy(args: list[str], native: Path, cwd: Path | None = None) -> None:
     """Run ``trivy <args> --format json`` and write the result to ``native``."""
-    done = subprocess.run(
-        ["trivy", *args, "--format", "json", "--output", str(native)],
-        cwd=cwd,
-        env={**os.environ, **TRIVY_ENV},
-        capture_output=True,
-        check=False,
-        text=True,
-    )
+    try:
+        done = subprocess.run(
+            ["trivy", *args, "--format", "json", "--output", str(native)],
+            cwd=cwd,
+            env={**os.environ, **TRIVY_ENV},
+            capture_output=True,
+            check=False,
+            text=True,
+        )
+    except OSError as exc:
+        raise ScanError(f"trivy {args[0]} failed: {exc}") from exc
     if done.returncode != 0 or not native.is_file():
         raise ScanError(f"trivy {args[0]} failed: {done.stderr.strip()[-500:]}")
 
@@ -131,13 +151,16 @@ def scan_tree(tree: Path, lockfile_command: str = "") -> set[Finding]:
             tree, copy, ignore=shutil.ignore_patterns(".git"), symlinks=True
         )
         if lockfile_command:
-            done = subprocess.run(
-                ["bash", "-ec", lockfile_command],
-                cwd=copy,
-                capture_output=True,
-                check=False,
-                text=True,
-            )
+            try:
+                done = subprocess.run(
+                    ["bash", "-ec", lockfile_command],
+                    cwd=copy,
+                    capture_output=True,
+                    check=False,
+                    text=True,
+                )
+            except OSError as exc:
+                raise ScanError(f"lockfile generation failed: {exc}") from exc
             if done.returncode != 0:
                 raise ScanError(
                     f"lockfile generation failed: {done.stderr.strip()[-500:]}"
@@ -153,12 +176,15 @@ def tool_versions() -> dict[str, str | None]:
     """The tools of the detector for ``result.json``: the versions of Trivy and
     osv-scanner and the update times of the Trivy databases.
     """
-    done = subprocess.run(
-        ["trivy", "version", "--format", "json"],
-        capture_output=True,
-        check=False,
-        text=True,
-    )
+    try:
+        done = subprocess.run(
+            ["trivy", "version", "--format", "json"],
+            capture_output=True,
+            check=False,
+            text=True,
+        )
+    except OSError as exc:
+        raise ScanError(f"cannot read the versions of trivy and osv-scanner: {exc}") from exc
     osv = run_command(["osv-scanner", "--version"])
     if done.returncode != 0 or osv.returncode != 0:
         raise ScanError("cannot read the versions of trivy and osv-scanner")
@@ -209,12 +235,15 @@ def gate(
 ) -> tuple[str, str] | None:
     """Why an item is not proven as ``(reason_code, text)``, or None when it is.
 
-    ``before`` is the scan of the state the change started from: an item whose
-    vulnerabilities were not in it cannot be shown to be fixed. ``baseline`` is the
-    scan of the untouched branch: the change must not bring a new serious one.
+    Rule 1a: nothing of the item in ``baseline`` (the untouched branch) is
+    ``not_in_baseline``. Rule 1b: present in the baseline but not in ``before`` (the
+    state the change started from) is ``EARLIER``, fixed by a kept change. The change
+    must not bring a new serious record that the baseline does not know.
     """
-    if not present(item, before):
+    if not present(item, baseline):
         return codes.NOT_IN_BASELINE, NOT_IN_BASELINE
+    if not present(item, before):
+        return EARLIER, EARLIER_TEXT
     left = present(item, after)
     if left:
         text = "still present after the change: " + ", ".join(
@@ -246,16 +275,19 @@ def scan_image(
     command = ["docker", "build", "-f", dockerfile, "-t", tag, *secrets]
     for arg in build_args:
         command += ["--build-arg", arg]
-    built = subprocess.run(
-        [*command, "."],
-        cwd=tree,
-        capture_output=True,
-        check=False,
-        text=True,
-        env={**os.environ, "DOCKER_BUILDKIT": "1"},
-    )
+    try:
+        built = subprocess.run(
+            [*command, "."],
+            cwd=tree,
+            capture_output=True,
+            check=False,
+            text=True,
+            env={**os.environ, "DOCKER_BUILDKIT": "1"},
+        )
+    except OSError as exc:
+        raise BuildError(f"docker build failed: {exc}") from exc
     if built.returncode != 0:
-        raise ScanError(
+        raise BuildError(
             f"docker build failed: {(built.stderr or built.stdout).strip()[-800:]}"
         )
     try:

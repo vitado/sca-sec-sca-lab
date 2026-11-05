@@ -367,3 +367,88 @@ def test_n10_2_tool_versions(monkeypatch: pytest.MonkeyPatch) -> None:
         "trivy_db": "2026-11-05T00:00:00Z",
         "trivy_java_db": "2026-11-04T00:00:00Z",
     }
+
+
+def missing_binary(command: Sequence[str]) -> subprocess.CompletedProcess[str]:
+    raise FileNotFoundError(command[0])
+
+
+def no_output(command: Sequence[str]) -> subprocess.CompletedProcess[str]:
+    """Every tool exits 0 and writes nothing."""
+    return subprocess.CompletedProcess(command, 0, "", "")
+
+
+def broken_output(command: Sequence[str]) -> subprocess.CompletedProcess[str]:
+    """``trivy convert`` writes a BOM, osv-scanner an unreadable file."""
+    if command[0] == "osv-scanner":
+        Path(command[command.index("--output-file") + 1]).write_text("{", encoding="utf-8")
+        return subprocess.CompletedProcess(command, 0, "", "")
+    return fake_tools(NOTHING)(command)
+
+
+BROKEN_DETECTORS = [missing_binary, no_output, broken_output]
+
+
+def failing_detect(tmp_path: Path, run: Any) -> set[Finding]:
+    work = tmp_path / "failing"
+    work.mkdir(exist_ok=True)
+    native = work / "trivy.json"
+    native.write_text(json.dumps(trivy_doc(HONO)), encoding="utf-8")
+    return detect(work, native, run=run)
+
+
+@pytest.mark.parametrize("run", BROKEN_DETECTORS)
+def test_n6_1_rule_6_every_detector_failure_is_a_scan_error(
+    tmp_path: Path, run: Any
+) -> None:
+    with pytest.raises(ScanError):
+        failing_detect(tmp_path, run)
+
+
+def test_n6_1_rule_6_missing_trivy_binary_is_a_scan_error(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    def run(command: Sequence[str], **kwargs: Any) -> subprocess.CompletedProcess[str]:
+        raise FileNotFoundError(command[0])
+
+    monkeypatch.setattr("scan.subprocess.run", run)
+    with pytest.raises(ScanError, match="trivy fs failed"):
+        scan_tree(tmp_path)
+    with pytest.raises(ScanError, match="versions"):
+        tool_versions()
+    with pytest.raises(ScanError, match="docker build failed"):
+        scan_image(tmp_path, "Dockerfile")
+
+
+@pytest.mark.parametrize("run", BROKEN_DETECTORS)
+def test_n6_3_rule_4_broken_detector_after_a_change_is_rescan_failed(
+    tmp_path: Path, run: Any
+) -> None:
+    scans = [
+        lambda: detected(tmp_path, trivy_doc(HONO), NOTHING),
+        lambda: failing_detect(tmp_path, run),
+    ]
+    fake = replace(
+        tools(lambda job, manager: outcome(file("new")), []),
+        scan_tree=lambda: scans.pop(0)(),
+    )
+    tree = lockfile_tree(tmp_path)
+    result = process_line(line(item()), "o/r", tree, fake)
+    assert result["items"][0]["reason_code"] == "rescan_failed"
+    assert result["items"][0]["reverted"] is True
+    assert (tree / "package-lock.json").read_text(encoding="utf-8") == "old"
+    assert result["files"] == []
+
+
+@pytest.mark.parametrize("run", BROKEN_DETECTORS)
+def test_n6_1_rule_6_broken_detector_of_the_baseline_fails_the_line(
+    tmp_path: Path, run: Any
+) -> None:
+    calls: list[int] = []
+    base = tools(lambda job, manager: calls.append(1) or outcome(file("new")), [])
+    fake = replace(base, scan_tree=lambda: failing_detect(tmp_path, run))
+    tree = lockfile_tree(tmp_path)
+    with pytest.raises(ScanError):
+        process_line(line(item()), "o/r", tree, fake)
+    assert calls == []
+    assert (tree / "package-lock.json").read_text(encoding="utf-8") == "old"

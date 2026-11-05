@@ -13,7 +13,7 @@ import pytest
 from apply import process_line
 from builders import TOOL_VERSIONS, file, finding, item, line, outcome, tools
 from dependabot import TIMEOUT
-from scan import Finding, ScanError
+from scan import BuildError, Finding, ScanError
 from test_apply import (
     NODE,
     PACKAGE,
@@ -41,11 +41,15 @@ N9_2_CODES = {
     "only_in_image",
     "ecosystem_unsupported",
     "method_disabled",
+    "ref_not_semver",
+    "same_ref_same_commit",
+    "line_in_earlier_report",
     "dependabot_refused",
     "dependabot_no_change",
     "dependabot_timeout",
     "dependabot_failed",
     "override_direct",
+    "override_relationship_unknown",
     "override_no_root_lockfile",
     "override_no_node",
     "override_needs_manual",
@@ -351,7 +355,7 @@ def test_n9_2_docker_codes(tmp_path: Path) -> None:
 
     def build_fails(root: Path, path: str) -> set[Finding]:
         if "a:2" in (root / path).read_text(encoding="utf-8"):
-            raise ScanError("nope")
+            raise BuildError("nope")
         return {vuln}
 
     failed = run(docker_tree(sub(tmp_path, "e")), bump, build_fails)

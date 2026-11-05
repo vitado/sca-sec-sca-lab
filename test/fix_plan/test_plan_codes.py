@@ -27,9 +27,12 @@ N9_2_PLAN_CODES = {
     "only_in_image",
     "ecosystem_unsupported",
     "method_disabled",
+    "ref_not_semver",
+    "same_ref_same_commit",
+    "line_in_earlier_report",
 }
-# the codes of the ignored and skipped refs, N10.1
-N10_1_REF_CODES = {"ref_not_semver", "same_ref_same_commit", "line_in_earlier_report"}
+# the codes of the ignored and skipped refs, listed in N9.2 too
+REF_CODES = {"ref_not_semver", "same_ref_same_commit", "line_in_earlier_report"}
 
 DEV_IMAGE = "image-app-development"
 
@@ -75,7 +78,7 @@ def os_dev() -> dict[str, Any]:
 
 
 def test_n9_2_plan_table_is_in_the_spec_list() -> None:
-    assert plan_codes.CODES == N9_2_PLAN_CODES | N10_1_REF_CODES
+    assert plan_codes.CODES == N9_2_PLAN_CODES
 
 
 def test_n10_1_schema_version_is_2() -> None:
@@ -192,9 +195,9 @@ def test_n9_2_emitted_codes_are_in_the_spec_list(tmp_path: Path) -> None:
     results.append(plan(os_dev(), os_release()))
     seen = set().union(*(emitted(r) for r in results))
     assert seen
-    assert seen <= N9_2_PLAN_CODES | N10_1_REF_CODES
+    assert seen <= N9_2_PLAN_CODES
     # the synthetic reports above reach the three ref codes
-    assert N10_1_REF_CODES <= seen
+    assert REF_CODES <= seen
 
 
 def test_n9_2_codes_are_spelled_only_in_the_table() -> None:
