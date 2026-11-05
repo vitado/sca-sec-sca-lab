@@ -110,8 +110,16 @@ def cmd_apply(args: argparse.Namespace) -> int:
     )
     args.output_dir.mkdir(parents=True, exist_ok=True)
     write_json(args.output_dir / "result.json", result)
-    body = pr_body(line, result, result["baseline_ci"])
-    (args.output_dir / "pr-body.md").write_text(body, encoding="utf-8", newline="\n")
+    if result["files"]:
+        body = pr_body(
+            line,
+            result,
+            result["baseline_ci"],
+            [r["run_url"] for r in plan["reports"] if r.get("run_url")],
+        )
+        (args.output_dir / "pr-body.md").write_text(
+            body, encoding="utf-8", newline="\n"
+        )
     return 0
 
 

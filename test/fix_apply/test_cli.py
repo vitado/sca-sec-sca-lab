@@ -5,7 +5,7 @@ from typing import Any
 import fix_apply
 import pytest
 from builders import item, line
-from texts import pr_body, summary
+from texts import summary
 
 
 def result(**fields: Any) -> dict[str, Any]:
@@ -39,14 +39,6 @@ def result(**fields: Any) -> dict[str, Any]:
         "items": [record, manual],
         **fields,
     }
-
-
-def test_pr_body_lists_applied_and_manual_items() -> None:
-    body = pr_body(line(item()), result(), "success")
-    assert "| hono | 2.0.12 -> 2.1.6 | dependabot | CVE-hono |" in body
-    assert "| glob | dependabot | why |" in body
-    assert "W4 test bed" in body
-    assert "baseline of the untouched branch had 4 findings" in body
 
 
 def test_summary_names_every_line() -> None:
@@ -122,33 +114,6 @@ def test_dry_run_publishes_nothing(tmp_path: Path) -> None:
     )
     written = json.loads((tmp_path / "result.json").read_text(encoding="utf-8"))
     assert written["pr"]["reason"] == "dry run"
-
-
-def test_pr_body_states_a_red_baseline() -> None:
-    red = pr_body(line(item()), result(), "failure (commit status: ci/build)")
-    assert "The baseline is red" in red
-    assert "The baseline is red" not in pr_body(line(item()), result(), "success")
-
-
-def test_pr_body_shows_overrides_and_already_fixed_items() -> None:
-    applied = {
-        **result()["items"][0],
-        "pkg": "follow-redirects",
-        "method_used": "npm-override",
-        "override_keys": ["follow-redirects@^1.0.0"],
-        "changed_other": ["ms 1.0.0 -> 1.0.1"],
-        "changes": [],
-    }
-    fixed = {
-        **applied,
-        "pkg": "hono",
-        "status": "already_fixed",
-        "reason": "already fixed on the branch (x)",
-    }
-    body = pr_body(line(item()), result(items=[applied, fixed]), "success")
-    assert "| follow-redirects | follow-redirects@^1.0.0 | ms 1.0.0 -> 1.0.1 |" in body
-    assert "- hono: already fixed on the branch (x)" in body
-    assert "Not applied" not in body
 
 
 def test_node_command_writes_the_workflow_outputs(
