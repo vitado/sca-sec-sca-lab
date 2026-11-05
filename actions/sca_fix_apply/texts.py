@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import Mapping, Sequence
 from typing import Any
 
+import apply_codes as codes
 from scan import norm
 
 TEST_BED_NOTE = "Opened by the W4 test bed of the SCA fix delivery (a test run on a fork, not a production job)."
@@ -129,7 +130,12 @@ def pr_note(result: Mapping[str, Any]) -> str:
         return f"no pull request: {pr['reason']}"
     if pr["action"] == "failed":
         return f"branch {pr['head']} pushed, pull request failed: {pr['reason']}"
-    return f"pull request {pr['action']}: {pr['url']}"
+    note = (
+        " (branch unchanged, not pushed)"
+        if pr.get("reason_code") == codes.UNCHANGED
+        else ""
+    )
+    return f"pull request {pr['action']}: {pr['url']}{note}"
 
 
 def summary(plan: Mapping[str, Any], results: Mapping[str, Mapping[str, Any]]) -> str:

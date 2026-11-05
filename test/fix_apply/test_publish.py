@@ -66,6 +66,144 @@ def test_a_pull_request_failure_keeps_the_pushed_branch(
     assert git(clone, "ls-remote", "--heads", "origin", "sca-fix/release-1.2")
 
 
+APP = ("sca-app[bot]", "7+sca-app[bot]@users.noreply.github.com")
+FIX = "sca-fix/release-1.2"
+
+
+@pytest.fixture
+def opened(monkeypatch: pytest.MonkeyPatch) -> None:
+    def fake(repo: str, branch: str, head: str, *rest: Any) -> dict[str, Any]:
+        return {"head": head, "action": "updated", "url": "u"}
+
+    monkeypatch.setattr(publish_module, "open_pull_request", fake)
+
+
+def run_fixer(work: Path, content: str = "new", who: tuple[str, str] = APP) -> Any:
+    """One fixer run: a fresh checkout of the release branch with ``lock`` changed."""
+    git(work, "checkout", "-f", "-q", "release-1.2")
+    (work / "lock").write_text(content, encoding="utf-8")
+    return publish(work, "o/r", "release-1.2", ["lock"], "t", work / "b", "", *who)
+
+
+def remote_sha(work: Path) -> str:
+    return git(work, "ls-remote", "--heads", "origin", FIX).split()[0]
+
+
+def other_clone(work: Path) -> Path:
+    other = work.parent / "other"
+    git(work.parent, "clone", "-q", str(work.parent / "remote.git"), str(other))
+    return other
+
+
+def commit_as(repo: Path, email: str, text: str) -> None:
+    (repo / "lock").write_text(text, encoding="utf-8")
+    git(repo, "-c", "user.name=x", "-c", f"user.email={email}", "commit", "-qam", text)
+
+
+def test_n7_2_identity_is_author_and_committer(clone: Path, opened: None) -> None:
+    run_fixer(clone)
+    assert git(clone, "log", "-1", "--format=%an %ae|%cn %ce", f"origin/{FIX}") == (
+        f"{APP[0]} {APP[1]}|{APP[0]} {APP[1]}"
+    )
+
+
+def test_n7_2_changed_tree_of_an_owned_branch_is_pushed(
+    clone: Path, opened: None
+) -> None:
+    run_fixer(clone, "new")
+    first = remote_sha(clone)
+    result = run_fixer(clone, "newer")
+    assert remote_sha(clone) != first
+    assert git(clone, "show", f"origin/{FIX}:lock") == "newer"
+    assert "reason_code" not in result
+
+
+def test_n7_2_same_tree_on_the_same_base_is_not_pushed(
+    clone: Path, opened: None
+) -> None:
+    run_fixer(clone)
+    first = remote_sha(clone)
+    result = run_fixer(clone)
+    assert remote_sha(clone) == first
+    assert result == {
+        "head": FIX,
+        "action": "updated",
+        "url": "u",
+        "reason_code": "unchanged",
+    }
+
+
+def test_n7_2_the_workflow_bot_counts_as_a_fixer(clone: Path, opened: None) -> None:
+    run_fixer(clone, who=(publish_module.BOT_NAME, publish_module.BOT_EMAIL))
+    first = remote_sha(clone)
+    assert run_fixer(clone)["reason_code"] == "unchanged"
+    assert remote_sha(clone) == first
+
+
+def test_n7_2_commit_of_a_human_on_top_stops_the_push(
+    clone: Path, opened: None
+) -> None:
+    run_fixer(clone, "new")
+    other = other_clone(clone)
+    git(other, "checkout", "-q", FIX)
+    commit_as(other, "dev@x", "hand")
+    git(other, "push", "-q", "origin", FIX)
+    before = remote_sha(clone)
+    result = run_fixer(clone, "newer")
+    assert remote_sha(clone) == before
+    assert result["action"] == "none"
+    assert result["reason_code"] == "branch_has_manual_changes"
+
+
+def test_n7_2_commit_of_a_human_below_a_fixer_commit_stops_the_push(
+    clone: Path, opened: None
+) -> None:
+    other = other_clone(clone)
+    git(other, "checkout", "-q", "-b", FIX)
+    commit_as(other, "dev@x", "hand")
+    commit_as(other, APP[1], "fixer")
+    git(other, "push", "-q", "origin", FIX)
+    before = remote_sha(clone)
+    result = run_fixer(clone)
+    assert remote_sha(clone) == before
+    assert result["reason_code"] == "branch_has_manual_changes"
+
+
+def test_n7_2_a_moved_release_branch_gets_a_new_commit(
+    clone: Path, opened: None
+) -> None:
+    run_fixer(clone)
+    first = remote_sha(clone)
+    other = other_clone(clone)
+    (other / "more").write_text("x", encoding="utf-8")
+    git(other, "add", "more")
+    git(other, "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qm", "moved")
+    git(other, "push", "-q", "origin", "HEAD:release-1.2")
+    git(clone, "fetch", "-q", "origin")
+    git(clone, "checkout", "-f", "-q", "-B", "release-1.2", "origin/release-1.2")
+    (clone / "lock").write_text("new", encoding="utf-8")
+    result = publish(clone, "o/r", "release-1.2", ["lock"], "t", clone / "b", "", *APP)
+    assert remote_sha(clone) != first
+    assert "reason_code" not in result
+    assert git(clone, "rev-parse", f"origin/{FIX}^") == git(
+        clone, "rev-parse", "origin/release-1.2"
+    )
+
+
+def test_n7_2_a_shallow_checkout_is_told_from_the_history(
+    clone: Path, tmp_path: Path, opened: None
+) -> None:
+    run_fixer(clone)
+    shallow = tmp_path / "shallow"
+    git(tmp_path, "clone", "-q", "--depth", "1", "-b", "release-1.2",
+        (tmp_path / "remote.git").as_uri(), str(shallow))
+    (shallow / "lock").write_text("new", encoding="utf-8")
+    before = remote_sha(clone)
+    result = publish(shallow, "o/r", "release-1.2", ["lock"], "t", shallow / "b", "", *APP)
+    assert remote_sha(clone) == before
+    assert result["reason_code"] == "unchanged"
+
+
 def test_baseline_ci_reports_a_failing_commit_status(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

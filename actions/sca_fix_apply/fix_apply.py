@@ -5,7 +5,8 @@
            jobs, base image bump), rescan, and write ``result.json`` and
            ``pr-body.md``
   publish  commit the applied files, force-push ``sca-fix/<branch>`` and open or
-           update the pull request (nothing when nothing was applied or on a dry run)
+           update the pull request (no push when nothing was applied, on a dry run,
+           when the branch has commits of others or holds the same tree already)
   node     the node version of the branch (workflow output ``version`` and ``source``,
            empty when none is found)
   summary  the job summary of all lines of a plan from the result files
@@ -31,7 +32,7 @@ import apply_codes as codes
 from apply import Tools, dockerfiles, process_line
 from dependabot import JobError, Outcome, Settings, run_job
 from override import detect_node, npm_install, npm_ls, npm_version
-from publish import PublishError, baseline_ci, publish
+from publish import BOT_EMAIL, BOT_NAME, PublishError, baseline_ci, publish
 from scan import ScanError, scan_image, scan_tree, tool_versions
 from texts import pr_body, summary
 
@@ -139,6 +140,8 @@ def cmd_publish(args: argparse.Namespace) -> int:
                 f"fix(deps): security fixes for {args.branch}",
                 args.output_dir / "pr-body.md",
                 os.environ.get("GH_TOKEN", ""),
+                args.git_user_name,
+                args.git_user_email,
             )
             failed = pr["action"] == "failed"
             result["pr"] = {
@@ -220,6 +223,16 @@ def build_parser() -> argparse.ArgumentParser:
         choices=("workflow", "token", "app"),
         default="workflow",
         help="which token opens the pull request, as the summary tells it",
+    )
+    publish_parser.add_argument(
+        "--git-user-name",
+        default=BOT_NAME,
+        help="the fixer identity: author and committer name of the fix commit",
+    )
+    publish_parser.add_argument(
+        "--git-user-email",
+        default=BOT_EMAIL,
+        help="the fixer identity: author and committer email of the fix commit",
     )
     publish_parser.set_defaults(handler=cmd_publish)
     node_parser = sub.add_parser("node")

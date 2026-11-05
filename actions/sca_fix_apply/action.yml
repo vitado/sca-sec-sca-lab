@@ -47,6 +47,12 @@ inputs:
   token-kind:
     description: "Which token the input token is: workflow (the default workflow token), token (a token given by the caller) or app (a GitHub App installation token); the summary warns about the pull request workflows only for workflow (publish)"
     default: workflow
+  git-user-name:
+    description: Name of the fixer identity, author and committer of the fix commit (publish)
+    default: github-actions[bot]
+  git-user-email:
+    description: Email of the fixer identity (publish)
+    default: 41898282+github-actions[bot]@users.noreply.github.com
   token:
     description: Token for the Dependabot git source, the push and the pull request
     default: ${{ github.token }}
@@ -88,6 +94,8 @@ runs:
         DEPENDABOT_TIMEOUT_MINUTES: ${{ inputs.dependabot-timeout-minutes }}
         DRY_RUN: ${{ inputs.dry-run }}
         TOKEN_KIND: ${{ inputs.token-kind }}
+        GIT_USER_NAME: ${{ inputs.git-user-name }}
+        GIT_USER_EMAIL: ${{ inputs.git-user-email }}
         GH_TOKEN: ${{ inputs.token }}
       run: |
         args=("$COMMAND" --plan "$PLAN")
@@ -102,7 +110,7 @@ runs:
             ;;
           publish)
             args+=(--branch "$BRANCH" --tree "$TREE" --repo "$REPO" --output-dir "$OUTPUT_DIR")
-            args+=(--token-kind "$TOKEN_KIND")
+            args+=(--token-kind "$TOKEN_KIND" --git-user-name "$GIT_USER_NAME" --git-user-email "$GIT_USER_EMAIL")
             [ "$DRY_RUN" = "true" ] && args+=(--dry-run)
             ;;
           node)
