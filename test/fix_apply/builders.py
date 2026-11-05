@@ -39,6 +39,7 @@ def item(
             {
                 "id": f"CVE-{pkg}",
                 "names": [f"GHSA-{pkg}"],
+                "aliases": [f"ALIAS-{pkg}"],
                 "severity": "HIGH",
                 "dev": False,
                 "fixed": target or "",
@@ -87,8 +88,17 @@ def finding(
     id: str | None = None,
     severity: str = "HIGH",
     version: str = "2.0.12",
+    cls: str = "lang",
 ) -> Finding:
-    return Finding(pkg, version, id or f"CVE-{pkg}", severity)
+    return Finding(pkg, version, id or f"CVE-{pkg}", severity, cls)
+
+
+TOOL_VERSIONS = {
+    "trivy": "0.75.0",
+    "osv_scanner": "2.7.0",
+    "trivy_db": "2026-11-05T00:00:00Z",
+    "trivy_java_db": "2026-11-04T00:00:00Z",
+}
 
 
 def tools(
@@ -107,4 +117,5 @@ def tools(
         npm_install=npm_install,
         npm_ls=npm_ls,
         npm_version=lambda: "10.9.2",
+        tool_versions=lambda: TOOL_VERSIONS,
     )

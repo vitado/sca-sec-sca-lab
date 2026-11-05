@@ -6,7 +6,7 @@ from typing import Any
 from apply import Tools, process_line
 from builders import file, finding, item, line, outcome, tools
 from dependabot import TIMEOUT, Outcome
-from scan import Finding, ScanError, parse_trivy
+from scan import Finding, ScanError
 
 
 def tree_with(tmp_path: Path, **files: str) -> Path:
@@ -54,21 +54,34 @@ def test_no_change_goes_on_to_the_override_step(tmp_path: Path) -> None:
     assert result["files"] == []
 
 
-def test_not_needed_is_already_fixed_without_the_override_step(tmp_path: Path) -> None:
-    tree = lockfile_tree(tmp_path)
-    result = process_line(
+def not_needed(tmp_path: Path, baseline: set[Finding]) -> dict[str, Any]:
+    return process_line(
         line(item()),
         "o/r",
-        tree,
+        lockfile_tree(tmp_path),
         tools(
             lambda job, manager: outcome(error="security_update_not_needed"),
-            [{finding()}],
+            [baseline],
         ),
-    )
-    record = result["items"][0]
+    )["items"][0]
+
+
+def test_n5_2_not_needed_is_already_fixed_when_the_detector_does_not_find_it(
+    tmp_path: Path,
+) -> None:
+    record = not_needed(tmp_path, set())
     assert record["status"] == "already_fixed"
-    assert "dependabot_result" not in record
-    assert "security_update_not_needed" in record["reason"]
+    assert record["reason_code"] == "not_in_baseline"
+    assert record["dependabot_result"] == "security_update_not_needed"
+
+
+def test_n5_2_not_needed_is_not_believed_when_the_detector_finds_it(
+    tmp_path: Path,
+) -> None:
+    record = not_needed(tmp_path, {finding()})
+    assert record["status"] == "manual"
+    assert record["reason_code"] == "dependabot_refused"
+    assert record["detail"] == "security_update_not_needed"
 
 
 def test_gate_without_baseline_findings_is_already_fixed(tmp_path: Path) -> None:
@@ -136,6 +149,7 @@ def test_rescan_failure_reverts_the_item(tmp_path: Path) -> None:
         npm_install=lambda: None,
         npm_ls=lambda pkg: [],
         npm_version=lambda: "10",
+        tool_versions=lambda: {},
     )
     result = process_line(line(item()), "o/r", tree, fake)
     assert "rescan failed: boom" in result["items"][0]["detail"]
@@ -187,7 +201,7 @@ def docker_tree(tmp_path: Path) -> Path:
 
 def test_docker_step_applies_when_the_image_rescan_proves_it(tmp_path: Path) -> None:
     tree = docker_tree(tmp_path)
-    vuln = finding("brotli-libs")
+    vuln = finding("brotli-libs", cls="os")
     builds: list[str] = []
 
     def image(root: Path, path: str) -> set[Finding]:
@@ -214,7 +228,7 @@ def test_docker_step_applies_when_the_image_rescan_proves_it(tmp_path: Path) -> 
 
 def test_docker_step_is_reverted_when_nothing_is_proven(tmp_path: Path) -> None:
     tree = docker_tree(tmp_path)
-    vuln = finding("brotli-libs")
+    vuln = finding("brotli-libs", cls="os")
     result = process_line(
         line(os_item()),
         "o/r",
@@ -237,7 +251,7 @@ def test_docker_build_failure_makes_items_manual(tmp_path: Path) -> None:
     def image(root: Path, path: str) -> set[Finding]:
         if "a:2" in (root / path).read_text(encoding="utf-8"):
             raise ScanError("docker build failed: nope")
-        return {finding("brotli-libs")}
+        return {finding("brotli-libs", cls="os")}
 
     result = process_line(
         line(os_item()),
@@ -420,27 +434,9 @@ def test_timeout_goes_on_to_the_override_step(tmp_path: Path) -> None:
 
 
 def recorded_trivy(*vulns: tuple[str, str, str, str]) -> set[Finding]:
-    """The findings of a Trivy JSON document of the shape ``trivy fs --format json`` writes."""
-    document = {
-        "SchemaVersion": 2,
-        "Results": [
-            {
-                "Target": "package-lock.json",
-                "Class": "lang-pkgs",
-                "Type": "npm",
-                "Vulnerabilities": [
-                    {
-                        "VulnerabilityID": vid,
-                        "PkgName": name,
-                        "InstalledVersion": version,
-                        "Severity": severity,
-                    }
-                    for name, version, vid, severity in vulns
-                ],
-            }
-        ],
+    return {
+        Finding(name, version, vid, severity) for name, version, vid, severity in vulns
     }
-    return parse_trivy(json.loads(json.dumps(document)))
 
 
 def test_new_high_in_the_rescan_reverts_the_item_to_manual(tmp_path: Path) -> None:

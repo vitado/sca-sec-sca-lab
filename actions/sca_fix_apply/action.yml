@@ -1,5 +1,5 @@
 name: Apply SCA fixes
-description: Apply the automated items of one release line of a fix plan (Dependabot jobs, base image bump), prove them with a rescan and deliver them as one pull request (see fix_apply.py)
+description: Apply the automated items of one release line of a fix plan (Dependabot jobs, base image bump), prove them with a rescan by the detector of the scan (Trivy and OSV, one database state) and deliver them as one pull request (see fix_apply.py)
 
 inputs:
   command:
@@ -71,6 +71,8 @@ runs:
       shell: bash
       env:
         ACTION_PATH: ${{ github.action_path }}
+        # the scan engine the detector reuses (normalize, vulns, query_osv) and its shared package _sca_lib
+        PYTHONPATH: ${{ github.action_path }}/..:${{ github.action_path }}/../sca_merge_results:${{ github.action_path }}/../sca_query_osv
         COMMAND: ${{ inputs.command }}
         PLAN: ${{ inputs.plan }}
         BRANCH: ${{ inputs.branch }}

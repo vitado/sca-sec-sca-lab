@@ -11,7 +11,7 @@ import apply_codes
 import fix_apply
 import pytest
 from apply import process_line
-from builders import file, finding, item, line, outcome, tools
+from builders import TOOL_VERSIONS, file, finding, item, line, outcome, tools
 from dependabot import TIMEOUT
 from scan import Finding, ScanError
 from test_apply import (
@@ -174,7 +174,7 @@ def test_n9_2_already_fixed_is_not_in_baseline(tmp_path: Path) -> None:
         lockfile_tree(tmp_path),
         tools(
             lambda job, manager: outcome(error="security_update_not_needed"),
-            [{finding()}],
+            [set()],
         ),
     )
     assert not_needed["items"][0]["status"] == "already_fixed"
@@ -221,6 +221,7 @@ def test_n9_2_rescan_failure(tmp_path: Path) -> None:
         npm_install=ready.npm_install,
         npm_ls=ready.npm_ls,
         npm_version=ready.npm_version,
+        tool_versions=ready.tool_versions,
     )
     result = process_line(
         line(item(fallback="manual")), "o/r", lockfile_tree(tmp_path), fake
@@ -323,6 +324,7 @@ def test_n9_2_override_rescan_failure(tmp_path: Path) -> None:
         npm_install=install,
         npm_ls=lambda pkg: [("hono", "2.1.5")],
         npm_version=ready.npm_version,
+        tool_versions=ready.tool_versions,
     )
     result = process_line(line(item()), "o/r", tree, fake)
     assert code_of(result) == "rescan_failed"
@@ -330,7 +332,7 @@ def test_n9_2_override_rescan_failure(tmp_path: Path) -> None:
 
 
 def test_n9_2_docker_codes(tmp_path: Path) -> None:
-    vuln = finding("brotli-libs")
+    vuln = finding("brotli-libs", cls="os")
     bump = lambda job, manager: outcome(file("FROM a:2\n", "/", "Dockerfile"))  # noqa: E731
 
     def run(tree: Path, dependabot: Any, image: Any = lambda r, p: set()) -> Any:
@@ -360,7 +362,7 @@ def test_n9_2_docker_codes(tmp_path: Path) -> None:
 
     def adds_serious(root: Path, path: str) -> set[Finding]:
         calls.append(path)
-        extra = finding("x", severity="CRITICAL")
+        extra = finding("x", severity="CRITICAL", cls="os")
         return {vuln} if len(calls) == 1 else {extra}
 
     serious = run(docker_tree(sub(tmp_path, "g")), bump, adds_serious)
@@ -411,6 +413,7 @@ def test_n10_2_result_header(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     monkeypatch.setattr(fix_apply, "baseline_ci", lambda repo, branch, token: "none")
+    monkeypatch.setattr(fix_apply, "tool_versions", lambda: TOOL_VERSIONS)
     monkeypatch.setenv("GITHUB_RUN_ID", "777")
     assert fix_apply.main(apply_args(tmp_path, plan_file(tmp_path))) == 0
     written = json.loads((tmp_path / "out" / "result.json").read_text(encoding="utf-8"))
@@ -418,6 +421,8 @@ def test_n10_2_result_header(
     assert (written["repo"], written["run_id"]) == ("o/r", "777")
     assert written["report_run_ids"] == ["11", "12"]
     assert written["items"][0]["reason_code"] is None
+    assert written["detector"] == TOOL_VERSIONS
+    assert written["baseline_findings"] == 0
     monkeypatch.delenv("GITHUB_RUN_ID")
     assert fix_apply.main(apply_args(tmp_path, plan_file(tmp_path))) == 0
     again = json.loads((tmp_path / "out" / "result.json").read_text(encoding="utf-8"))

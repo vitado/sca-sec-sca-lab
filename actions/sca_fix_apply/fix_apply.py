@@ -11,8 +11,10 @@
   summary  the job summary of all lines of a plan from the result files
 
 Standard library only; it reads the plan of ``sca_fix_plan`` as JSON and shares no
-code with it. Tools it calls: the Dependabot CLI, ``yq``, Trivy, Docker, ``git``
-and ``gh``.
+code with it, but the scan engine: the detector imports ``normalize``, ``vulns`` and
+``query_osv`` (``sca_merge_results``, ``sca_query_osv``) and ``_sca_lib``, which the
+action puts on ``PYTHONPATH``. Tools it calls: the Dependabot CLI, ``yq``, Trivy,
+osv-scanner, Docker, ``git`` and ``gh``.
 """
 
 from __future__ import annotations
@@ -30,7 +32,7 @@ from apply import Tools, dockerfiles, process_line
 from dependabot import JobError, Outcome, Settings, run_job
 from override import detect_node, npm_install, npm_ls, npm_version
 from publish import PublishError, baseline_ci, publish
-from scan import ScanError, scan_image, scan_tree
+from scan import ScanError, scan_image, scan_tree, tool_versions
 from texts import pr_body, summary
 
 
@@ -91,6 +93,7 @@ def cmd_apply(args: argparse.Namespace) -> int:
         npm_install=partial(npm_install, tree),
         npm_ls=partial(npm_ls, tree),
         npm_version=npm_version,
+        tool_versions=tool_versions,
     )
     try:
         result = process_line(line, args.repo, tree, tools)

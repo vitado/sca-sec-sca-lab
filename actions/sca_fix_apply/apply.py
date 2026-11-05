@@ -27,7 +27,7 @@ from override import (
     detect_node,
     lock_format,
 )
-from scan import Finding, ScanError, gate, new_serious
+from scan import NOT_IN_BASELINE, Finding, ScanError, gate, new_serious, present
 
 NOT_NEEDED = "security_update_not_needed"
 NO_CHANGE = "dependabot produced no change"
@@ -50,6 +50,7 @@ class Tools:
     npm_install: Callable[[], str | None]
     npm_ls: Callable[[str], list[tuple[str, str]]]
     npm_version: Callable[[], str]
+    tool_versions: Callable[[], dict[str, str | None]]
 
 
 def dockerfiles(tree: Path) -> list[str]:
@@ -148,7 +149,11 @@ def apply_security(
     changed, left_out = journal.apply(outcome.files)
     if not changed:
         if outcome.error == NOT_NEEDED:
-            return already_fixed(record, NOT_NEEDED), current
+            # Dependabot's word is not enough: the detector decides on the unchanged tree
+            if present(item, current):
+                return fail(record, NOT_NEEDED, codes.DEPENDABOT_REFUSED), current
+            record["dependabot_result"] = NOT_NEEDED
+            return already_fixed(record, NOT_IN_BASELINE), current
         detail = outcome.error or NO_CHANGE
         return fail(record, detail, dependabot_code(detail)), current
     record["changes"], record["left_out"] = changes(outcome), left_out
@@ -423,6 +428,7 @@ def process_line(
         "ref": line["ref"],
         "branch": line["branch"],
         "baseline_findings": len(baseline),
+        "detector": tools.tool_versions(),
         "items": [records[i] for i in sorted(records)],
         "docker": step,
         "files": journal.paths(),
