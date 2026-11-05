@@ -1,7 +1,6 @@
 from typing import Any
 
 import pytest
-from config import Config, parse_config
 from helpers import (
     DEV_SOURCE,
     development,
@@ -12,8 +11,7 @@ from helpers import (
     target,
     version,
 )
-from plan import build_plan
-from reports import ReportError, merge_reports
+from sca_fix_plan import Config, ReportError, build_plan, merge_reports, parse_config
 
 DEV_IMAGE = "image-app-development"
 
@@ -113,11 +111,11 @@ def test_include_dev() -> None:
     assert result["lines"][0]["dropped"]["dev"] == 1
 
 
-def test_present_in_development_is_not_fixed_there() -> None:
+def test_n4_3_present_in_development_is_not_fixed_there() -> None:
     names = ["CVE-1", "GHSA-1"]
     rec = record("lib", "1.0.0", "1.0.5", id="CVE-1", names=names)
-    renamed = record("lib-renamed", "1.0.5", "", id="GHSA-1", names=["GHSA-1"])
-    result = plan(development(vulns=[renamed]), release(rec))
+    still = record("lib", "1.0.5", "", id="GHSA-1", names=["GHSA-1"])
+    result = plan(development(vulns=[still]), release(rec))
     line = result["lines"][0]
     assert line["items"] == []
     assert line["skipped"] == [
@@ -379,11 +377,12 @@ def test_newest_lines_and_newest_ref_per_line() -> None:
         version("1.2.0"),
         version("1.2.1-rc.1", "candidate"),
         version("1.2.1"),
-        version("1.3.0", "candidate"),
+        version("1.3.0-rc.1", "candidate"),
     )
     assert [(x["line"], x["ref"], x["kind"]) for x in result["lines"]] == [
-        ("1.3", "1.3.0", "candidate"),
+        ("1.3", "1.3.0-rc.1", "candidate"),
         ("1.2", "1.2.1", "release"),
+        ("1.1", "1.1.9", "release"),
     ]
     wide = plan(
         development(),

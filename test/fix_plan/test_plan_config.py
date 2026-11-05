@@ -1,5 +1,5 @@
 import pytest
-from config import Config, ConfigError, parse_config
+from sca_fix_plan import Config, ConfigError, parse_config
 
 
 def test_defaults() -> None:
@@ -10,6 +10,7 @@ def test_defaults() -> None:
         "include-dev": True,
         "release-branch": "release-{major}.{minor}",
         "release-lines": 2,
+        "include-candidate": True,
         "methods": ["dependabot", "npm-override"],
         "allow-major": "none",
     }
@@ -21,10 +22,12 @@ def test_every_key() -> None:
         """{"severities": ["CRITICAL"], "severities-previous": ["HIGH"],
         "fixable-only": false, "include-dev": false,
         "release-branch": "rel/{major}.{minor}", "release-lines": 3,
+        "include-candidate": false,
         "methods": ["dependabot"], "allow-major": "none"}"""
     )
     assert config.severities == ("CRITICAL",)
     assert config.previous_severities() == ("HIGH",)
+    assert not config.include_candidate
     assert not config.fixable_only
     assert not config.include_dev
     assert config.branch(1, 2) == "rel/1.2"

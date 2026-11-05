@@ -6,7 +6,7 @@ inputs:
     description: Newline-separated paths of schema 4 report.json files of one repo (their versions are merged by ref; one of them has the development version)
     required: true
   config:
-    description: 'JSON object with the policy, every key optional (severities, severities-previous, fixable-only, include-dev, release-branch, release-lines, methods, allow-major); defaults: methods dependabot,npm-override (docker-tag is opt-in, os items are manual: rebuild the image), allow-major none (dev-proven is opt-in; a target in another major is manual)'
+    description: 'JSON object with the policy, every key optional (severities, severities-previous, fixable-only, include-dev, release-branch, release-lines, include-candidate, methods, allow-major); defaults: methods dependabot,npm-override (docker-tag is opt-in, os items are manual: rebuild the image), allow-major none (dev-proven is opt-in; a target in another major is manual)'
     default: "{}"
   output-dir:
     description: Directory to write the plan into (fix-plan.json, fix-plan.md)
@@ -28,4 +28,4 @@ runs:
         OUTPUT_DIR: ${{ inputs.output-dir }}
       run: |
         mapfile -t reports < <(printf '%s\n' "$REPORTS" | sed '/^[[:space:]]*$/d')
-        python "$ACTION_PATH/fix_plan.py" --reports "${reports[@]}" --config "$CONFIG" --output-dir "$OUTPUT_DIR"
+        PYTHONPATH="$ACTION_PATH" python -m sca_fix_plan --reports "${reports[@]}" --config "$CONFIG" --output-dir "$OUTPUT_DIR"

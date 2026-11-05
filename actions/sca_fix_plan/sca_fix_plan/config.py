@@ -23,6 +23,7 @@ class Config:
     include_dev: bool = True
     release_branch: str = "release-{major}.{minor}"
     release_lines: int = 2
+    include_candidate: bool = True
     methods: tuple[str, ...] = ("dependabot", "npm-override")
     allow_major: str = "none"
 
@@ -45,6 +46,7 @@ class Config:
             "include-dev": self.include_dev,
             "release-branch": self.release_branch,
             "release-lines": self.release_lines,
+            "include-candidate": self.include_candidate,
             "methods": list(self.methods),
             "allow-major": self.allow_major,
         }
@@ -99,6 +101,8 @@ def parse_config(text: str) -> Config:
             if not isinstance(value, int) or isinstance(value, bool) or value < 1:
                 raise ConfigError("config release-lines: an integer of 1 or more")
             values["release_lines"] = value
+        elif key == "include-candidate":
+            values["include_candidate"] = _flag(key, value)
         elif key == "methods":
             values["methods"] = _choices(key, value, METHODS)
         elif key == "allow-major":

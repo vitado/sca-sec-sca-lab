@@ -6,8 +6,8 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from typing import Any
 
-import plan_codes as codes
-from versions import line_of
+from . import plan_codes as codes
+from .versions import line_of
 
 SCHEMA_VERSION = 4
 
@@ -44,6 +44,15 @@ class Reports:
     repo: str
     sources: list[dict[str, Any]]
     versions: list[Version]
+
+
+def development_version(reports: Reports) -> Version:
+    found = [v for v in reports.versions if v.kind == "development"]
+    if len(found) != 1:
+        raise ReportError(
+            f"exactly one development version is expected, found {len(found)}"
+        )
+    return found[0]
 
 
 def merge_reports(reports: Sequence[Mapping[str, Any]]) -> Reports:

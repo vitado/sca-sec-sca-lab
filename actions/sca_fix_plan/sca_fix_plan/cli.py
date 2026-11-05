@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Plan the fixes of the vulnerable packages of the newest release lines.
 
 Input: one or more schema 4 ``report.json`` files of one repo (their versions are
@@ -16,10 +15,10 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from config import ConfigError, parse_config
-from plan import build_plan
-from render import render_markdown
-from reports import ReportError, merge_reports
+from .config import ConfigError, parse_config
+from .plan import build_plan
+from .render import render_markdown
+from .reports import ReportError, merge_reports
 
 
 def read_json(path: Path) -> Any:
@@ -49,7 +48,3 @@ def main(argv: list[str] | None = None) -> int:
     write_text(args.output_dir / "fix-plan.json", text)
     write_text(args.output_dir / "fix-plan.md", render_markdown(plan))
     return 0
-
-
-if __name__ == "__main__":
-    sys.exit(main())

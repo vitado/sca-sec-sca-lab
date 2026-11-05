@@ -120,7 +120,7 @@ def cut_all(testbed: Path) -> None:
 
 
 def plan_all(testbed: Path, output: Path) -> None:
-    import fix_plan
+    from sca_fix_plan import cli as fix_plan
 
     for case in CASES:
         report_path, dev_path = source_paths(testbed, case)

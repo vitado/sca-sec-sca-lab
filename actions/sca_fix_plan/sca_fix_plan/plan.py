@@ -4,14 +4,15 @@ target version and by which method. A pure function of the reports and the confi
 
 from __future__ import annotations
 
-import re
 from collections.abc import Mapping, Sequence
 from typing import Any
 
-import plan_codes as codes
-from config import Config
-from reports import ReportError, Reports, Version
-from versions import VersionError, compare, line_of, major, version_key
+from . import plan_codes as codes
+from .config import Config
+from .development import INCOMPLETE, OPEN, Development, key_of, usable
+from .lines import select_lines
+from .reports import Reports, Version, development_version
+from .versions import VersionError, compare, major, version_key
 
 SCHEMA_VERSION = 2
 
@@ -24,88 +25,9 @@ _ECOSYSTEM_METHODS = {
 Record = Mapping[str, Any]
 
 
-def norm(pkg: str) -> str:
-    """The package key of the report: lowercase, each run of ``-``, ``_``, ``.`` as
-    one ``-``.
-    """
-    return re.sub(r"[-_.]+", "-", pkg.lower())
-
-
 def fixed_versions(record: Record) -> list[str]:
     """The fixed versions of a record (``fixed`` is a comma separated list)."""
     return [v.strip() for v in record["fixed"].split(",") if v.strip()]
-
-
-def usable(target: Mapping[str, Any]) -> bool:
-    return target.get("status") == "ok" and target.get("packages_scanned", 0) > 0
-
-
-def development_version(reports: Reports) -> Version:
-    found = [v for v in reports.versions if v.kind == "development"]
-    if len(found) != 1:
-        raise ReportError(
-            f"exactly one development version is expected, found {len(found)}"
-        )
-    return found[0]
-
-
-def select_lines(
-    reports: Reports, count: int
-) -> tuple[list[tuple[tuple[int, int], Version]], list[dict[str, str]]]:
-    """The newest ``count`` release lines as ``((major, minor), newest version)``,
-    newest line first, and the refs that could not be placed in a line.
-    """
-    newest: dict[tuple[int, int], Version] = {}
-    skipped: list[dict[str, str]] = []
-    for version in reports.versions:
-        if version.kind not in ("release", "candidate"):
-            continue
-        line = line_of(version.ref)
-        try:
-            key = version_key(version.ref)
-        except VersionError:
-            line = None
-        if line is None:
-            skipped.append(
-                {
-                    "ref": version.ref,
-                    "reason": "ref is not X.Y.Z or X.Y.Z-suffix",
-                    "reason_code": codes.REF_NOT_SEMVER,
-                }
-            )
-            continue
-        if line not in newest or key > version_key(newest[line].ref):
-            newest[line] = version
-    lines = sorted(newest.items(), key=lambda item: item[0], reverse=True)
-    return lines[:count], sorted(skipped, key=lambda s: s["ref"])
-
-
-def development_gap(record: Record, version: Version, dev: Version) -> str | None:
-    """What is missing to trust the absence of ``record`` from development, or None.
-
-    The absence counts only when development was scanned where the record lives: an
-    ``ok`` source target for a library, an ``ok`` image target of the same image for
-    an OS package, each with packages scanned.
-    """
-    if record["class"] == "lang":
-        if any(t.get("kind") == "fs" and usable(t) for t in dev.targets.values()):
-            return None
-        return "no ok source target with packages scanned"
-    images = sorted(
-        {
-            version.targets[i]["image"]
-            for i in record["where"]
-            if i in version.targets and version.targets[i].get("image")
-        }
-    )
-    missing = [
-        image
-        for image in images
-        if not any(t.get("image") == image and usable(t) for t in dev.targets.values())
-    ]
-    if missing or not images:
-        return f"no ok image target for {', '.join(missing) or 'the record'}"
-    return None
 
 
 def choose_target(
@@ -323,15 +245,13 @@ def plan_line(
 ) -> dict[str, Any]:
     """The items, skipped packages and drop counts of one release line."""
     dropped = {codes.SEVERITY: 0, codes.UNFIXABLE: 0, codes.DEV: 0}
-    dev_names: dict[str, set[str]] = {}
-    for record in dev.vulns:
-        dev_names.setdefault(record["class"], set()).update(record["names"])
-    dev_installed = {(p["class"], norm(p["pkg"])): p["installed"] for p in dev.packages}
+    development = Development.of(dev)
+    dev_installed = {key_of(p): p["installed"] for p in dev.packages}
     skipped: dict[tuple[str, str, str], dict[str, Any]] = {}
     kept: dict[tuple[str, str], list[Record]] = {}
 
     def skip(record: Record, reason: str, code: str) -> None:
-        key = (record["class"], norm(record["pkg"]), reason)
+        key = (*key_of(record), reason)
         entry = skipped.setdefault(
             key,
             {
@@ -355,16 +275,18 @@ def plan_line(
             dropped[codes.UNFIXABLE] += 1
         elif not config.include_dev and record["dev"]:
             dropped[codes.DEV] += 1
-        elif any(n in dev_names.get(record["class"], ()) for n in record["names"]):
-            skip(record, "not fixed in development", codes.NOT_FIXED_IN_DEVELOPMENT)
-        elif gap := development_gap(record, version, dev):
-            skip(
-                record,
-                f"development data incomplete: {gap}",
-                codes.DEVELOPMENT_DATA_INCOMPLETE,
-            )
         else:
-            kept.setdefault((record["class"], norm(record["pkg"])), []).append(record)
+            state, gap = development.state(record, version)
+            if state == INCOMPLETE:
+                skip(
+                    record,
+                    f"development data incomplete: {gap}",
+                    codes.DEVELOPMENT_DATA_INCOMPLETE,
+                )
+            elif state == OPEN:
+                skip(record, "not fixed in development", codes.NOT_FIXED_IN_DEVELOPMENT)
+            else:
+                kept.setdefault(key_of(record), []).append(record)
 
     for entry in skipped.values():
         entry["ids"].sort()
@@ -386,7 +308,7 @@ def plan_line(
 def build_plan(reports: Reports, config: Config) -> dict[str, Any]:
     """The fix plan of the newest release lines of one repo."""
     dev = development_version(reports)
-    lines, skipped_refs = select_lines(reports, config.release_lines)
+    lines, skipped_refs = select_lines(reports, config)
     plan: dict[str, Any] = {
         "schema_version": SCHEMA_VERSION,
         "repo": reports.repo,
@@ -396,11 +318,11 @@ def build_plan(reports: Reports, config: Config) -> dict[str, Any]:
             plan_line(
                 line,
                 version,
-                config.severities if index == 0 else config.previous_severities(),
+                config.severities if current else config.previous_severities(),
                 dev,
                 config,
             )
-            for index, (line, version) in enumerate(lines)
+            for line, version, current in lines
         ],
     }
     if skipped_refs:

@@ -6,13 +6,10 @@ import ast
 from pathlib import Path
 from typing import Any
 
-import plan_codes
 import pytest
 from cases import CASES
-from config import Config, parse_config
 from helpers import DEV_SOURCE, development, plan, record, report, target, version
-from plan import build_plan
-from reports import merge_reports
+from sca_fix_plan import Config, build_plan, merge_reports, parse_config, plan_codes
 from test_plan_cases import OPT_IN, run
 
 # N9.2: the codes of the plan side, copied from the spec
@@ -97,9 +94,10 @@ def test_n9_2_skips_carry_codes() -> None:
     accepted = record("a", "1.0.0", "1.0.5", accepted={"until": "2027-01-01"})
     present = record("b", "1.0.0", "1.0.5", id="CVE-b")
     still = record("b", "1.0.5", "", id="CVE-b")
-    names = {s["pkg"]: s["reason_code"] for s in skips(plan(
-        development(vulns=[still]), release(accepted, present)
-    ))}
+    names = {
+        s["pkg"]: s["reason_code"]
+        for s in skips(plan(development(vulns=[still]), release(accepted, present)))
+    }
     assert names == {"a": "accepted", "b": "not_fixed_in_development"}
     gap = plan(
         development(targets=[target(DEV_SOURCE, packages=0)]),
@@ -135,7 +133,9 @@ def test_n9_2_drops_are_counted_under_their_code() -> None:
 )
 def test_n9_2_target_failures(fixed: str, installed: Any, code: str) -> None:
     rec = record("lib", installed, fixed)
-    result = plan(development(), release(rec), config=parse_config('{"fixable-only": false}'))
+    result = plan(
+        development(), release(rec), config=parse_config('{"fixable-only": false}')
+    )
     item = only(result)
     assert (item["method"], item["reason_code"]) == ("manual", code)
     assert item["reason"]
@@ -143,7 +143,9 @@ def test_n9_2_target_failures(fixed: str, installed: Any, code: str) -> None:
 
 def test_n9_2_method_failures() -> None:
     go = record("lib", "1.0.0", "1.0.5", ecosystem="Go")
-    assert only(plan(development(), release(go)))["reason_code"] == "ecosystem_unsupported"
+    assert (
+        only(plan(development(), release(go)))["reason_code"] == "ecosystem_unsupported"
+    )
     off = parse_config('{"methods": ["docker-tag"]}')
     npm = record("lib", "1.0.0", "1.0.5")
     assert only(plan(development(), release(npm), config=off))["reason_code"] == (
@@ -168,7 +170,9 @@ def test_n9_2_planned_item_has_no_code() -> None:
         None,
     )
     docker = parse_config('{"methods": ["docker-tag"]}')
-    assert only(plan(os_dev(), os_release(), config=docker), "zlib")["reason_code"] is None
+    assert (
+        only(plan(os_dev(), os_release(), config=docker), "zlib")["reason_code"] is None
+    )
 
 
 def test_n10_1_ref_codes() -> None:
