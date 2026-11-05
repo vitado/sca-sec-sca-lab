@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import ast
 from pathlib import Path
 from typing import Any
 
@@ -190,3 +191,19 @@ def test_n9_2_emitted_codes_are_in_the_spec_list(tmp_path: Path) -> None:
     assert seen <= N9_2_PLAN_CODES | N10_1_REF_CODES
     # the synthetic reports above reach the three ref codes
     assert N10_1_REF_CODES <= seen
+
+
+def test_n9_2_codes_are_spelled_only_in_the_table() -> None:
+    """No other module of the planner has a string literal that is a code (the
+    words of the report schema that are also drop keys are not codes there).
+    """
+    shared = {"accepted", "severity", "dev", "unfixable"}
+    for path in Path(plan_codes.__file__).parent.glob("*.py"):
+        if path.name == "plan_codes.py":
+            continue
+        for node in ast.walk(ast.parse(path.read_text(encoding="utf-8"))):
+            if isinstance(node, ast.Constant) and isinstance(node.value, str):
+                assert node.value in shared or node.value not in plan_codes.CODES, (
+                    path.name,
+                    node.value,
+                )

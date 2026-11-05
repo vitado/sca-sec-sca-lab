@@ -25,6 +25,7 @@ from functools import partial
 from pathlib import Path
 from typing import Any
 
+import apply_codes as codes
 from apply import Tools, dockerfiles, process_line
 from dependabot import JobError, Outcome, Settings, run_job
 from override import detect_node, npm_install, npm_ls, npm_version
@@ -42,6 +43,24 @@ def write_json(path: Path, data: Any) -> None:
     path.write_text(text, encoding="utf-8", newline="\n")
 
 
+PLAN_SCHEMA_VERSION = 2  # the fix-plan schema this applier reads
+RESULT_SCHEMA_VERSION = 1  # the result.json schema it writes
+
+
+def read_plan(path: Path) -> dict[str, Any]:
+    """The plan of ``path``; any schema version but the one this applier reads ends
+    the run.
+    """
+    plan = read_json(path)
+    found = plan.get("schema_version")
+    if found != PLAN_SCHEMA_VERSION:
+        raise SystemExit(
+            f"error: fix-plan schema_version {found} is not supported, "
+            f"{PLAN_SCHEMA_VERSION} is expected"
+        )
+    return plan
+
+
 def plan_line(plan: dict[str, Any], branch: str) -> dict[str, Any]:
     for line in plan["lines"]:
         if line["branch"] == branch:
@@ -50,7 +69,7 @@ def plan_line(plan: dict[str, Any], branch: str) -> dict[str, Any]:
 
 
 def cmd_apply(args: argparse.Namespace) -> int:
-    plan = read_json(args.plan)
+    plan = read_plan(args.plan)
     line = plan_line(plan, args.branch)
     token = os.environ.get("GH_TOKEN", "")
     settings = Settings(
@@ -79,6 +98,12 @@ def cmd_apply(args: argparse.Namespace) -> int:
         print(f"error: {exc}", file=sys.stderr)
         return 1
     result["baseline_ci"] = baseline_ci(args.repo, args.branch, token)
+    result.update(
+        schema_version=RESULT_SCHEMA_VERSION,
+        repo=args.repo,
+        run_id=os.environ.get("GITHUB_RUN_ID") or None,
+        report_run_ids=[r["run_id"] for r in plan["reports"]],
+    )
     args.output_dir.mkdir(parents=True, exist_ok=True)
     write_json(args.output_dir / "result.json", result)
     body = pr_body(line, result, result["baseline_ci"])
@@ -90,20 +115,31 @@ def cmd_publish(args: argparse.Namespace) -> int:
     result = read_json(args.output_dir / "result.json")
     result["token_kind"] = args.token_kind
     if not result["files"]:
-        result["pr"] = {"action": "none", "reason": "nothing applied"}
+        result["pr"] = {
+            "action": "none",
+            "reason": "nothing applied",
+            "reason_code": codes.NOTHING_APPLIED,
+        }
     elif args.dry_run:
-        result["pr"] = {"action": "none", "reason": "dry run"}
+        result["pr"] = {
+            "action": "none",
+            "reason": "dry run",
+            "reason_code": codes.DRY_RUN,
+        }
     else:
         try:
-            result["pr"] = publish(
-                args.tree.resolve(),
-                args.repo,
-                args.branch,
-                result["files"],
-                f"fix(deps): security fixes for {args.branch}",
-                args.output_dir / "pr-body.md",
-                os.environ.get("GH_TOKEN", ""),
-            )
+            result["pr"] = {
+                "reason_code": None,
+                **publish(
+                    args.tree.resolve(),
+                    args.repo,
+                    args.branch,
+                    result["files"],
+                    f"fix(deps): security fixes for {args.branch}",
+                    args.output_dir / "pr-body.md",
+                    os.environ.get("GH_TOKEN", ""),
+                ),
+            }
         except PublishError as exc:
             print(f"error: {exc}", file=sys.stderr)
             return 1
@@ -129,7 +165,7 @@ def cmd_node(args: argparse.Namespace) -> int:
 
 
 def cmd_summary(args: argparse.Namespace) -> int:
-    plan = read_json(args.plan)
+    plan = read_plan(args.plan)
     results = {}
     for path in sorted(args.results_dir.rglob("result.json")):
         data = read_json(path)

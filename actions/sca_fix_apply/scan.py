@@ -12,6 +12,8 @@ from collections.abc import Iterable, Mapping
 from pathlib import Path
 from typing import Any, NamedTuple
 
+import apply_codes as codes
+
 # The scan profile of the scheduled scan (sca_scheduled.yml): exposure, not a gate,
 # so nothing is ignored or filtered out and the repository's own settings cannot
 # change what is compared
@@ -128,23 +130,25 @@ def gate(
     before: set[Finding],
     after: set[Finding],
     baseline: set[Finding],
-) -> str | None:
-    """Why an item is not proven, or None when it is.
+) -> tuple[str, str] | None:
+    """Why an item is not proven as ``(reason_code, text)``, or None when it is.
 
     ``before`` is the scan of the state the change started from: an item whose
     vulnerabilities were not in it cannot be shown to be fixed. ``baseline`` is the
     scan of the untouched branch: the change must not bring a new serious one.
     """
     if not present(item, before):
-        return NOT_IN_BASELINE
+        return codes.NOT_IN_BASELINE, NOT_IN_BASELINE
     left = present(item, after)
     if left:
-        return "still present after the change: " + ", ".join(
+        text = "still present after the change: " + ", ".join(
             sorted({f"{f.pkg} {f.version} {f.id}" for f in left})
         )
+        return codes.GATE_STILL_PRESENT, text
     new = new_serious(after, baseline)
     if new:
-        return "new HIGH or CRITICAL after the change: " + ", ".join(new)
+        text = "new HIGH or CRITICAL after the change: " + ", ".join(new)
+        return codes.GATE_NEW_SERIOUS, text
     return None
 
 

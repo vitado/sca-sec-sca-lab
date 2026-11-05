@@ -92,7 +92,11 @@ def test_publish_without_files_opens_nothing(tmp_path: Path) -> None:
     )
     assert code == 0
     written = json.loads((tmp_path / "result.json").read_text(encoding="utf-8"))
-    assert written["pr"] == {"action": "none", "reason": "nothing applied"}
+    assert written["pr"] == {
+        "action": "none",
+        "reason": "nothing applied",
+        "reason_code": "nothing_applied",
+    }
     assert written["token_kind"] == "app"
 
 

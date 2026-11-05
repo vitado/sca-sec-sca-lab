@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+import apply_codes as codes
 from dependabot import (
     TIMEOUT,
     JobError,
@@ -26,17 +27,15 @@ from override import (
     detect_node,
     lock_format,
 )
-from scan import NOT_IN_BASELINE, Finding, ScanError, gate, new_serious
+from scan import Finding, ScanError, gate, new_serious
 
 NOT_NEEDED = "security_update_not_needed"
+NO_CHANGE = "dependabot produced no change"
+# the Dependabot error types that mean "cannot make this change"
+REFUSALS = {"security_update_not_possible", "security_update_dependency_not_found"}
 # What Dependabot says when it cannot make the change: the npm items go on to the
 # override step. Not "not needed" (already fixed) and not a failed rescan.
-FALLBACK_ON = {
-    "security_update_not_possible",
-    "security_update_dependency_not_found",
-    "dependabot produced no change",
-    TIMEOUT,
-}
+FALLBACK_ON = {*REFUSALS, NO_CHANGE, TIMEOUT}
 
 
 @dataclass(frozen=True)
@@ -73,6 +72,19 @@ def changes(outcome: Outcome) -> list[dict[str, Any]]:
     ]
 
 
+def dependabot_code(detail: str) -> str:
+    """The reason code of a Dependabot outcome without a change: ``detail`` is its
+    error type or text.
+    """
+    if detail == NO_CHANGE:
+        return codes.DEPENDABOT_NO_CHANGE
+    if detail in REFUSALS:
+        return codes.DEPENDABOT_REFUSED
+    if detail == TIMEOUT:
+        return codes.DEPENDABOT_TIMEOUT
+    return codes.DEPENDABOT_FAILED
+
+
 def new_record(item: Mapping[str, Any]) -> dict[str, Any]:
     return {
         "pkg": item["pkg"],
@@ -86,17 +98,19 @@ def new_record(item: Mapping[str, Any]) -> dict[str, Any]:
         "status": "manual",
         "reverted": False,
         "reason": item["reason"],
+        "reason_code": item["reason_code"],
         "files": [],
         "changes": [],
         "seconds": 0,
     }
 
 
-def fail(record: dict[str, Any], reason: str) -> dict[str, Any]:
+def fail(record: dict[str, Any], reason: str, code: str) -> dict[str, Any]:
     """The item stays a recommendation (an npm item may still go to the override
     step, which looks at the detail).
     """
     record["detail"] = record["reason"] = reason
+    record["reason_code"] = code
     return record
 
 
@@ -106,6 +120,7 @@ def already_fixed(record: dict[str, Any], why: str) -> dict[str, Any]:
         status="already_fixed",
         detail=why,
         reason=f"already fixed on the branch ({why})",
+        reason_code=codes.NOT_IN_BASELINE,
     )
     return record
 
@@ -123,7 +138,7 @@ def apply_security(
     try:
         manager, directories = job_directories(journal.tree, item)
     except JobError as exc:
-        return fail(record, str(exc)), current
+        return fail(record, str(exc), codes.ECOSYSTEM_UNSUPPORTED), current
     record["package_manager"], record["directories"] = manager, directories
     outcome = tools.dependabot(
         security_job(item, manager, repo, branch, directories), manager
@@ -134,22 +149,24 @@ def apply_security(
     if not changed:
         if outcome.error == NOT_NEEDED:
             return already_fixed(record, NOT_NEEDED), current
-        return fail(record, outcome.error or "dependabot produced no change"), current
+        detail = outcome.error or NO_CHANGE
+        return fail(record, detail, dependabot_code(detail)), current
     record["changes"], record["left_out"] = changes(outcome), left_out
     try:
         after = tools.scan_tree()
     except ScanError as exc:
         journal.restore(checkpoint)
         record["reverted"] = True
-        return fail(record, f"rescan failed: {exc}"), current
-    why = gate(item, current, after, baseline)
-    if why:
+        return fail(record, f"rescan failed: {exc}", codes.RESCAN_FAILED), current
+    verdict = gate(item, current, after, baseline)
+    if verdict:
+        code, why = verdict
         journal.restore(checkpoint)
         record["reverted"] = True
-        if why == NOT_IN_BASELINE:
+        if code == codes.NOT_IN_BASELINE:
             return already_fixed(record, why), current
-        return fail(record, f"rescan gate: {why}"), current
-    record.update(status="applied", reason=None, files=changed)
+        return fail(record, f"rescan gate: {why}", code), current
+    record.update(status="applied", reason=None, reason_code=None, files=changed)
     return record, after
 
 
@@ -169,24 +186,30 @@ def apply_override(
     pkg, tree = item["pkg"], journal.tree
     record["dependabot_result"] = record["detail"]
 
-    def manual(reason: str) -> tuple[dict[str, Any], set[Finding]]:
-        record["reason"] = reason
+    def manual(reason: str, code: str) -> tuple[dict[str, Any], set[Finding]]:
+        record["reason"], record["reason_code"] = reason, code
         return record, current
 
-    def revert(reason: str) -> tuple[dict[str, Any], set[Finding]]:
+    def revert(reason: str, code: str) -> tuple[dict[str, Any], set[Finding]]:
         journal.restore(checkpoint)
         record["reverted"] = True
-        return manual(reason)
+        return manual(reason, code)
 
     def read(name: str) -> str:
         return (tree / name).read_bytes().decode("utf-8")
 
     if item["relationship"] == "direct":
-        return manual("direct dependency: an override would conflict with its spec")
+        return manual(
+            "direct dependency: an override would conflict with its spec",
+            codes.OVERRIDE_DIRECT,
+        )
     if LOCKFILE not in item["locations"] or not (tree / "package.json").is_file():
-        return manual("no package.json and package-lock.json at the root")
+        return manual(
+            "no package.json and package-lock.json at the root",
+            codes.OVERRIDE_NO_ROOT_LOCKFILE,
+        )
     if node is None:
-        return manual("node version of the branch not found")
+        return manual("node version of the branch not found", codes.OVERRIDE_NO_NODE)
     record["node_version"], record["node_source"] = node
     pairs = [(t["installed"], t["target"]) for t in item["targets"] if t["target"]]
     checkpoint = journal.checkpoint()
@@ -194,39 +217,44 @@ def apply_override(
     try:
         edited, record["override_keys"] = add_overrides(package, pkg, pairs)
     except (OverrideError, ValueError) as exc:
-        return manual(str(exc))
+        return manual(str(exc), codes.OVERRIDE_NEEDS_MANUAL)
     journal.write("package.json", edited)
     journal.write(LOCKFILE, lock)
     record["npm_version"] = tools.npm_version()
     error = tools.npm_install()
     if error:
-        return revert(error)
+        return revert(error, codes.OVERRIDE_NPM_FAILED)
     after_lock = read(LOCKFILE)
     if lock_format(after_lock) != lock_format(lock):
-        return revert(f"npm {record['npm_version']} would rewrite the lockfile format")
+        return revert(
+            f"npm {record['npm_version']} would rewrite the lockfile format",
+            codes.OVERRIDE_LOCKFILE_FORMAT,
+        )
     try:
         copies = tools.npm_ls(pkg)
     except OverrideError as exc:
-        return revert(str(exc))
+        return revert(str(exc), codes.OVERRIDE_NPM_FAILED)
     short = [
         path for path, version in copies if below_target(version, [t for _, t in pairs])
     ]
     if short:
-        return revert(f"override did not reach {short[0]}")
+        return revert(f"override did not reach {short[0]}", codes.OVERRIDE_NOT_REACHED)
     try:
         after = tools.scan_tree()
     except ScanError as exc:
-        return revert(f"rescan failed: {exc}")
-    why = gate(item, current, after, baseline)
-    if why:
+        return revert(f"rescan failed: {exc}", codes.RESCAN_FAILED)
+    verdict = gate(item, current, after, baseline)
+    if verdict:
+        code, why = verdict
         journal.restore(checkpoint)
         record["reverted"] = True
-        if why == NOT_IN_BASELINE:
+        if code == codes.NOT_IN_BASELINE:
             return already_fixed(record, why), current
-        return manual(f"rescan gate: {why}")
+        return manual(f"rescan gate: {why}", code)
     record.update(
         status="applied",
         reason=None,
+        reason_code=None,
         files=["package.json", LOCKFILE],
         method_used="npm-override",
         changed_other=changed_other(lock, after_lock, pkg),
@@ -253,14 +281,16 @@ def apply_docker(
         "seconds": 0,
     }
 
-    def all_manual(reason: str) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    def all_manual(
+        reason: str, code: str
+    ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
         for record in records:
-            record["reason"] = reason
+            record["reason"], record["reason_code"] = reason, code
         return records, step
 
     files = dockerfiles(journal.tree)
     if not files:
-        return all_manual("no Dockerfile in the tree")
+        return all_manual("no Dockerfile in the tree", codes.NO_DOCKERFILE)
     parents = {Path(f).parent.as_posix() for f in files}
     directories = sorted("/" if p == "." else f"/{p}" for p in parents)
     outcome = tools.dependabot(docker_job(repo, branch, directories), "docker")
@@ -268,11 +298,12 @@ def apply_docker(
     checkpoint = journal.checkpoint()
     changed, _ = journal.apply(outcome.files)
     if not changed:
-        return all_manual(outcome.error or "dependabot produced no change")
+        detail = outcome.error or NO_CHANGE
+        return all_manual(detail, dependabot_code(detail))
     journal.restore(checkpoint)
     built = [p for p in changed if p in files]
     if not built:
-        return all_manual("dependabot changed no Dockerfile")
+        return all_manual("dependabot changed no Dockerfile", codes.NO_DOCKERFILE_CHANGED)
     step["changes"], step["files"] = changes(outcome), changed
 
     def scan_all(label: str) -> set[Finding]:
@@ -297,28 +328,36 @@ def apply_docker(
         before = scan_all("baseline build")
     except ScanError as exc:
         step["status"] = "none"
-        return all_manual(f"image build failed: {exc}")
+        return all_manual(f"image build failed: {exc}", codes.IMAGE_BUILD_FAILED)
     journal.apply(outcome.files)
     try:
         after = scan_all("build after the bump")
     except ScanError as exc:
         journal.restore(checkpoint)
         step["status"] = "reverted"
-        return all_manual(f"image build failed: {exc}")
+        return all_manual(f"image build failed: {exc}", codes.IMAGE_BUILD_FAILED)
     serious = new_serious(after, before)
     for record, item in zip(records, items, strict=True):
-        why = (
-            f"new HIGH or CRITICAL after the bump: {', '.join(serious)}"
+        verdict = (
+            (
+                codes.GATE_NEW_SERIOUS,
+                f"new HIGH or CRITICAL after the bump: {', '.join(serious)}",
+            )
             if serious
             else gate(item, before, after, before)
         )
-        if why == NOT_IN_BASELINE:
-            already_fixed(record, why)
-        elif why:
-            record["reason"] = f"image rescan gate: {why}"
+        if verdict and verdict[0] == codes.NOT_IN_BASELINE:
+            already_fixed(record, verdict[1])
+        elif verdict:
+            record["reason"] = f"image rescan gate: {verdict[1]}"
+            record["reason_code"] = verdict[0]
         else:
             record.update(
-                status="applied", reason=None, files=changed, changes=step["changes"]
+                status="applied",
+                reason=None,
+                reason_code=None,
+                files=changed,
+                changes=step["changes"],
             )
     if any(r["status"] == "applied" for r in records):
         step["status"] = "applied"

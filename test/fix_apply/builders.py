@@ -21,6 +21,7 @@ def item(
     locations: tuple[str, ...] = ("package-lock.json",),
     cls: str = "lang",
     reason: str | None = None,
+    reason_code: str | None = None,
 ) -> dict[str, Any]:
     return {
         "pkg": pkg,
@@ -33,6 +34,7 @@ def item(
         "method": method,
         "fallback": fallback,
         "reason": reason,
+        "reason_code": reason_code,
         "vulns": [
             {
                 "id": f"CVE-{pkg}",

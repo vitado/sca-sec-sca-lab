@@ -13,6 +13,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
+import apply_codes as codes
+
 TOKEN_ENV = "LOCAL_GITHUB_ACCESS_TOKEN"
 MANIFESTS = {
     "package-lock.json",
@@ -33,7 +35,7 @@ MANIFESTS = {
 GENERATED_LOCKFILE = "gradle.lockfile"
 GRADLE_BUILD_FILES = ("build.gradle", "build.gradle.kts")
 JOB_TIMEOUT = 3600
-TIMEOUT = "dependabot_timeout"  # the error of a job that hit its time limit
+TIMEOUT = codes.DEPENDABOT_TIMEOUT  # the error of a job that hit its time limit
 
 
 class JobError(RuntimeError):
