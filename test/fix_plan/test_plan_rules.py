@@ -126,6 +126,7 @@ def test_present_in_development_is_not_fixed_there() -> None:
             "class": "lang",
             "ids": ["CVE-1"],
             "reason": "not fixed in development",
+            "reason_code": "not_fixed_in_development",
         }
     ]
 
@@ -412,7 +413,11 @@ def test_partial_version_is_planned_from_its_ok_targets() -> None:
 def test_unparseable_ref_is_reported() -> None:
     result = plan(development(), version("1.2.3"), version("nightly"))
     assert result["skipped_refs"] == [
-        {"ref": "nightly", "reason": "ref is not X.Y.Z or X.Y.Z-suffix"}
+        {
+            "ref": "nightly",
+            "reason": "ref is not X.Y.Z or X.Y.Z-suffix",
+            "reason_code": "ref_not_semver",
+        }
     ]
     assert [x["ref"] for x in result["lines"]] == ["1.2.3"]
 
@@ -430,7 +435,7 @@ def test_plan_header() -> None:
 
     merged = merge_reports([report(development(), release(), run_id="7")])
     result = build_plan(merged, Config())
-    assert result["schema_version"] == 1
+    assert result["schema_version"] == 2
     assert result["repo"] == "o/r"
     assert result["reports"] == [
         {

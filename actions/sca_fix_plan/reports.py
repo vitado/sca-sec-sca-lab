@@ -6,6 +6,7 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from typing import Any
 
+import plan_codes as codes
 from versions import line_of
 
 SCHEMA_VERSION = 4
@@ -99,6 +100,7 @@ def merge_reports(reports: Sequence[Mapping[str, Any]]) -> Reports:
                     {
                         "ref": version.ref,
                         "reason": "same ref and commit as an earlier report",
+                        "reason_code": codes.SAME_REF_SAME_COMMIT,
                     }
                 )
                 continue
@@ -108,6 +110,7 @@ def merge_reports(reports: Sequence[Mapping[str, Any]]) -> Reports:
                     {
                         "ref": version.ref,
                         "reason": f"line {line[0]}.{line[1]} is given by an earlier report",
+                        "reason_code": codes.LINE_IN_EARLIER_REPORT,
                     }
                 )
                 continue

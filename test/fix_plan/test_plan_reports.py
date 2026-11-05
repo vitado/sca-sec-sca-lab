@@ -57,7 +57,11 @@ def test_same_ref_at_the_same_commit_is_taken_once() -> None:
     assert merged.sources[0]["refs"] == ["1.1.19"]
     assert "ignored_refs" not in merged.sources[0]
     assert merged.sources[1]["ignored_refs"] == [
-        {"ref": "1.1.19", "reason": "same ref and commit as an earlier report"}
+        {
+            "ref": "1.1.19",
+            "reason": "same ref and commit as an earlier report",
+            "reason_code": "same_ref_same_commit",
+        }
     ]
 
 
@@ -81,5 +85,9 @@ def test_earlier_report_keeps_its_line() -> None:
     )
     assert [v.ref for v in merged.versions] == ["1.2.18", "development", "1.1.19"]
     assert merged.sources[1]["ignored_refs"] == [
-        {"ref": "1.2.22", "reason": "line 1.2 is given by an earlier report"}
+        {
+            "ref": "1.2.22",
+            "reason": "line 1.2 is given by an earlier report",
+            "reason_code": "line_in_earlier_report",
+        }
     ]

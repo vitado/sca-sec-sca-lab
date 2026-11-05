@@ -8,11 +8,12 @@ import re
 from collections.abc import Mapping, Sequence
 from typing import Any
 
+import plan_codes as codes
 from config import Config
 from reports import ReportError, Reports, Version
 from versions import VersionError, compare, line_of, major, version_key
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 
 _ECOSYSTEM_METHODS = {
     "npm": ("dependabot", "npm-override"),
@@ -66,7 +67,11 @@ def select_lines(
             line = None
         if line is None:
             skipped.append(
-                {"ref": version.ref, "reason": "ref is not X.Y.Z or X.Y.Z-suffix"}
+                {
+                    "ref": version.ref,
+                    "reason": "ref is not X.Y.Z or X.Y.Z-suffix",
+                    "reason_code": codes.REF_NOT_SEMVER,
+                }
             )
             continue
         if line not in newest or key > version_key(newest[line].ref):
@@ -108,9 +113,10 @@ def choose_target(
     records: Sequence[Record],
     dev_versions: Sequence[str],
     config: Config,
-) -> tuple[str | None, str]:
-    """The target version for one installed version: ``(target, evidence)`` or
-    ``(None, reason)``. Raises ``VersionError`` for a version it cannot compare.
+) -> tuple[str | None, str, str | None]:
+    """The target version for one installed version: ``(target, evidence, None)`` or
+    ``(None, reason, reason_code)``. Raises ``VersionError`` for a version it cannot
+    compare.
     """
     applicable = [r for r in records if installed in r["installed"]]
     fixes = sorted({f for r in applicable for f in fixed_versions(r)}, key=version_key)
@@ -123,7 +129,7 @@ def choose_target(
         if required is None or compare(lowest, required) > 0:
             required = lowest
     if required is None:
-        return None, f"no fixed version above {installed}"
+        return None, f"no fixed version above {installed}", codes.NO_FIXED_VERSION
     same_major = major(installed)
     from_dev = sorted(
         (v for v in dev_versions if compare(v, required) >= 0), key=version_key
@@ -134,17 +140,18 @@ def choose_target(
         if major(v) == same_major or config.allow_major == "dev-proven"
     ]
     if allowed:
-        return allowed[0], f"development runs {allowed[0]}"
+        return allowed[0], f"development runs {allowed[0]}", None
     reachable = [f for f in fixes if compare(f, required) >= 0]
     in_major = [f for f in reachable if major(f) == same_major]
     if in_major:
-        return in_major[0], "lowest fixed version in the same major"
+        return in_major[0], "lowest fixed version in the same major", None
     note = (
         "development runs it, allow-major is none"
         if from_dev
         else "no development evidence"
     )
-    return None, f"fix needs another major ({', '.join(reachable)}), {note}"
+    text = f"fix needs another major ({', '.join(reachable)}), {note}"
+    return None, text, codes.NEEDS_MAJOR
 
 
 def choose_method(
@@ -154,24 +161,27 @@ def choose_method(
     version: Version,
     config: Config,
     hint: str = "",
-) -> tuple[str, str | None, str | None]:
-    """``(method, fallback, reason)`` of an item that has a target."""
+) -> tuple[str, str | None, str | None, str | None]:
+    """``(method, fallback, reason, reason_code)`` of an item that has a target."""
     fallback: str | None
     if item_class == "os":
         if "docker-tag" not in config.methods:
-            return "manual", None, f"rebuild the image to pick up the fixes{hint}"
+            text = f"rebuild the image to pick up the fixes{hint}"
+            return "manual", None, text, codes.NEEDS_IMAGE_REBUILD
         method, fallback = "docker-tag", "manual"
     elif not any(version.targets.get(i, {}).get("kind") == "fs" for i in where):
-        return "manual", None, "only in the image, not in a manifest"
+        text = "only in the image, not in a manifest"
+        return "manual", None, text, codes.ONLY_IN_IMAGE
     elif ecosystem in _ECOSYSTEM_METHODS:
         method, fallback = _ECOSYSTEM_METHODS[ecosystem]
     else:
-        return "manual", None, f"ecosystem {ecosystem} not supported"
+        text = f"ecosystem {ecosystem} not supported"
+        return "manual", None, text, codes.ECOSYSTEM_UNSUPPORTED
     if method not in config.methods:
-        return "manual", None, f"method {method} disabled"
+        return "manual", None, f"method {method} disabled", codes.METHOD_DISABLED
     if fallback != "manual" and fallback not in config.methods:
         fallback = None
-    return method, fallback, None
+    return method, fallback, None, None
 
 
 def newer_os(where: Sequence[str], version: Version, dev: Version) -> str:
@@ -229,6 +239,7 @@ def build_item(
         "method": "manual",
         "fallback": None,
         "reason": None,
+        "reason_code": None,
         "vulns": [
             {
                 "id": r["id"],
@@ -236,6 +247,7 @@ def build_item(
                 "severity": r["severity"],
                 "dev": r["dev"],
                 "fixed": r["fixed"],
+                "aliases": sorted(r.get("aliases") or []),
             }
             for r in sorted(records, key=lambda r: r["id"])
         ],
@@ -254,7 +266,12 @@ def build_item(
             }
             for current in installed
         ]
-        item["method"], item["fallback"], item["reason"] = choose_method(
+        (
+            item["method"],
+            item["fallback"],
+            item["reason"],
+            item["reason_code"],
+        ) = choose_method(
             "os",
             item["ecosystem"],
             where,
@@ -264,9 +281,10 @@ def build_item(
         )
         return item
     reason: str | None = None
+    reason_code: str | None = None
     try:
         for current in installed:
-            target, text = choose_target(current, records, dev_versions, config)
+            target, text, code = choose_target(current, records, dev_versions, config)
             item["targets"].append(
                 {
                     "installed": current,
@@ -275,19 +293,24 @@ def build_item(
                 }
             )
             if target is None and reason is None:
-                reason = text
+                reason, reason_code = text, code
     except VersionError as exc:
         item["targets"] = []
         item["reason"] = f"cannot compare versions {exc}"
+        item["reason_code"] = codes.VERSION_UNPARSABLE
         return item
     if not installed:
         item["reason"] = "no installed version in the record"
+        item["reason_code"] = codes.VERSION_UNPARSABLE
     elif reason:
-        item["reason"] = reason
+        item["reason"], item["reason_code"] = reason, reason_code
     else:
-        item["method"], item["fallback"], item["reason"] = choose_method(
-            item["class"], item["ecosystem"], where, version, config
-        )
+        (
+            item["method"],
+            item["fallback"],
+            item["reason"],
+            item["reason_code"],
+        ) = choose_method(item["class"], item["ecosystem"], where, version, config)
     return item
 
 
@@ -299,7 +322,7 @@ def plan_line(
     config: Config,
 ) -> dict[str, Any]:
     """The items, skipped packages and drop counts of one release line."""
-    dropped = {"severity": 0, "unfixable": 0, "dev": 0}
+    dropped = {codes.SEVERITY: 0, codes.UNFIXABLE: 0, codes.DEV: 0}
     dev_names: dict[str, set[str]] = {}
     for record in dev.vulns:
         dev_names.setdefault(record["class"], set()).update(record["names"])
@@ -307,7 +330,7 @@ def plan_line(
     skipped: dict[tuple[str, str, str], dict[str, Any]] = {}
     kept: dict[tuple[str, str], list[Record]] = {}
 
-    def skip(record: Record, reason: str) -> None:
+    def skip(record: Record, reason: str, code: str) -> None:
         key = (record["class"], norm(record["pkg"]), reason)
         entry = skipped.setdefault(
             key,
@@ -316,23 +339,30 @@ def plan_line(
                 "class": record["class"],
                 "ids": [],
                 "reason": reason,
+                "reason_code": code,
             },
         )
         entry["ids"].append(record["id"])
 
     for record in version.vulns:
         if record["accepted"]:
-            skip(record, f"accepted until {record['accepted']['until']}")
+            skip(
+                record, f"accepted until {record['accepted']['until']}", codes.ACCEPTED
+            )
         elif record["severity"] not in severities:
-            dropped["severity"] += 1
+            dropped[codes.SEVERITY] += 1
         elif config.fixable_only and not record["fixed"]:
-            dropped["unfixable"] += 1
+            dropped[codes.UNFIXABLE] += 1
         elif not config.include_dev and record["dev"]:
-            dropped["dev"] += 1
+            dropped[codes.DEV] += 1
         elif any(n in dev_names.get(record["class"], ()) for n in record["names"]):
-            skip(record, "not fixed in development")
+            skip(record, "not fixed in development", codes.NOT_FIXED_IN_DEVELOPMENT)
         elif gap := development_gap(record, version, dev):
-            skip(record, f"development data incomplete: {gap}")
+            skip(
+                record,
+                f"development data incomplete: {gap}",
+                codes.DEVELOPMENT_DATA_INCOMPLETE,
+            )
         else:
             kept.setdefault((record["class"], norm(record["pkg"])), []).append(record)
 
