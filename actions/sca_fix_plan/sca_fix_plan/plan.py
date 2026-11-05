@@ -102,7 +102,7 @@ def choose_method(
     if method not in config.methods:
         return "manual", None, f"method {method} disabled", codes.METHOD_DISABLED
     if fallback != "manual" and fallback not in config.methods:
-        fallback = None
+        fallback = "manual"
     return method, fallback, None, None
 
 
@@ -247,11 +247,11 @@ def plan_line(
     dropped = {codes.SEVERITY: 0, codes.UNFIXABLE: 0, codes.DEV: 0}
     development = Development.of(dev)
     dev_installed = {key_of(p): p["installed"] for p in dev.packages}
-    skipped: dict[tuple[str, str, str], dict[str, Any]] = {}
+    skipped: dict[tuple[str, str, str], dict[str, Any]] = {}  # per key and code
     kept: dict[tuple[str, str], list[Record]] = {}
 
     def skip(record: Record, reason: str, code: str) -> None:
-        key = (*key_of(record), reason)
+        key = (*key_of(record), code)
         entry = skipped.setdefault(
             key,
             {

@@ -209,6 +209,18 @@ def test_n4_3_removed_in_development_is_planned() -> None:
     )
 
 
+@pytest.mark.parametrize(
+    ("installed", "state"), [([], "removed"), (["1.0.5"], "fixed")]
+)
+def test_n4_3_rule_6_empty_installed_in_development_is_not_running(
+    installed: list[str], state: str
+) -> None:
+    rec = record("lib", "1.0.0", "1.0.5", id="CVE-1")
+    dev = development(packages=[inventory("lib", installed)])
+    entries = classify([report(dev, stable("1.2.0", rec))])
+    assert [e["state"] for e in entries] == [state]
+
+
 @pytest.mark.parametrize("status", ["failed", "partial"])
 def test_n4_3_version_status_is_not_used(status: str) -> None:
     dev = development()

@@ -367,7 +367,7 @@ def test_methods_gate() -> None:
     )
     no_override = config('{"methods": ["dependabot"]}')
     kept = single(plan(development(), release(rec), config=no_override))
-    assert (kept["method"], kept["fallback"]) == ("dependabot", None)
+    assert (kept["method"], kept["fallback"]) == ("dependabot", "manual")
 
 
 def test_newest_lines_and_newest_ref_per_line() -> None:
@@ -444,3 +444,25 @@ def test_plan_header() -> None:
         }
     ]
     assert result["config"]["release-lines"] == 2
+
+
+def test_n4_5_rule_1_fallback_not_in_methods_is_manual() -> None:
+    rec = record("lib", "1.0.0", "1.0.5")
+    only = config('{"methods": ["dependabot"]}')
+    kept = single(plan(development(), release(rec), config=only))
+    assert kept["fallback"] == "manual"
+
+
+def test_n4_2_skips_are_grouped_per_package_and_code() -> None:
+    first = record("lib", "1.0.0", "1.0.5", id="CVE-2", accepted={"until": "2027-01-01"})
+    second = record("lib", "1.0.0", "1.0.6", id="CVE-1", accepted={"until": "2027-06-01"})
+    skipped = plan(development(), release(first, second))["lines"][0]["skipped"]
+    assert skipped == [
+        {
+            "pkg": "lib",
+            "class": "lang",
+            "ids": ["CVE-1", "CVE-2"],
+            "reason": "accepted until 2027-01-01",
+            "reason_code": "accepted",
+        }
+    ]

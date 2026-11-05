@@ -59,7 +59,8 @@ class Development:
             ids.setdefault(key_of(record), set()).update(identifiers(record))
         return cls(
             version,
-            frozenset(key_of(p) for p in version.packages) | frozenset(ids),
+            frozenset(key_of(p) for p in version.packages if p.get("installed"))
+            | frozenset(ids),
             {k: frozenset(v) for k, v in ids.items()},
         )
 
