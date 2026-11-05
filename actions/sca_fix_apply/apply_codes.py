@@ -28,6 +28,7 @@ GATE_NEW_SERIOUS = "gate_new_serious"
 NOT_IN_BASELINE = "not_in_baseline"
 DRY_RUN = "dry_run"
 NOTHING_APPLIED = "nothing_applied"
+PR_FAILED = "pr_failed"
 
 CODES = frozenset(
     value

@@ -128,17 +128,19 @@ def cmd_publish(args: argparse.Namespace) -> int:
         }
     else:
         try:
+            pr = publish(
+                args.tree.resolve(),
+                args.repo,
+                args.branch,
+                result["files"],
+                f"fix(deps): security fixes for {args.branch}",
+                args.output_dir / "pr-body.md",
+                os.environ.get("GH_TOKEN", ""),
+            )
+            failed = pr["action"] == "failed"
             result["pr"] = {
-                "reason_code": None,
-                **publish(
-                    args.tree.resolve(),
-                    args.repo,
-                    args.branch,
-                    result["files"],
-                    f"fix(deps): security fixes for {args.branch}",
-                    args.output_dir / "pr-body.md",
-                    os.environ.get("GH_TOKEN", ""),
-                ),
+                "reason_code": codes.PR_FAILED if failed else None,
+                **pr,
             }
         except PublishError as exc:
             print(f"error: {exc}", file=sys.stderr)

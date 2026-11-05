@@ -69,6 +69,7 @@ N9_2_CODES = {
     "nothing_applied",
     "unchanged",
     "branch_has_manual_changes",
+    "pr_failed",
 }
 APPLY = Path(apply_codes.__file__).parent
 
@@ -239,6 +240,17 @@ def test_n9_2_override_without_root_lockfile(tmp_path: Path) -> None:
     nested = item(locations=("web/package-lock.json",))
     result = process_line(
         line(nested),
+        "o/r",
+        tree,
+        tools(lambda job, manager: outcome(error=TIMEOUT), [{finding()}]),
+    )
+    assert code_of(result) == "override_no_root_lockfile"
+
+
+def test_n5_4_override_with_the_lockfile_listed_but_missing(tmp_path: Path) -> None:
+    tree = tree_with(tmp_path, **{"package.json": NODE})
+    result = process_line(
+        line(item()),
         "o/r",
         tree,
         tools(lambda job, manager: outcome(error=TIMEOUT), [{finding()}]),
@@ -428,3 +440,19 @@ def test_n10_2_pr_reason_code(tmp_path: Path, files: list[str], dry: bool, code:
     written = json.loads((tmp_path / "result.json").read_text(encoding="utf-8"))
     assert written["pr"]["reason_code"] == code
     assert code in N9_2_CODES
+
+
+def test_n9_2_pr_failed(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    (tmp_path / "result.json").write_text(
+        json.dumps({"files": ["f"], "branch": "b"}), encoding="utf-8"
+    )
+    failed = {"head": "sca-fix/b", "action": "failed", "reason": "boom"}
+    monkeypatch.setattr(fix_apply, "publish", lambda *args: failed)
+    args = [
+        "publish", "--plan", "unused", "--branch", "b", "--tree", str(tmp_path),
+        "--repo", "o/r", "--output-dir", str(tmp_path),
+    ]  # fmt: skip
+    assert fix_apply.main(args) == 1
+    written = json.loads((tmp_path / "result.json").read_text(encoding="utf-8"))
+    assert written["pr"]["reason_code"] == "pr_failed"
+    assert "pr_failed" in N9_2_CODES

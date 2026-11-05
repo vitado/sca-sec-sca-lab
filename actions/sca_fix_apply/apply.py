@@ -203,7 +203,11 @@ def apply_override(
             "direct dependency: an override would conflict with its spec",
             codes.OVERRIDE_DIRECT,
         )
-    if LOCKFILE not in item["locations"] or not (tree / "package.json").is_file():
+    if (
+        LOCKFILE not in item["locations"]
+        or not (tree / "package.json").is_file()
+        or not (tree / LOCKFILE).is_file()
+    ):
         return manual(
             "no package.json and package-lock.json at the root",
             codes.OVERRIDE_NO_ROOT_LOCKFILE,
