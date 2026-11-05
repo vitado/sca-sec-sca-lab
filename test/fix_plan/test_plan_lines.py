@@ -210,21 +210,61 @@ def test_n4_3_removed_in_development_is_planned() -> None:
 
 
 @pytest.mark.parametrize("status", ["failed", "partial"])
-def test_n4_3_development_status_must_be_ok(status: str) -> None:
+def test_n4_3_version_status_is_not_used(status: str) -> None:
     dev = development()
     dev["status"] = status
     result = plan(dev, stable("1.2.0", record("lib", "1.0.0", "1.0.5")))
+    assert list(items(result)) == ["lib"]
+
+
+def osv_twin(id: str, status: str) -> dict[str, Any]:
+    return target(id, scanner="osv", status=status)
+
+
+def test_n4_3_failed_osv_twin_of_a_development_source_target_is_incomplete() -> None:
+    rec = record("lib", "1.0.0", "1.0.5", id="CVE-1")
+    dev = development(targets=[target(DEV_SOURCE), osv_twin(DEV_SOURCE, "failed")])
+    result = plan(dev, stable("1.2.0", rec))
     skipped = result["lines"][0]["skipped"][0]
     assert skipped["reason_code"] == "development_data_incomplete"
-    assert skipped["reason"] == (
-        f"development data incomplete: development version status is {status}"
+    ok = development(targets=[target(DEV_SOURCE), osv_twin(DEV_SOURCE, "not_applicable")])
+    assert list(items(plan(ok, stable("1.2.0", rec)))) == ["lib"]
+
+
+def test_n4_3_failed_unrelated_development_image_does_not_block_a_library() -> None:
+    rec = record("lib", "1.0.0", "1.0.5", id="CVE-1")
+    dev = development(
+        targets=[
+            target(DEV_SOURCE),
+            target("image-dev", "image", "app", status="failed"),
+            osv_twin("image-dev", "failed"),
+        ]
+    )
+    assert list(items(plan(dev, stable("1.2.0", rec)))) == ["lib"]
+
+
+def test_n4_3_failed_osv_twin_of_the_image_blocks_the_os_record() -> None:
+    img = "image-app-1.2.0"
+    os_rec = record("libssl3", "3.0.1", "3.0.2", **{"class": "os", "where": [img]})
+    rel = stable("1.2.0", os_rec, targets=[target(img, "image", "app")])
+    dev = development(
+        targets=[
+            target(DEV_SOURCE),
+            target("image-dev", "image", "app"),
+            osv_twin("image-dev", "failed"),
+        ]
+    )
+    assert plan(dev, rel)["lines"][0]["skipped"][0]["reason_code"] == (
+        "development_data_incomplete"
     )
 
 
 def test_n4_2_completeness_comes_before_open_in_development() -> None:
     rec = record("lib", "1.0.0", "1.0.5", id="CVE-1")
-    dev = development(vulns=[record("lib", "1.0.0", "1.0.5", id="CVE-1")])
-    dev["status"] = "failed"
+    dev = development(
+        vulns=[record("lib", "1.0.0", "1.0.5", id="CVE-1")],
+        targets=[target(DEV_SOURCE, status="failed")],
+    )
     result = plan(dev, stable("1.2.0", rec))
     assert [s["reason_code"] for s in result["lines"][0]["skipped"]] == [
         "development_data_incomplete"
@@ -233,8 +273,7 @@ def test_n4_2_completeness_comes_before_open_in_development() -> None:
 
 def test_n4_2_filters_before_development_do_not_need_development_data() -> None:
     low = record("lib", "1.0.0", "1.0.5", severity="LOW")
-    dev = development()
-    dev["status"] = "failed"
+    dev = development(targets=[target(DEV_SOURCE, status="failed")])
     result = plan(dev, stable("1.2.0", low))
     assert result["lines"][0]["skipped"] == []
     assert result["lines"][0]["dropped"]["severity"] == 1

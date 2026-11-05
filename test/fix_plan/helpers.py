@@ -16,11 +16,12 @@ def target(
     packages: int = 10,
     status: str = "ok",
     commit_sha: str | None = None,
+    scanner: str = "trivy",
 ) -> dict[str, Any]:
     return {
         "commit_sha": commit_sha,
         "id": id,
-        "scanner": "trivy",
+        "scanner": scanner,
         "kind": kind,
         "image": image,
         "status": status,

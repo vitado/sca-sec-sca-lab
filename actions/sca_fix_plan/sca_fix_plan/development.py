@@ -63,22 +63,34 @@ class Development:
             {k: frozenset(v) for k, v in ids.items()},
         )
 
+    def complete(self, id: str) -> bool:
+        """The Trivy target ``id`` of development is usable and every other scanner's
+        target of the same id (the OSV twin) is ``ok`` or ``not_applicable``.
+        """
+        target = self.version.targets.get(id)
+        twins = self.version.twins.get(id, ())
+        return (
+            target is not None
+            and usable(target)
+            and all(s in ("ok", "not_applicable") for s in twins)
+        )
+
     def gap(self, record: Record, version: Version) -> str | None:
         """What is missing to trust the absence of ``record`` from development, or
         None.
 
-        The development version must be ``ok``. The absence counts only when
-        development was scanned where the record lives: an ``ok`` source target for a
-        library, an ``ok`` image target of the same image for an OS package, each with
-        packages scanned.
+        The absence counts only when development was scanned where the record lives:
+        for a library, at least one source target, every source target complete; for
+        an OS package, for every image of the record a complete development target
+        of the same image. The status of the version is not used: a failure of an
+        unrelated target does not block the record.
         """
-        if self.version.status != "ok":
-            return f"development version status is {self.version.status}"
-        targets = self.version.targets.values()
+        targets = self.version.targets
         if record["class"] == "lang":
-            if any(t.get("kind") == "fs" and usable(t) for t in targets):
-                return None
-            return "no ok source target with packages scanned"
+            sources = sorted(i for i, t in targets.items() if t.get("kind") == "fs")
+            if not sources or not all(self.complete(i) for i in sources):
+                return "no ok source target with packages scanned"
+            return None
         images = sorted(
             {
                 version.targets[i]["image"]
@@ -89,7 +101,9 @@ class Development:
         missing = [
             image
             for image in images
-            if not any(t.get("image") == image and usable(t) for t in targets)
+            if not any(
+                t.get("image") == image and self.complete(i) for i, t in targets.items()
+            )
         ]
         if missing or not images:
             return f"no ok image target for {', '.join(missing) or 'the record'}"

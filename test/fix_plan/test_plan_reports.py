@@ -91,3 +91,25 @@ def test_earlier_report_keeps_its_line() -> None:
             "reason_code": "line_in_earlier_report",
         }
     ]
+
+
+def test_n2_2_candidate_does_not_block_a_stable_version_of_its_line() -> None:
+    merged = merge_reports(
+        [
+            report(version("1.3.0-rc.1", "candidate")),
+            report(development(), version("1.3.0")),
+        ]
+    )
+    assert [v.ref for v in merged.versions] == ["1.3.0-rc.1", "development", "1.3.0"]
+    assert "ignored_refs" not in merged.sources[1]
+
+
+def test_n2_2_first_candidate_of_a_line_is_kept() -> None:
+    merged = merge_reports(
+        [
+            report(version("1.3.0-rc.1", "candidate")),
+            report(version("1.3.0-rc.2", "candidate"), development()),
+        ]
+    )
+    assert [v.ref for v in merged.versions] == ["1.3.0-rc.1", "development"]
+    assert merged.sources[1]["ignored_refs"][0]["reason_code"] == "line_in_earlier_report"
