@@ -142,6 +142,7 @@ def record_of(fs: Sequence[Finding], source_ids: set[str]) -> dict[str, Any]:
     rated = [f for f in fs if f["scanner"] == "trivy"] or fs
     fixed = (x for f in fs for x in fixed_of(f))
     dates = [f["published"] for f in fs if f["published"]]
+    untils = [f["accepted"]["until"] for f in fs if f.get("accepted")]
     return {
         "id": vid,
         "names": [vid, *sorted(names - {vid})],
@@ -160,7 +161,7 @@ def record_of(fs: Sequence[Finding], source_ids: set[str]) -> dict[str, Any]:
         "ecosystem": ecosystem_of(fs),
         "relationship": relationship_of(fs),
         "locations": sorted({loc for f in fs for loc in f["locations"]}),
-        "accepted": None,
+        "accepted": {"until": min(untils)} if len(untils) == len(fs) else None,
     }
 
 

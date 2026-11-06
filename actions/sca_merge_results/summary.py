@@ -284,6 +284,30 @@ def ignores_audit(report: Mapping[str, Any]) -> list[str]:
     return lines
 
 
+def acceptances_audit(report: Mapping[str, Any]) -> list[str]:
+    """What is wrong with the acceptance rules of the pipeline; nothing when all is
+    well or the run has none.
+    """
+    checks = (
+        ("Expired", lambda a: a["expired"]),
+        ("With a bad date", lambda a: a["bad_expiry"]),
+        (
+            "Matching nothing",
+            lambda a: not (a["matched"] or a["expired"] or a["bad_expiry"]),
+        ),
+    )
+    lines = []
+    for title, bad in checks:
+        found = [
+            a["package"] + (f" (until {a.get('expires')})" if a.get("expires") else "")
+            for a in report.get("acceptances") or []
+            if bad(a)
+        ]
+        if found:
+            lines.append(f"- {title}: {cell(', '.join(found))}")
+    return lines
+
+
 def count_cell(n: int) -> str:
     return str(n) if n else "-"
 
@@ -496,6 +520,8 @@ def build_summary(report: Mapping[str, Any]) -> str:
     lines += [*packages_table(report, versions, version_rows, [*unique]), ""]
     if audit := ignores_audit(report):
         lines += ["## Ignore file", "", *audit, ""]
+    if audit := acceptances_audit(report):
+        lines += ["## Acceptance rules", "", *audit, ""]
     for v in versions:
         if version_rows[v["ref"]]:
             lines += version_section(v["ref"], version_rows[v["ref"]], columns)

@@ -38,7 +38,7 @@ from pathlib import Path
 from typing import Any
 
 from _sca_lib import append_text, dump_json, escape_command_data, format_time, read_json
-from ignores import add_ignores
+from ignores import add_acceptances, add_ignores
 from normalize import (
     Findings,
     Inventory,
@@ -253,6 +253,8 @@ def run_merge(
         "targets": entries,
         "findings": list(findings.values()),
     }
+    if doc.get("acceptances") is not None:  # before build_versions: record_of reads findings[].accepted
+        add_acceptances(report, doc["acceptances"])
     report["versions"] = build_versions(report, package_sets)
     add_ignores(report, parts_dir)
     dump_json(output_dir / "report.json", report)

@@ -50,7 +50,8 @@ The tests need Python 3.12 and no network access. They run in GitHub Actions on 
 - `targets[]`: every target with its `status` (`ok`, `failed`, `not_applicable`) and `packages_scanned`; a Trivy image target also has `os` (`{family, name, eosl}` from the Trivy result, `eosl` true for an end-of-life distribution; `null` when the scan has no OS data: failed, `not_applicable`, source targets), the OSV entry does not; the Trivy and the OSV scan of a target are two entries with one id;
 - `findings[]`: the raw layer, one finding per vulnerability in one package of one target from one scanner. Fields include `id`, `names`, `published`, `modified`, `cvss`, `severity`, `fixed_version`;
 - `versions[]`: the vulnerability records per version;
-- `ignores[]` and `ignores_error`: risk acceptance (see below).
+- `ignores[]` and `ignores_error`: risk acceptance (see below);
+- `acceptances[]`, only when `targets.json` has the optional `acceptances` list: the rules of the caller (see Acceptance rules below).
 
 ### versions[]
 
@@ -80,6 +81,16 @@ The engine reads the `.trivyignore` of the default branch and marks the records 
 - `ignores[]`: per line `id`, `until`, `expired`, `bad_expiry`, `no_expiry`, `matched` (the line matched a record of any version) and `reason`.
 - `ignores_error` is `null`, or the reason `ignores` is `null` (no record is `accepted` then): `the workflow does not pass the ignore file`, `no readable status file for <id>` (the `status.json` of the default-branch source target is missing, unreadable or not a JSON object), `unexpected ignorefile value: ...`, `checkout failed`, `no default-branch target in this run` (a run focused on one tag), or the file could not be read.
 - `.trivyignore.yaml` is not read.
+
+### Acceptance rules
+
+A caller that keeps its risk decisions outside the repository adds an optional `acceptances` list to `targets.json` before the merge. Each rule has `targets` (ids of Trivy targets, source or image), `package`, optional `class` (`os` or `lang`: only that kind of package), `ids` (vulnerability ids; empty: every vulnerability of the package), `expires` (`YYYY-MM-DD`) and `reason`; other keys (for example `approved_by`, `ticket`, `scope`) are passed through unchanged. The engine sets no policy on the date (no limit on how far it is) and does not validate the rules file as a whole; a rule with a missing or unreal date is flagged and does not act.
+
+- A rule acts until the day of its `expires` (UTC, the date of the report; on the day itself it no longer acts). A package matches as the merge groups it: a `lang` package by `norm(pkg)`, an `os` package by its exact name. With `ids`, a finding matches when any of the names of its merged vulnerability (the findings of the same target, package and version whose names intersect) is listed, so an OSV id accepts the Trivy finding of the same vulnerability too.
+- A matching finding gets `accepted`: `{until, reason, rule}`, where `rule` is the index in `acceptances[]`. Several rules: the earliest `expires` wins. No finding is removed.
+- A record of `versions[].vulns[]` gets `accepted: {until}` only when every finding of the record is accepted by rules; when a `.trivyignore` line names the record too, the earliest `until` of the two wins.
+- `acceptances[]` is every rule as given plus `expired`, `bad_expiry` and `matched` (the findings it accepted). The summary lists expired rules, rules with a bad date and rules that matched nothing under `Acceptance rules`. `ignores[]` is not touched by rules.
+- Without `acceptances` in `targets.json` the report has no `acceptances` key and is unchanged.
 
 ## Versioning
 
