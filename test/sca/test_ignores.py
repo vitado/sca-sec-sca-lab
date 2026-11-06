@@ -81,14 +81,47 @@ def test_old_workflow_has_no_key(tmp_path):
     assert report["ignores_error"] == "the workflow does not pass the ignore file"
 
 
-def test_no_default_branch_target(tmp_path):
-    t = target("source-1.0", "trivy")
-    t["git_ref"] = "1.0"
-    run = Run(tmp_path, [t])
-    run.part("trivy", "source-1.0", trivy_native([VULN]), {"status": "ok"})
+def versioned(tid, ref):
+    return {**target(tid, "trivy"), "git_ref": ref}
+
+
+def test_no_default_branch_target_and_several_sources(tmp_path):
+    run = Run(tmp_path, [versioned("source-1.0", "1.0"), versioned("source-2.0", "2.0")])
+    for tid in ("source-1.0", "source-2.0"):
+        run.part("trivy", tid, trivy_native([VULN]), {"status": "ok", "ignorefile": "absent"})
     _, report = run.merge()
     assert report["ignores"] is None
     assert report["ignores_error"] == "no default-branch target in this run"
+
+
+def test_the_only_source_of_a_run_is_read_whatever_its_ref(tmp_path):
+    run = Run(tmp_path, [versioned("source-1.0", "1.0")])
+    state = {"status": "ok", "ignorefile": "present"}
+    run.part("trivy", "source-1.0", trivy_native([VULN]), state)
+    (run.parts / "trivy" / "source-1.0.trivyignore").write_text("# why\nCVE-2026-1 exp:2099-01-01\n")
+    _, report = run.merge()
+    assert report["ignores_error"] is None
+    assert [(e["id"], e["matched"], e["reason"]) for e in report["ignores"]] == [
+        ("CVE-2026-1", True, "why")
+    ]
+    assert report["versions"][0]["vulns"][0]["accepted"] == {"until": "2099-01-01"}
+
+
+def test_the_default_branch_source_wins_over_a_version_source(tmp_path):
+    run = Run(tmp_path, [target(SRC, "trivy"), versioned("source-1.0", "1.0")])
+    run.part("trivy", SRC, trivy_native([VULN]), {"status": "ok", "ignorefile": "present"})
+    run.part("trivy", "source-1.0", trivy_native([VULN]), {"status": "ok", "ignorefile": "absent"})
+    (run.parts / "trivy" / f"{SRC}.trivyignore").write_text("CVE-2026-1 exp:2099-01-01\n")
+    _, report = run.merge()
+    assert report["ignores_error"] is None and len(report["ignores"]) == 1
+
+
+def test_a_run_without_a_source_target_has_no_error(tmp_path):
+    image = {**target("image-1.0", "trivy", "image"), "tag": "1.0"}
+    run = Run(tmp_path, [image])
+    run.part("trivy", "image-1.0", trivy_native([VULN]), {"status": "ok"})
+    _, report = run.merge()
+    assert report["ignores"] is None and report["ignores_error"] is None
 
 
 def test_present_but_file_missing(tmp_path):
@@ -154,9 +187,9 @@ def test_the_default_branch_is_taken_from_the_report_and_only_fs_counts(tmp_path
     text = "CVE-1 exp:2026-12-31\n"
     report = add(tmp_path, text, targets=targets, default_branch="main")
     assert report["ignores_error"] is None and len(report["ignores"]) == 1
-    # only an image target on the default branch: no source target
+    # only an image target on the default branch: no source target, nothing to read
     report = add(tmp_path, text, targets=[image], default_branch="main")
-    assert report["ignores_error"] == "no default-branch target in this run"
+    assert report["ignores"] is None and report["ignores_error"] is None
 
 
 # --- grammar ---

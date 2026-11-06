@@ -1,9 +1,10 @@
-"""Risk acceptance: the ``.trivyignore`` of the default branch and the rules of the pipeline.
+"""Risk acceptance: the ``.trivyignore`` of the source and the rules of the pipeline.
 
 The grammar of the file is the plain format of Trivy (``parseIgnore``): per line the
 first field is the id, of the other fields only the first ``exp:YYYY-MM-DD`` matters.
 The file never fails as a whole: a line with an unparsable date is flagged and does
-not act. It is read from the source target of the default branch.
+not act. It is read from the source target of the default branch, else from the only
+source target of the run (a version).
 
 The rules are the optional ``acceptances`` of ``targets.json``, decisions that do not
 live in the repository: ``targets`` (ids of Trivy targets), ``package``, optional
@@ -66,17 +67,19 @@ def read_ignores(
     report: Mapping[str, Any], parts_dir: Path
 ) -> tuple[list[dict[str, Any]] | None, str | None]:
     """``(ignores, ignores_error)``: the lines of the ignore file the workflow copied
-    for the source target of the default branch. The status file is read directly,
-    a failed Trivy scan with a successful checkout still yields the file.
+    for the source target of the default branch, or for the only source target (a run
+    whose ``ref`` is a version). The status file is read directly, a failed Trivy scan
+    with a successful checkout still yields the file. A run without any source target
+    (images only) has no file to read: ``(None, None)``.
     """
+    sources = [
+        t for t in report["targets"] if (t["scanner"], t["kind"]) == ("trivy", "fs")
+    ]
+    if not sources:
+        return None, None
     tid = next(
-        (
-            t["id"]
-            for t in report["targets"]
-            if (t["scanner"], t["kind"], t["ref"])
-            == ("trivy", "fs", report["default_branch"])
-        ),
-        None,
+        (t["id"] for t in sources if t["ref"] == report["default_branch"]),
+        sources[0]["id"] if len(sources) == 1 else None,
     )
     if tid is None:
         return None, "no default-branch target in this run"

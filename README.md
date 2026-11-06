@@ -72,14 +72,14 @@ How the records are made. The findings of a version for one package merge into o
 
 ## Risk acceptance
 
-The engine reads the `.trivyignore` of the default branch and marks the records of every version; no finding is removed, and the scheduled scan itself does not apply ignores. The workflow passes the file and states `ignorefile` (`present`, `absent`, or `null` when the checkout failed) in the `status.json` of the source target of the default branch.
+The engine reads the `.trivyignore` of the default branch (else of the only source target of the run, so a run whose source is a version reads it too) and marks the records of every version; no finding is removed, and the scheduled scan itself does not apply ignores. The workflow passes the file and states `ignorefile` (`present`, `absent`, or `null` when the checkout failed) in the `status.json` of that source target.
 
 - The grammar is the plain Trivy one: the first field of a line is the id, the first `exp:YYYY-MM-DD` counts, a line with a bad date does not act (the file as a whole is still read), a comment is a whole line starting with `#`, blank lines are skipped.
 - `reason`: the text of the comment lines directly above a line (leading `#` and spaces dropped, joined by a space), `null` when there is none. A blank line or another ignore line ends the block. It is information for readers and never acts.
 - A line accepts a record only with an acting `exp:` (the date is after the day of the run; on the day itself it no longer acts), and only when its id equals the `id` or one of the `names` of the record. It matches in every version of the run. The matching is by id and names only, so it can be wider than the Trivy gate itself: purl and path scoping on a line is not applied.
 - Intended differences from Trivy: a line without `exp:` is not an acceptance here (Trivy ignores such a vulnerability forever); when several lines name one vulnerability, the earliest acting date wins (Trivy takes the first match).
 - `ignores[]`: per line `id`, `until`, `expired`, `bad_expiry`, `no_expiry`, `matched` (the line matched a record of any version) and `reason`.
-- `ignores_error` is `null`, or the reason `ignores` is `null` (no record is `accepted` then): `the workflow does not pass the ignore file`, `no readable status file for <id>` (the `status.json` of the default-branch source target is missing, unreadable or not a JSON object), `unexpected ignorefile value: ...`, `checkout failed`, `no default-branch target in this run` (a run focused on one tag), or the file could not be read.
+- `ignores_error` is `null` (with `ignores` `null` too when the run has no source target at all, for example images only), or the reason `ignores` is `null` (no `.trivyignore` line accepts a record then): `the workflow does not pass the ignore file`, `no readable status file for <id>` (the `status.json` of the default-branch source target is missing, unreadable or not a JSON object), `unexpected ignorefile value: ...`, `checkout failed`, `no default-branch target in this run` (several source targets and none on the default branch), or the file could not be read.
 - `.trivyignore.yaml` is not read.
 
 ### Acceptance rules
