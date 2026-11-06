@@ -79,4 +79,6 @@ jobs:
           output-dir: ${{ runner.temp }}/out
           trivy-version: ${{ env.TRIVY_VERSION }}
       - name: Check the installed version
-        run: trivy --version | grep -F "Version: ${TRIVY_VERSION#v}"
+        run: |
+          trivy --version
+          trivy --version | grep -F "Version: ${TRIVY_VERSION#v}"
