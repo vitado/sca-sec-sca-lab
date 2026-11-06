@@ -29,11 +29,24 @@ its target even though the BOM query succeeded. A command has a timeout (a hung 
 exit code 124, a failed target with that reason). A target whose Trivy target was not
 scanned is ``not_applicable``. The merge fails an output that is not a valid result.
 The script exits 0: the workflow decides about failing the run.
+
+With ``--offline-db-dir DIR`` nothing leaves the runner: ``DIR`` is the osv-scanner
+database cache (``OSV_SCANNER_LOCAL_DB_CACHE_DIRECTORY``), filled by the caller beforehand
+(``osv-scanner --download-offline-databases``; the engine never downloads). Both scans
+run with ``--offline``, which switches off every network feature of osv-scanner, not only
+the vulnerability lookup (no base-image lookup, no registry or Maven Central resolution).
+An empty cache makes osv-scanner write a result without vulnerabilities, so there the
+message "no offline version of the OSV database" on stderr fails the target even
+if the exit code is 0 or 1.
+
+A target may carry ``image_scan_disabled_reason`` next to ``image_scan_disabled``: the
+reason that states the exclusion (instead of the default one) when the image scan is off.
 """
 
 from __future__ import annotations
 
 import argparse
+import os
 import re
 import subprocess
 import tempfile
@@ -48,6 +61,9 @@ from _sca_lib import dump_json, format_time, read_json
 OS_PURL_TYPES = frozenset({"deb", "apk", "rpm"})
 # osv-scanner: 0 nothing found, 1 vulnerabilities found
 EXIT_CODES_OK = (0, 1)
+# osv-scanner offline without the database of an ecosystem: loud, but the output is empty
+OFFLINE_MISSING = "no offline version of the OSV database"
+CACHE_ENV = "OSV_SCANNER_LOCAL_DB_CACHE_DIRECTORY"
 REASON_LIMIT = 400
 # A command that hangs must not take the rest of the run with it (the job has one
 # bound for all targets): the pull of an image takes the longest.
@@ -86,6 +102,14 @@ def run_command(command: Sequence[str]) -> subprocess.CompletedProcess[str]:
         )
     except OSError as err:
         return subprocess.CompletedProcess(command, 127, "", str(err))
+
+
+def scan_failed(scanned: subprocess.CompletedProcess[str], offline: bool) -> bool:
+    """An osv-scanner run that must not count as a scan: an unexpected exit code, or
+    (offline) a missing database, whose output looks like a clean result."""
+    return scanned.returncode not in EXIT_CODES_OK or (
+        offline and OFFLINE_MISSING in scanned.stderr
+    )
 
 
 def tail(text: str) -> str:
@@ -129,12 +153,14 @@ def scan_target(
     output: Path,
     run: Runner,
     ref: str | None = None,
+    offline: bool = False,
 ) -> tuple[str, str | None]:
     """Convert, filter and scan one target: ``(status, reason)``; the osv-scanner
     output is written to ``output``.
 
     An image target (``ref`` given) also scans the image itself, which queries OSV
-    about its OS packages; its ``results`` are appended to the BOM output's.
+    about its OS packages; its ``results`` are appended to the BOM output's. ``offline``
+    queries local databases only (see the module docstring).
     """
     convert = ["trivy", "convert", "--format", "cyclonedx", "--output", str(bom_path)]
     converted = run([*convert, str(native)])
@@ -149,8 +175,10 @@ def scan_target(
     if bom["components"]:
         scan = ["scan", "source", "-L", str(bom_path), "--all-packages"]
         scan += ["--format", "json", "--output-file", str(output)]
+        if offline:
+            scan.append("--offline")
         scanned = run(["osv-scanner", *scan])
-        if scanned.returncode not in EXIT_CODES_OK:
+        if scan_failed(scanned, offline):
             code = scanned.returncode
             return "failed", f"osv-scanner failed (exit {code}): {tail(scanned.stderr)}"
     else:
@@ -159,14 +187,16 @@ def scan_target(
         return "ok", None
     try:
         # a separate file: the image scan must not overwrite the BOM output
-        return scan_image(ref, output, bom_path.with_suffix(".image.json"), run)
+        return scan_image(
+            ref, output, bom_path.with_suffix(".image.json"), run, offline
+        )
     finally:
         # cleanup, not a result: docker keeps every pulled image in its store
         run(["docker", "image", "rm", ref])
 
 
 def scan_image(
-    ref: str, output: Path, image_path: Path, run: Runner
+    ref: str, output: Path, image_path: Path, run: Runner, offline: bool = False
 ) -> tuple[str, str | None]:
     """``osv-scanner scan image`` of one image reference: its ``results`` are
     concatenated onto the BOM query's ``results`` in ``output`` (the other top-level
@@ -176,8 +206,10 @@ def scan_image(
     """
     scan = ["scan", "image", ref, "--all-packages", "--format", "json"]
     scan += ["--output-file", str(image_path)]
+    if offline:
+        scan.append("--offline")
     scanned = run(["osv-scanner", *scan])
-    if scanned.returncode not in EXIT_CODES_OK:
+    if scan_failed(scanned, offline):
         code = scanned.returncode
         return (
             "failed",
@@ -201,6 +233,9 @@ def trivy_status(trivy_dir: Path, target_id: str) -> str:
 
 
 def run_all(args: argparse.Namespace, run: Runner, now: datetime) -> None:
+    offline = args.offline_db_dir is not None
+    if offline:
+        os.environ[CACHE_ENV] = str(args.offline_db_dir)
     # "osv-scanner version: 2.6.0"
     lines = run(["osv-scanner", "--version"]).stdout.strip().splitlines()
     version = lines[0].rpartition(":")[2].strip() if lines else None
@@ -222,9 +257,17 @@ def run_all(args: argparse.Namespace, run: Runner, now: datetime) -> None:
                 # (ref=None), a failed one keeps its own reason, only a good one
                 # states the exclusion
                 status, reason = scan_target(
-                    trivy_dir / f"{tid}.json", bom_path, out_dir / f"{tid}.json", run
+                    trivy_dir / f"{tid}.json",
+                    bom_path,
+                    out_dir / f"{tid}.json",
+                    run,
+                    offline=offline,
                 )
-                reason = reason or IMAGE_SCAN_DISABLED_REASON
+                reason = (
+                    reason
+                    or target.get("image_scan_disabled_reason")
+                    or IMAGE_SCAN_DISABLED_REASON
+                )
             else:
                 status, reason = scan_target(
                     trivy_dir / f"{tid}.json",
@@ -232,6 +275,7 @@ def run_all(args: argparse.Namespace, run: Runner, now: datetime) -> None:
                     out_dir / f"{tid}.json",
                     run,
                     ref,
+                    offline,
                 )
             dump_json(
                 out_dir / f"{tid}.status.json",
@@ -250,6 +294,11 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--targets-file", required=True, type=Path)
     parser.add_argument("--parts-dir", required=True, type=Path)
     parser.add_argument("--output-dir", required=True, type=Path)
+    parser.add_argument(
+        "--offline-db-dir",
+        type=Path,
+        help="osv-scanner offline database cache; given: no query leaves the runner",
+    )
     return parser.parse_args(argv)
 
 

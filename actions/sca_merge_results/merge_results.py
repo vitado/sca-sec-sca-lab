@@ -273,6 +273,11 @@ def parse_args(argv: Sequence[str] | None) -> argparse.Namespace:
         default="",
         help="JSON object with vulnerability_db_updated_at and java_db_updated_at",
     )
+    parser.add_argument(
+        "--engine-ref",
+        default=os.environ.get("SCA_ENGINE_REF", ""),
+        help="ref of the engine for the report; default: derived from ACTION_PATH",
+    )
     return parser.parse_args(argv)
 
 
@@ -287,7 +292,7 @@ def main(argv: Sequence[str] | None = None) -> None:
         args.output_dir,
         format_time(datetime.now(UTC)),
         trivy_db,
-        engine_ref(action_path),
+        args.engine_ref or engine_ref(action_path),
         int(attempt) if attempt.isdigit() else None,
     )
     failed = [e for e in report["targets"] if e["status"] == "failed"]

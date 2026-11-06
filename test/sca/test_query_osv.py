@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import subprocess
 from collections.abc import Sequence
 from datetime import UTC, datetime
@@ -192,11 +193,12 @@ class Workspace:
             )
         self.tid = tid
 
-    def run(self, commands: FakeCommands) -> None:
+    def run(self, commands: FakeCommands, offline_db_dir: Path | None = None) -> None:
         args = argparse.Namespace(
             targets_file=self.targets_file,
             parts_dir=self.parts_dir,
             output_dir=self.output_dir,
+            offline_db_dir=offline_db_dir,
         )
         qo.run_all(args, commands, NOW)
 
@@ -522,3 +524,105 @@ def test_the_image_scan_flag_skips_only_the_image_scan(tmp_path: Path) -> None:
         "osv image scan disabled for this repository (image too large for the "
         "runner disk): OS packages of the image are not checked by OSV"
     )
+
+
+# --- offline mode -------------------------------------------------------------
+
+
+@pytest.fixture
+def clean_cache_env(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The env var absent, restored to absent after the test."""
+    monkeypatch.setenv(qo.CACHE_ENV, "placeholder")
+    monkeypatch.delenv(qo.CACHE_ENV)
+
+
+def test_without_the_offline_option_commands_and_env_are_unchanged(
+    tmp_path: Path, clean_cache_env: None
+) -> None:
+    ws = image_workspace(tmp_path)
+    commands = FakeCommands()
+    ws.run(commands)
+    assert all("--offline" not in c for c in commands.calls)
+    assert qo.CACHE_ENV not in os.environ
+
+
+def test_offline_adds_the_flag_to_both_scans_and_sets_the_cache_env(
+    tmp_path: Path, clean_cache_env: None
+) -> None:
+    ws = image_workspace(tmp_path)
+    commands = FakeCommands()
+    ws.run(commands, offline_db_dir=tmp_path / "osv-db")
+    assert commands.scans("source")[0][-1] == "--offline"
+    assert commands.scans("image")[0][-1] == "--offline"
+    assert os.environ[qo.CACHE_ENV] == str(tmp_path / "osv-db")
+    assert ws.status()["status"] == "ok"
+    # the other commands do not get the flag
+    assert all("--offline" not in c for c in commands.calls if c[1:2] == ["convert"])
+
+
+@pytest.mark.parametrize("exit_code", [0, 1])
+def test_offline_missing_database_fails_the_bom_scan(
+    tmp_path: Path, exit_code: int, clean_cache_env: None
+) -> None:
+    ws = Workspace(tmp_path)
+    stderr = "Error: no offline version of the OSV database for npm is available"
+    ws.run(
+        FakeCommands(scanner_exit=exit_code, scanner_stderr=stderr),
+        offline_db_dir=tmp_path / "osv-db",
+    )
+    status = ws.status()
+    assert status["status"] == "failed"
+    assert "no offline version of the OSV database for npm is available" in status["reason"]
+
+
+@pytest.mark.parametrize("exit_code", [0, 1])
+def test_offline_missing_database_fails_the_image_scan(
+    tmp_path: Path, exit_code: int, clean_cache_env: None
+) -> None:
+    ws = image_workspace(tmp_path)
+    stderr = "no offline version of the OSV database for Debian"
+    ws.run(
+        FakeCommands(scanner_exit=0, image_exit=exit_code, scanner_stderr=stderr),
+        offline_db_dir=tmp_path / "osv-db",
+    )
+    # the BOM scan prints the same message in this fake, so it fails first
+    assert ws.status()["status"] == "failed"
+    assert stderr in ws.status()["reason"]
+
+
+def test_the_missing_database_message_is_ignored_online(tmp_path: Path) -> None:
+    ws = Workspace(tmp_path)
+    ws.run(
+        FakeCommands(
+            scanner_exit=1, scanner_stderr="no offline version of the OSV database"
+        )
+    )
+    assert ws.status()["status"] == "ok"
+
+
+def test_an_image_scan_reason_of_the_target_states_the_exclusion(
+    tmp_path: Path,
+) -> None:
+    ws = image_workspace(
+        tmp_path,
+        image_scan_disabled=True,
+        image_scan_disabled_reason="osv image scan off: Ubuntu image, offline matching is wrong",
+    )
+    commands = FakeCommands()
+    ws.run(commands)
+    assert commands.scans("image") == []
+    assert ws.status()["status"] == "ok"
+    assert ws.status()["reason"] == (
+        "osv image scan off: Ubuntu image, offline matching is wrong"
+    )
+
+
+def test_a_failed_bom_scan_keeps_its_own_reason_over_the_disabled_reason(
+    tmp_path: Path,
+) -> None:
+    ws = image_workspace(
+        tmp_path, image_scan_disabled=True, image_scan_disabled_reason="skipped"
+    )
+    ws.run(FakeCommands(scanner_exit=127))
+    assert ws.status()["status"] == "failed"
+    assert "skipped" not in ws.status()["reason"]

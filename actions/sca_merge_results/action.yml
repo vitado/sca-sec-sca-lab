@@ -14,6 +14,9 @@ inputs:
   trivy-db-info:
     description: 'JSON object {"vulnerability_db_updated_at": ..., "java_db_updated_at": ...} describing the Trivy DB snapshot of the run; empty means unknown'
     default: ""
+  engine-ref:
+    description: "Ref of the engine to state in the report (top-level `engine`); empty means the ref the action runs from"
+    default: ""
 
 outputs:
   failed-count:
@@ -38,6 +41,7 @@ runs:
         PARTS_DIR: ${{ inputs.parts-dir }}
         OUTPUT_DIR: ${{ inputs.output-dir }}
         TRIVY_DB_INFO: ${{ inputs.trivy-db-info }}
+        ENGINE_REF: ${{ inputs.engine-ref }}
       run: |
         args=(
           --targets-file "$TARGETS_FILE"
@@ -45,4 +49,7 @@ runs:
           --output-dir "$OUTPUT_DIR"
           --trivy-db-info "$TRIVY_DB_INFO"
         )
+        if [ -n "$ENGINE_REF" ]; then
+          args+=(--engine-ref "$ENGINE_REF")
+        fi
         python "$ACTION_PATH/merge_results.py" "${args[@]}"

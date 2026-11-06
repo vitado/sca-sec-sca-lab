@@ -431,3 +431,56 @@ def test_main_run_attempt_is_null_when_missing_or_not_a_number(
     )
     report = json.loads((run.out / "report.json").read_text(encoding="utf-8"))
     assert report["run_attempt"] is None
+
+
+def run_main_with_engine(tmp_path, monkeypatch, args=(), env=None, action_path=None):
+    run = Run(tmp_path, [target("s", "trivy")])
+    monkeypatch.delenv("SCA_ENGINE_REF", raising=False)
+    monkeypatch.delenv("ACTION_PATH", raising=False)
+    if action_path:
+        monkeypatch.setenv("ACTION_PATH", action_path)
+    if env:
+        monkeypatch.setenv("SCA_ENGINE_REF", env)
+    main(
+        [
+            "--targets-file",
+            str(run.targets_file),
+            "--parts-dir",
+            str(run.parts),
+            "--output-dir",
+            str(run.out),
+            *args,
+        ]
+    )
+    return json.loads((run.out / "report.json").read_text(encoding="utf-8"))["engine"]
+
+
+ACTION_REF_PATH = "/r/_actions/epam/ai-dial-sec-sca/v0.7.0/actions/sca_merge_results"
+
+
+def test_engine_ref_argument_wins_over_env_and_action_path(tmp_path, monkeypatch):
+    # the env default is read when the arguments are parsed, so the env is set first
+    engine = run_main_with_engine(
+        tmp_path,
+        monkeypatch,
+        args=["--engine-ref", "from-arg"],
+        env="from-env",
+        action_path=ACTION_REF_PATH,
+    )
+    assert engine == "from-arg"
+
+
+def test_engine_ref_env_wins_over_action_path(tmp_path, monkeypatch):
+    engine = run_main_with_engine(
+        tmp_path, monkeypatch, env="from-env", action_path=ACTION_REF_PATH
+    )
+    assert engine == "from-env"
+
+
+def test_engine_ref_falls_back_to_the_action_path(tmp_path, monkeypatch):
+    engine = run_main_with_engine(tmp_path, monkeypatch, action_path=ACTION_REF_PATH)
+    assert engine == "v0.7.0"
+
+
+def test_engine_ref_is_null_without_argument_env_and_action_path(tmp_path, monkeypatch):
+    assert run_main_with_engine(tmp_path, monkeypatch) is None
