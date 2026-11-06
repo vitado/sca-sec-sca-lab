@@ -49,7 +49,7 @@ runs:
     - name: Set up ORAS
       uses: oras-project/setup-oras@005458ad77f1c8facd38a094e4af2e69e5607ff4 # v2.0.2
       with:
-        version: "1.3.3"
+        version: "1.3.4"
     - name: Resolve targets
       id: targets
       shell: bash

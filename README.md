@@ -7,8 +7,9 @@ These actions are called by the `sca_scheduled.yml` workflow of [epam/ai-dial-ci
 ## Actions
 
 - `actions/sca_resolve_targets`: builds the list of scan targets and resolves the releases: the default branch source, the source of each release of the release set, and, per image, `development` and the same release tags. The release set is the newest patch of each of the last `release-lines` (default 2) minor lines (`X.Y.Z` tags of non-prerelease, non-draft GitHub releases), plus at most one candidate. The candidate is the newest prerelease (by version, `X.Y.Z-pre`) whose base version is greater than the newest stable; a prerelease of an already published version is not scanned. A stable release whose tag is not `X.Y.Z` is left out of the set and counted in one notice. The release listing is read page by page (up to 1000 releases). Inputs: `scan-tag` focuses the run on one git tag (its source and the tag in every image, no `development`); `osv-image-scan` is the repository's own setting that switches the direct OSV image scan off; `force-image-scan` runs that scan anyway (a manual run) and marks the run with `forced_image_scan` in `targets.json` and `report.json`. Pass `osv-image-scan` as the repository sets it, not combined with the force flag: the action does the combining.
-- `actions/sca_query_osv`: checks the language packages found by Trivy against OSV with osv-scanner; an image target also gets a direct `osv-scanner scan image`, which reads the image's own package database and so checks its OS packages against OSV correctly (a BOM cannot: OSV keys its records by the source package name). The BOM query runs either way, so a package either detector sees keeps its OSV check.
+- `actions/sca_query_osv`: checks the language packages found by Trivy against OSV with osv-scanner; an image target also gets a direct `osv-scanner scan image`, which reads the image's own package database and so checks its OS packages against OSV correctly (a BOM cannot: OSV keys its records by the source package name). The BOM query runs either way, so a package either detector sees keeps its OSV check. Inputs: `targets-file`, `parts-dir`, `output-dir`, and `trivy-version` (a release tag, e.g. `v0.75.0`). The action installs Trivy from the aquasecurity/trivy GitHub release of that version: the archive is checked against the `checksums.txt` of the release and the install is cached by version, OS and architecture.
 - `actions/sca_merge_results`: normalizes the Trivy and OSV reports, merges them into `report.json` and writes the `summary.md` job summary (see below).
+- `actions/_install_trivy`: installs Trivy from the GitHub release of `version` (see `sca_query_osv`); `sca_query_osv` repeats its steps and shares its `install.sh`, because a composite action cannot use a sibling action by a relative path.
 - `actions/generate_gradle_lockfiles`: generates Gradle lockfiles on the fly so Trivy can resolve Gradle dependencies (repository files are not modified).
 
 The actions share the code in `actions/_sca_lib` (it is imported through `PYTHONPATH=${{ github.action_path }}/..`, so the `actions/` layout must stay as it is).
@@ -89,7 +90,7 @@ Releases are git tags `vX.Y.Z`. Schema 4 of `report.json` is a breaking change: 
 - uses: epam/ai-dial-sec-sca/actions/sca_merge_results@v0.7.0
 ```
 
-The third-party actions are pinned by commit SHA and osv-scanner by the sha256 of its binary (in `actions/sca_query_osv/action.yml`). Trivy is pinned by version only: `aquasecurity/setup-trivy` verifies the download against the checksums published with the same release, not against a value pinned here.
+The third-party actions are pinned by commit SHA and osv-scanner by the sha256 of its binary (in `actions/sca_query_osv/action.yml`). Trivy is pinned by version only: the install checks the download against the checksums published with the same release, not against a value pinned here.
 
 ## License
 
