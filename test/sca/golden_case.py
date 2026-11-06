@@ -12,6 +12,7 @@ from test_merge_results import DB, osv_native, target
 
 NOW = "2026-10-14T00:00:00Z"
 GOLDEN = Path(__file__).parent / "golden" / "report.json"
+GOLDEN_SCAN_TAG = Path(__file__).parent / "golden" / "report_scan_tag.json"
 
 SRC_VULNS = [
     {
@@ -129,11 +130,32 @@ def merged(tmp_path: Path, header: dict | None = None) -> bytes:
     return (tmp_path / "out" / "report.json").read_bytes()
 
 
-if __name__ == "__main__":  # regenerate the golden file: python golden_case.py DIR
-    import sys
-
-    GOLDEN.parent.mkdir(exist_ok=True)
-    GOLDEN.write_bytes(merged(Path(sys.argv[1])))
+def merged_scan_tag(tmp_path: Path) -> bytes:
+    """``report.json`` bytes of a scan-tag run: the only source target is a tag (not the
+    default branch) and carries a ``.trivyignore``; the run's ignore lines come from it.
+    """
+    tmp_path.mkdir(exist_ok=True)
+    source = {**target("source-1.0.0", "trivy"), "git_ref": "1.0.0"}
+    doc = {
+        "repo": "o/app",
+        "default_branch": "development",
+        "commit_sha": "0123456789abcdef",
+        "run_id": "1",
+        "run_url": "https://example.test/run/1",
+        "targets": [source],
+    }
+    (tmp_path / "targets.json").write_text(json.dumps(doc))
+    trivy = tmp_path / "parts" / "trivy"
+    trivy.mkdir(parents=True)
+    (trivy / "source-1.0.0.json").write_text(json.dumps(source_native()))
+    (trivy / "source-1.0.0.status.json").write_text(
+        json.dumps({"status": "ok", "ignorefile": "present"})
+    )
+    (trivy / "source-1.0.0.trivyignore").write_text(
+        "# reason\nCVE-2026-1 exp:2099-01-01\n"
+    )
+    run_merge(tmp_path / "targets.json", tmp_path / "parts", tmp_path / "out", NOW, DB)
+    return (tmp_path / "out" / "report.json").read_bytes()
 
 
 def as_before(raw: bytes, scratch: Path) -> bytes:
@@ -153,3 +175,12 @@ def as_before(raw: bytes, scratch: Path) -> bytes:
             del package["pkg_key"], package["src_pkg"]
     dump_json(scratch / "before.json", report)
     return (scratch / "before.json").read_bytes()
+
+
+if __name__ == "__main__":
+    # regenerate the golden files (report.json as before the report additions): python golden_case.py DIR
+    import sys
+
+    GOLDEN.parent.mkdir(exist_ok=True)
+    GOLDEN.write_bytes(as_before(merged(Path(sys.argv[1]) / "a"), Path(sys.argv[1])))
+    GOLDEN_SCAN_TAG.write_bytes(merged_scan_tag(Path(sys.argv[1]) / "b"))

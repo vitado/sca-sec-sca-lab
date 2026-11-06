@@ -313,3 +313,27 @@ def test_crlf_lines_and_comments(tmp_path):
         "2027-01-01",
         "why more",
     )
+
+
+def test_a_scan_tag_run_reads_the_ignore_file_of_the_tag_and_an_image_only_run_has_no_error(
+    tmp_path,
+):
+    # intended since v0.8.0 (see CHANGELOG): the only source target is a tag, not the default branch
+    tag = {**target("source-1.0.0", "trivy"), "git_ref": "1.0.0"}
+    run = Run(tmp_path, [tag])
+    run.part("trivy", "source-1.0.0", trivy_native([VULN]), {"status": "ok", "ignorefile": "present"})
+    (run.parts / "trivy" / "source-1.0.0.trivyignore").write_text("CVE-2026-1 exp:2099-01-01\n")
+    _, report = run.merge()
+    assert report["ignores_error"] is None
+    assert [(e["id"], e["matched"]) for e in report["ignores"]] == [("CVE-2026-1", True)]
+    image = {**target("image-x", "trivy", "image"), "tag": "1.0.0"}
+    (tmp_path / "img").mkdir()
+    _, report = Run(tmp_path / "img", [image]).merge()
+    assert (report["ignores"], report["ignores_error"]) == (None, None)
+
+
+def test_a_scan_tag_run_matches_its_golden_report(tmp_path):
+    from golden_case import GOLDEN_SCAN_TAG, merged_scan_tag
+
+    assert merged_scan_tag(tmp_path) == GOLDEN_SCAN_TAG.read_bytes()
+    assert json.loads(GOLDEN_SCAN_TAG.read_bytes())["ignores_error"] is None

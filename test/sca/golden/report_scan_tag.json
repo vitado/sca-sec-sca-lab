@@ -1,0 +1,220 @@
+{
+ "schema_version": 4,
+ "engine": null,
+ "repo": "o/app",
+ "commit_sha": "0123456789abcdef",
+ "default_branch": "development",
+ "run_id": "1",
+ "run_attempt": null,
+ "run_url": "https://example.test/run/1",
+ "generated_utc": "2026-10-14T00:00:00Z",
+ "tools": {
+  "trivy": "0.75.0",
+  "trivy_db": "2026-10-13T06:41:11Z",
+  "trivy_java_db": null,
+  "osv_scanner": null,
+  "osv_queried_at": null
+ },
+ "targets": [
+  {
+   "id": "source-1.0.0",
+   "scanner": "trivy",
+   "kind": "fs",
+   "ref": "1.0.0",
+   "commit_sha": "0123456789abcdef",
+   "image": null,
+   "image_digest": null,
+   "status": "ok",
+   "reason": null,
+   "packages_scanned": 2,
+   "os": null
+  }
+ ],
+ "findings": [
+  {
+   "target": "source-1.0.0",
+   "scanner": "trivy",
+   "id": "CVE-2026-1",
+   "aliases": [],
+   "names": [
+    "CVE-2026-1"
+   ],
+   "published": null,
+   "modified": null,
+   "cvss": null,
+   "pkg": "a",
+   "version": "1",
+   "ecosystem": "npm",
+   "class": "lang",
+   "locations": [
+    "package-lock.json"
+   ],
+   "severity": "HIGH",
+   "fixed_version": "2",
+   "dev": false,
+   "relationship": null,
+   "chain": [],
+   "title": "  A flaw\n in a  ",
+   "url": "",
+   "summary": null,
+   "src_pkg": null
+  },
+  {
+   "target": "source-1.0.0",
+   "scanner": "trivy",
+   "id": "CVE-2026-2",
+   "aliases": [],
+   "names": [
+    "CVE-2026-2"
+   ],
+   "published": null,
+   "modified": null,
+   "cvss": null,
+   "pkg": "Py_B",
+   "version": "3",
+   "ecosystem": "npm",
+   "class": "lang",
+   "locations": [
+    "package-lock.json"
+   ],
+   "severity": "LOW",
+   "fixed_version": "",
+   "dev": false,
+   "relationship": null,
+   "chain": [],
+   "title": "",
+   "url": "",
+   "summary": null,
+   "src_pkg": null
+  }
+ ],
+ "versions": [
+  {
+   "ref": "1.0.0",
+   "kind": "release",
+   "latest": true,
+   "status": "ok",
+   "targets": [
+    "source-1.0.0"
+   ],
+   "counts": {
+    "c": 0,
+    "h": 1,
+    "m": 0,
+    "l": 1,
+    "unknown": 0,
+    "all": 2,
+    "fixable": 1
+   },
+   "vulns": [
+    {
+     "id": "CVE-2026-1",
+     "names": [
+      "CVE-2026-1"
+     ],
+     "pkg": "a",
+     "class": "lang",
+     "severity": "HIGH",
+     "fixed": "2",
+     "dev": false,
+     "installed": [
+      "1"
+     ],
+     "where": [
+      "source-1.0.0"
+     ],
+     "sources": [
+      "trivy"
+     ],
+     "published": null,
+     "modified": null,
+     "cvss": null,
+     "aliases": [],
+     "ecosystem": "npm",
+     "relationship": null,
+     "locations": [
+      "package-lock.json"
+     ],
+     "accepted": {
+      "until": "2099-01-01"
+     },
+     "pkg_key": "a",
+     "src_pkg": null,
+     "title": "A flaw in a"
+    },
+    {
+     "id": "CVE-2026-2",
+     "names": [
+      "CVE-2026-2"
+     ],
+     "pkg": "Py_B",
+     "class": "lang",
+     "severity": "LOW",
+     "fixed": "",
+     "dev": false,
+     "installed": [
+      "3"
+     ],
+     "where": [
+      "source-1.0.0"
+     ],
+     "sources": [
+      "trivy"
+     ],
+     "published": null,
+     "modified": null,
+     "cvss": null,
+     "aliases": [],
+     "ecosystem": "npm",
+     "relationship": null,
+     "locations": [
+      "package-lock.json"
+     ],
+     "accepted": null,
+     "pkg_key": "py-b",
+     "src_pkg": null,
+     "title": null
+    }
+   ],
+   "packages": [
+    {
+     "pkg": "a",
+     "class": "lang",
+     "installed": [
+      "1"
+     ],
+     "where": [
+      "source-1.0.0"
+     ],
+     "pkg_key": "a",
+     "src_pkg": null
+    },
+    {
+     "pkg": "Py_B",
+     "class": "lang",
+     "installed": [
+      "3"
+     ],
+     "where": [
+      "source-1.0.0"
+     ],
+     "pkg_key": "py-b",
+     "src_pkg": null
+    }
+   ],
+   "role": "rel"
+  }
+ ],
+ "ignores": [
+  {
+   "id": "CVE-2026-1",
+   "until": "2099-01-01",
+   "expired": false,
+   "bad_expiry": false,
+   "no_expiry": false,
+   "matched": true,
+   "reason": "reason"
+  }
+ ],
+ "ignores_error": null
+}
