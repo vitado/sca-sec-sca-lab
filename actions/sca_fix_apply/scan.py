@@ -15,7 +15,7 @@ from pathlib import Path
 from typing import Any, NamedTuple
 
 import apply_codes as codes
-from normalize import Findings, Inventory, normalize_osv, normalize_trivy
+from normalize import Findings, Inventory, norm, normalize_osv, normalize_trivy
 from query_osv import Runner, run_command, scan_target
 from vulns import records_of
 
@@ -65,13 +65,6 @@ class Finding(NamedTuple):
     @property
     def identifiers(self) -> frozenset[str]:
         return self.names | {self.id}
-
-
-def norm(pkg: str) -> str:
-    """The package key of the report: lowercase, each run of ``-``, ``_``, ``.`` as
-    one ``-``.
-    """
-    return re.sub(r"[-_.]+", "-", pkg.lower())
 
 
 def finding_of(record: Mapping[str, Any]) -> Finding:

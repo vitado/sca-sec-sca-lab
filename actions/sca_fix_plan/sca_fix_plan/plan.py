@@ -8,7 +8,7 @@ from collections.abc import Mapping, Sequence
 from typing import Any
 
 from . import plan_codes as codes
-from .config import Config
+from .config import ALLOW_MAJOR, Config
 from .development import INCOMPLETE, OPEN, Development, key_of, usable
 from .lines import select_lines
 from .reports import Reports, Version, development_version
@@ -74,6 +74,36 @@ def choose_target(
     )
     text = f"fix needs another major ({', '.join(reachable)}), {note}"
     return None, text, codes.NEEDS_MAJOR
+
+
+def upgrade_target(
+    installed: str,
+    records: Sequence[Record],
+    dev_versions: Sequence[str] = (),
+    allow_major: str = "none",
+) -> tuple[str | None, str, str | None]:
+    """The version to upgrade ``installed`` to, by the rule of the plan (the same
+    ``choose_target`` that ``build_plan`` uses): ``(target, evidence, None)``, or
+    ``(None, text, reason_code)`` when no target exists.
+
+    ``records`` are the vulnerability records of one package (``fixed`` is a comma
+    separated list, ``installed`` a list); only those installed at ``installed`` count.
+    The required version is the highest over the records of the lowest fixed version
+    above ``installed``. The target is the lowest ``dev_versions`` entry at or above
+    it, else the lowest fixed version at or above it, each in the major of
+    ``installed`` (``allow_major="dev-proven"`` also takes a development version of
+    another major). ``evidence`` is a plain string; ``reason_code`` is
+    ``no_fixed_version``, ``needs_major`` or ``version_unparsable`` (a version that
+    cannot be compared: the result is returned, not raised). ``ValueError`` for an
+    ``allow_major`` that is not ``none`` or ``dev-proven``.
+    """
+    if allow_major not in ALLOW_MAJOR:
+        raise ValueError(f"allow_major: one of {', '.join(ALLOW_MAJOR)} is expected")
+    config = Config(allow_major=allow_major)
+    try:
+        return choose_target(installed, records, tuple(dev_versions), config)
+    except VersionError as exc:
+        return None, f"cannot compare versions {exc}", codes.VERSION_UNPARSABLE
 
 
 def choose_method(
