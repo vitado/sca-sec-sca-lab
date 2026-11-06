@@ -61,6 +61,9 @@ def is_release(ref: str, default_branch: str | None) -> bool:
     return m is not None and m[2] is None
 
 
+KINDS = ("development", "release", "candidate")
+
+
 def version_kind(ref: str, default_branch: str | None) -> str:
     """``development`` for the default branch or ``development``; ``candidate`` for a
     semver with a pre-release part (``0.50.0-rc.1``); ``release`` otherwise.
@@ -208,15 +211,25 @@ def packages_of(
 
 
 def build_versions(
-    report: Mapping[str, Any], package_sets: Mapping[str, PackageSet]
+    report: Mapping[str, Any],
+    package_sets: Mapping[str, PackageSet],
+    version_kinds: Mapping[str, str] | None = None,
 ) -> list[dict[str, Any]]:
     """One record per version of ``versions_of``, in that order: ``status`` (failed
     when a Trivy or an OSV scan of a target failed; a ``not_applicable`` target does
     not fail it), ``kind``, ``latest`` (the newest ``ok`` release), ``targets``, the
     ``vulns`` merged over the targets and scanners, and their ``counts``, then the
     ``packages`` (see ``packages_of``) of every package that has a record in any
-    version. A failed version keeps what its ``ok`` targets found.
+    version. A failed version keeps what its ``ok`` targets found. ``version_kinds``
+    (ref -> kind, from the producer) overrides the kind that ``version_kind`` derives
+    from the spelling of the ref and decides ``latest`` for the versions it names; its
+    keys are the refs of the targets as given (before the ``v`` strip of ``versions_of``);
+    a ref without a target is ignored, a kind that is not one of ``KINDS`` raises
+    ``ValueError``.
     """
+    version_kinds = version_kinds or {}
+    if bad := {r: k for r, k in version_kinds.items() if k not in KINDS}:
+        raise ValueError(f"version_kinds: unknown kind {bad}; expected one of {KINDS}")
     default_branch = report["default_branch"]
     source_ids = {t["id"] for t in report["targets"] if t["kind"] == "fs"}
     findings = sorted(
@@ -230,7 +243,13 @@ def build_versions(
         ),
     )
     result = []
+    named: set[str] = set()  # the versions whose kind the map gave
     for ref, ids in versions_of(report):
+        given = sorted(
+            {t["ref"] for t in report["targets"] if t["id"] in ids} & version_kinds.keys()
+        )
+        if given:
+            named.add(ref)
         failed = any(
             t["status"] == "failed" for t in report["targets"] if t["id"] in ids
         )
@@ -248,7 +267,7 @@ def build_versions(
         result.append(
             {
                 "ref": ref,
-                "kind": version_kind(ref, default_branch),
+                "kind": version_kinds[given[0]] if given else version_kind(ref, default_branch),
                 "latest": False,  # resolved below, once every status is known
                 "status": "failed" if failed else "ok",
                 "targets": sorted(ids),
@@ -273,7 +292,12 @@ def build_versions(
     ok_releases = (
         v
         for v in result
-        if v["status"] == "ok" and is_release(v["ref"], default_branch)
+        if v["status"] == "ok"
+        and (
+            v["kind"] == "release"
+            if v["ref"] in named
+            else is_release(v["ref"], default_branch)
+        )
     )
     if latest := next(ok_releases, None):
         latest["latest"] = True

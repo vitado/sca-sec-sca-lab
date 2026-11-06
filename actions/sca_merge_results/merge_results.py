@@ -255,7 +255,7 @@ def run_merge(
     }
     if doc.get("acceptances") is not None:  # before build_versions: record_of reads findings[].accepted
         add_acceptances(report, doc["acceptances"])
-    report["versions"] = build_versions(report, package_sets)
+    report["versions"] = build_versions(report, package_sets, doc.get("version_kinds"))
     add_ignores(report, parts_dir)
     dump_json(output_dir / "report.json", report)
     summary = build_summary(report)
