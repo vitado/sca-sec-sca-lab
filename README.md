@@ -19,7 +19,7 @@ The actions share the code in `actions/_sca_lib` (it is imported through `PYTHON
 
 - `Vulnerabilities`: one row per scanned version (`development` first, then releases from the newest) with the vulnerabilities by severity (`versions[].counts`) and how many have a fix (`Fixable`). A version whose scan failed shows what its `ok` targets found and is marked `(partial)`, as is `All (unique)` when any version failed. The last row, `All (unique)`, counts a vulnerability once however many versions have it, at its worst severity.
 - `Packages to update`: the same rows with the vulnerable libraries by their worst severity, the vulnerable OS packages and how many packages have a fix. A package in several versions counts once in the last row.
-- A section per version with its libraries and base image OS packages, each in a collapsed table. A package seen in the source and in the images of one version is one row, with `Seen in` naming where (`src` or the image name). Rows with a fix come first, development-only packages (marked `dev`) after the others, packages with no fix last, then by severity.
+- A section per version with its libraries and base image OS packages, each in a collapsed table. A package seen in the source and in the images of one version is one row, with `Seen in` naming where (`src` or the image name, each listed once). A row lists at most 5 vulnerability ids, then `+N more`; the whole list is in `report.json`. Rows with a fix come first, development-only packages (marked `dev`) after the others, packages with no fix last, then by severity.
 - `Ignore file`: the audit of the `.trivyignore` lines (expired, without expiry, with a bad date, matching nothing). When the file was not read, a line under the header says why (`Risk acceptance not applied: ...`); a run focused on one tag says nothing.
 - `Scan details by target`: the status of every scan, including the failed and not applicable ones.
 - Health warnings under the header: the Trivy DB is older than 48 hours at the time of the report, or an `ok` Trivy target scanned no packages.
@@ -27,7 +27,7 @@ The actions share the code in `actions/_sca_lib` (it is imported through `PYTHON
 Marks after a vulnerability id, in brackets:
 
 - `new in DB`: the vulnerability was published at most 14 days before the run.
-- `accepted until D`: a line of the default-branch `.trivyignore` accepts it until `D` (see Risk acceptance).
+- `accepted until D`: a `.trivyignore` line or an acceptance rule of the caller accepts it until `D` (see Risk acceptance).
 - `fixed in X`: on a release or a release candidate older than the newest release `X`: none of the names of the vulnerability is found in `X` (same class; the package name does not count, so a renamed package is not a fix). Shown only when both versions have the same targets, all their Trivy scans are `ok` and none scanned 0 packages.
 
 A package is not fixable when none of its vulnerabilities has a fixed version. If only some have one, it counts as fixable and `Fixed` lists the versions that exist.

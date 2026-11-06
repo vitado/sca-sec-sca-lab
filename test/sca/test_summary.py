@@ -841,4 +841,55 @@ def test_the_legend_names_accepted_until_when_a_record_is_accepted():
     doc["versions"][0]["vulns"][0]["accepted"] = {"until": "2027-01-01"}
     text = build_summary(doc)
     assert "CVE-1](https://example.test/CVE-1) (accepted until 2027-01-01) |" in text
-    assert "accepted until D: the default-branch .trivyignore" in text
+    assert "accepted until D: a `.trivyignore` line or an acceptance rule" in text
+
+
+def vulns_cell_of(text, version="development"):
+    return rows_of(text, version)[0].split("|")[4].strip()
+
+
+def test_a_cell_of_more_than_5_ids_shows_5_and_the_count():
+    src = "source-development"
+    fs = [finding(src, f"CVE-2026-{i}", "lib") for i in range(1, 9)]
+    text = build_summary(report([target(src)], fs))
+    cell_text = vulns_cell_of(text)
+    assert cell_text.count("](https://") == 5
+    assert cell_text.endswith(", +3 more")
+    assert "CVE-2026-6]" not in cell_text
+
+
+def test_a_cell_of_5_ids_has_no_count():
+    src = "source-development"
+    fs = [finding(src, f"CVE-2026-{i}", "lib") for i in range(1, 6)]
+    cell_text = vulns_cell_of(build_summary(report([target(src)], fs)))
+    assert cell_text.count("](https://") == 5 and "more" not in cell_text
+
+
+def test_the_shortened_cell_leaves_the_report_whole():
+    src = "source-development"
+    fs = [finding(src, f"CVE-2026-{i}", "lib") for i in range(1, 9)]
+    doc = report([target(src)], fs)
+    build_summary(doc)
+    assert len(doc["versions"][0]["vulns"]) == 8
+
+
+def test_source_targets_of_one_version_are_listed_once_in_seen_in():
+    a, b = "source-development", "source-1.0"
+    targets = [target(a), target(b, ref="1.0")]
+    fs = [finding(a, "CVE-1", "lib"), finding(b, "CVE-1", "lib")]
+    doc = report(targets, fs)
+    doc["versions"][0]["targets"] = [a, b]
+    text = build_summary(doc)
+    seen = rows_of(text, "development")[0].split("|")[-3].strip()
+    assert seen == "src"
+
+
+def test_a_300_by_30_report_keeps_the_summary_under_128_kb():
+    src = "source-development"
+    fs = [
+        finding(src, f"CVE-2026-{p * 100 + i}", f"pkg{p}")
+        for p in range(300)
+        for i in range(30)
+    ]
+    size = len(build_summary(report([target(src)], fs)).encode("utf-8"))
+    assert size < 128 * 1024
