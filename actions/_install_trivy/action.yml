@@ -1,0 +1,48 @@
+name: Install Trivy
+description: Install Trivy from the aquasecurity/trivy GitHub release (sha256 checked against a pinned value) and put it on PATH; the install is cached by version
+
+inputs:
+  version:
+    description: Trivy version to install (release tag, e.g. v0.75.0)
+    required: true
+  trivy-sha256:
+    description: sha256 of the release archive for this runner's architecture; needed only for a version without a pinned value in install.sh
+    default: ""
+
+outputs:
+  cache-hit:
+    description: "'true' when the install came from the cache"
+    value: ${{ steps.cache.outputs.cache-hit }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Resolve the Trivy tool directory
+      id: dir
+      shell: bash
+      env:
+        TRIVY_VERSION: ${{ inputs.version }}
+      run: |
+        bash "$GITHUB_ACTION_PATH/install.sh" check "$TRIVY_VERSION"
+        echo "path=$RUNNER_TOOL_CACHE/sca-trivy/$TRIVY_VERSION" >> "$GITHUB_OUTPUT"
+        echo "key=sca-trivy-$TRIVY_VERSION-$RUNNER_OS-$RUNNER_ARCH" >> "$GITHUB_OUTPUT"
+    - name: Cache Trivy
+      id: cache
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: ${{ steps.dir.outputs.path }}
+        key: ${{ steps.dir.outputs.key }}
+    - name: Install Trivy
+      shell: bash
+      env:
+        TRIVY_VERSION: ${{ inputs.version }}
+        TRIVY_SHA256: ${{ inputs.trivy-sha256 }}
+        TRIVY_DIR: ${{ steps.dir.outputs.path }}
+      run: bash "$GITHUB_ACTION_PATH/install.sh" "$TRIVY_VERSION" "$TRIVY_DIR"
+    - name: Add Trivy to PATH
+      shell: bash
+      env:
+        TRIVY_DIR: ${{ steps.dir.outputs.path }}
+      run: |
+        echo "$TRIVY_DIR" >> "$GITHUB_PATH"
+        "$TRIVY_DIR/trivy" --version

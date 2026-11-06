@@ -14,6 +14,9 @@ inputs:
   trivy-version:
     description: Trivy version to use for converting the Trivy results to a BOM (release tag, e.g. v0.75.0)
     required: true
+  trivy-sha256:
+    description: sha256 of the Trivy release archive for this runner's architecture; needed only for a trivy-version without a pinned value in the engine
+    default: ""
   offline-db-dir:
     description: Directory with the osv-scanner offline databases, downloaded by the caller beforehand; given, both scans run offline (no network) against it. Empty means online
     default: ""
@@ -25,11 +28,39 @@ runs:
       uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
       with:
         python-version: "3.12"
-    - name: Set up Trivy
-      uses: aquasecurity/setup-trivy@81e514348e19b6112ce2a7e3ecbafe19c1e1f567 # v0.3.1
+    # A composite action cannot use a sibling action by a relative path (it resolves in the workspace of the caller),
+    # so the steps of actions/_install_trivy are repeated here and share its install.sh
+    - name: Resolve the Trivy tool directory
+      id: trivy-dir
+      shell: bash
+      env:
+        TRIVY_VERSION: ${{ inputs.trivy-version }}
+        ACTION_PATH: ${{ github.action_path }}
+      run: |
+        bash "$ACTION_PATH/../_install_trivy/install.sh" check "$TRIVY_VERSION"
+        echo "path=$RUNNER_TOOL_CACHE/sca-trivy/$TRIVY_VERSION" >> "$GITHUB_OUTPUT"
+        echo "key=sca-trivy-$TRIVY_VERSION-$RUNNER_OS-$RUNNER_ARCH" >> "$GITHUB_OUTPUT"
+    - name: Cache Trivy
+      id: trivy-cache
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
       with:
-        version: ${{ inputs.trivy-version }}
-        cache: true # hits the binary cache saved by the trivy-db job
+        path: ${{ steps.trivy-dir.outputs.path }}
+        key: ${{ steps.trivy-dir.outputs.key }}
+    - name: Install Trivy
+      shell: bash
+      env:
+        TRIVY_VERSION: ${{ inputs.trivy-version }}
+        TRIVY_SHA256: ${{ inputs.trivy-sha256 }}
+        TRIVY_DIR: ${{ steps.trivy-dir.outputs.path }}
+        ACTION_PATH: ${{ github.action_path }}
+      run: bash "$ACTION_PATH/../_install_trivy/install.sh" "$TRIVY_VERSION" "$TRIVY_DIR"
+    - name: Add Trivy to PATH
+      shell: bash
+      env:
+        TRIVY_DIR: ${{ steps.trivy-dir.outputs.path }}
+      run: |
+        echo "$TRIVY_DIR" >> "$GITHUB_PATH"
+        "$TRIVY_DIR/trivy" --version
     # The checksums are pinned here, not read from the release: a replaced release must not pass
     - name: Install osv-scanner
       shell: bash

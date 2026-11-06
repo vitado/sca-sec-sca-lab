@@ -28,3 +28,55 @@ jobs:
         run: python -m pytest test/fix_plan
       - name: Run fix applier tests
         run: python -m pytest test/fix_apply
+
+  install-trivy:
+    runs-on: ubuntu-24.04
+    env:
+      # the default Trivy version of the DIAL scheduled scan workflow
+      TRIVY_VERSION: v0.75.0
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install Trivy
+        id: trivy
+        uses: ./actions/_install_trivy
+        with:
+          version: ${{ env.TRIVY_VERSION }}
+      - name: Check the installed version
+        env:
+          CACHE_HIT: ${{ steps.trivy.outputs.cache-hit }}
+        run: |
+          echo "cache-hit: ${CACHE_HIT:-false}"
+          echo "cache-hit: ${CACHE_HIT:-false}" >> "$GITHUB_STEP_SUMMARY"
+          trivy --version
+          trivy --version | grep -F "Version: ${TRIVY_VERSION#v}"
+      - name: Refuse a malformed version
+        run: |
+          if bash actions/_install_trivy/install.sh check 0.75.0; then echo "accepted a bad version"; exit 1; fi
+      - name: Refuse a version without a pinned sha256
+        run: |
+          if bash actions/_install_trivy/install.sh v0.0.1 "$RUNNER_TEMP/none"; then echo "accepted an unpinned version"; exit 1; fi
+
+  query-osv-install:
+    # runs the Trivy steps of sca_query_osv as a caller uses them (no targets: nothing is scanned)
+    runs-on: ubuntu-24.04
+    env:
+      TRIVY_VERSION: v0.75.0
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Prepare an empty target list
+        run: |
+          mkdir -p "$RUNNER_TEMP/parts"
+          echo '{"targets": []}' > "$RUNNER_TEMP/targets.json"
+      - name: Run sca_query_osv
+        uses: ./actions/sca_query_osv
+        with:
+          targets-file: ${{ runner.temp }}/targets.json
+          parts-dir: ${{ runner.temp }}/parts
+          output-dir: ${{ runner.temp }}/out
+          trivy-version: ${{ env.TRIVY_VERSION }}
+      - name: Check the installed version
+        run: trivy --version | grep -F "Version: ${TRIVY_VERSION#v}"
