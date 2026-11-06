@@ -185,6 +185,32 @@ def title_of(fs: Sequence[Finding]) -> str | None:
     return None
 
 
+def records_of(
+    findings: Sequence[Finding], source_ids: set[str]
+) -> list[dict[str, Any]]:
+    """The records of findings of any targets and scanners: the findings of one
+    package (``class``, normalized name) grouped into components, one record each,
+    sorted by class, package and id.
+    """
+    ordered = sorted(
+        findings,
+        key=lambda f: (
+            f["scanner"] != "trivy",
+            f["target"],
+            f["id"],
+            f["pkg"],
+            f["version"],
+        ),
+    )
+    packages: dict[tuple[str, str], list[Finding]] = {}
+    for f in ordered:
+        packages.setdefault((f["class"], norm(f["pkg"])), []).append(f)
+    records = (
+        record_of(c, source_ids) for fs in packages.values() for c in components(fs)
+    )
+    return sorted(records, key=lambda v: (v["class"], norm(v["pkg"]), v["id"]))
+
+
 def counts_of(vulns: Sequence[Mapping[str, Any]]) -> dict[str, int]:
     """Severity counts, ``all`` and ``fixable`` of the records."""
     return {
@@ -271,16 +297,6 @@ def build_versions(
         raise ValueError(f"version_kinds: unknown kind {bad}; expected one of {KINDS}")
     default_branch = report["default_branch"]
     source_ids = {t["id"] for t in report["targets"] if t["kind"] == "fs"}
-    findings = sorted(
-        report["findings"],
-        key=lambda f: (
-            f["scanner"] != "trivy",
-            f["target"],
-            f["id"],
-            f["pkg"],
-            f["version"],
-        ),
-    )
     result = []
     named: set[str] = set()  # the versions whose kind the map gave
     for ref, ids in versions_of(report):
@@ -292,16 +308,8 @@ def build_versions(
         failed = any(
             t["status"] == "failed" for t in report["targets"] if t["id"] in ids
         )
-        packages: dict[tuple[str, str], list[Finding]] = {}
-        for f in findings:
-            if f["target"] in ids:
-                packages.setdefault((f["class"], norm(f["pkg"])), []).append(f)
-        records = (
-            record_of(c, source_ids) for fs in packages.values() for c in components(fs)
-        )
-        vulns = sorted(
-            records,
-            key=lambda v: (v["class"], norm(v["pkg"]), v["id"]),
+        vulns = records_of(
+            [f for f in report["findings"] if f["target"] in ids], source_ids
         )
         result.append(
             {

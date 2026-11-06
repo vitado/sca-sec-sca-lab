@@ -1,0 +1,86 @@
+{
+ "repo": "epam/ai-dial-mind-map-backend",
+ "run_id": "41491276841",
+ "run_url": "https://github.com/vitado/ai-dial-mind-map-backend/actions/runs/41491276841",
+ "schema_version": 4,
+ "targets": [
+  {
+   "commit_sha": "a8faf04307c83420dc2423571c60f01933621efd",
+   "id": "source-development",
+   "image": null,
+   "image_digest": null,
+   "kind": "fs",
+   "os": null,
+   "packages_scanned": 260,
+   "reason": null,
+   "ref": "development",
+   "scanner": "trivy",
+   "status": "ok"
+  },
+  {
+   "commit_sha": null,
+   "id": "ai-dial-mind-map-backend-development",
+   "image": "epam/ai-dial-mind-map-backend",
+   "image_digest": "ghcr.io/epam/ai-dial-mind-map-backend@sha256:8a3c60550fb9ab3573e3e2aa9c7668ef9b807cfbec103d9e49c9d8a3912c315b",
+   "kind": "image",
+   "os": {
+    "eosl": false,
+    "family": "ubuntu",
+    "name": "24.04"
+   },
+   "packages_scanned": 503,
+   "reason": null,
+   "ref": "development",
+   "scanner": "trivy",
+   "status": "ok"
+  },
+  {
+   "commit_sha": "a8faf04307c83420dc2423571c60f01933621efd",
+   "id": "source-development",
+   "image": null,
+   "image_digest": null,
+   "kind": "fs",
+   "packages_scanned": 260,
+   "reason": null,
+   "ref": "development",
+   "scanner": "osv",
+   "status": "ok"
+  },
+  {
+   "commit_sha": null,
+   "id": "ai-dial-mind-map-backend-development",
+   "image": "epam/ai-dial-mind-map-backend",
+   "image_digest": null,
+   "image_scan_disabled": true,
+   "kind": "image",
+   "packages_scanned": 204,
+   "reason": "osv image scan disabled for this repository (image too large for the runner disk): OS packages of the image are not checked by OSV",
+   "ref": "development",
+   "scanner": "osv",
+   "status": "ok"
+  }
+ ],
+ "versions": [
+  {
+   "counts": {
+    "all": 148,
+    "c": 3,
+    "fixable": 73,
+    "h": 44,
+    "l": 35,
+    "m": 66,
+    "unknown": 0
+   },
+   "kind": "development",
+   "latest": false,
+   "packages": [],
+   "ref": "development",
+   "status": "ok",
+   "targets": [
+    "ai-dial-mind-map-backend-development",
+    "source-development"
+   ],
+   "vulns": []
+  }
+ ]
+}

@@ -1,0 +1,108 @@
+{
+ "repo": "epam/ai-dial-admin-frontend",
+ "run_id": "41491283781",
+ "run_url": "https://github.com/vitado/ai-dial-admin-frontend/actions/runs/41491283781",
+ "schema_version": 4,
+ "targets": [
+  {
+   "commit_sha": "a9a358365cbfc9865ea20d499422d926d93063c9",
+   "id": "source-development",
+   "image": null,
+   "image_digest": null,
+   "kind": "fs",
+   "os": null,
+   "packages_scanned": 1317,
+   "reason": null,
+   "ref": "development",
+   "scanner": "trivy",
+   "status": "ok"
+  },
+  {
+   "commit_sha": null,
+   "id": "ai-dial-admin-frontend-development",
+   "image": "epam/ai-dial-admin-frontend",
+   "image_digest": "ghcr.io/epam/ai-dial-admin-frontend@sha256:406a5c513e68c5766851410189ce5c1aceedbf3a4d9bc34b676efef354f216c2",
+   "kind": "image",
+   "os": {
+    "eosl": false,
+    "family": "alpine",
+    "name": "3.24.3"
+   },
+   "packages_scanned": 532,
+   "reason": null,
+   "ref": "development",
+   "scanner": "trivy",
+   "status": "ok"
+  },
+  {
+   "commit_sha": "a9a358365cbfc9865ea20d499422d926d93063c9",
+   "id": "source-development",
+   "image": null,
+   "image_digest": null,
+   "kind": "fs",
+   "packages_scanned": 1317,
+   "reason": null,
+   "ref": "development",
+   "scanner": "osv",
+   "status": "ok"
+  },
+  {
+   "commit_sha": null,
+   "id": "ai-dial-admin-frontend-development",
+   "image": "epam/ai-dial-admin-frontend",
+   "image_digest": null,
+   "kind": "image",
+   "packages_scanned": 524,
+   "reason": null,
+   "ref": "development",
+   "scanner": "osv",
+   "status": "ok"
+  }
+ ],
+ "versions": [
+  {
+   "counts": {
+    "all": 3,
+    "c": 0,
+    "fixable": 2,
+    "h": 1,
+    "l": 1,
+    "m": 1,
+    "unknown": 0
+   },
+   "kind": "development",
+   "latest": false,
+   "packages": [
+    {
+     "class": "lang",
+     "installed": [
+      "3.4.17"
+     ],
+     "pkg": "dompurify",
+     "where": [
+      "ai-dial-admin-frontend-development",
+      "source-development"
+     ]
+    },
+    {
+     "class": "lang",
+     "installed": [
+      "15.5.28"
+     ],
+     "pkg": "next",
+     "where": [
+      "ai-dial-admin-frontend-development",
+      "source-development"
+     ]
+    }
+   ],
+   "ref": "development",
+   "status": "ok",
+   "targets": [
+    "ai-dial-admin-frontend-development",
+    "source-development"
+   ],
+   "vulns": []
+  }
+ ]
+}

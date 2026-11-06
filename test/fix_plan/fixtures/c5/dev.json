@@ -1,0 +1,117 @@
+{
+ "repo": "epam/ai-dial-adapter-openai",
+ "run_id": "41491244171",
+ "run_url": "https://github.com/vitado/ai-dial-adapter-openai/actions/runs/41491244171",
+ "schema_version": 4,
+ "targets": [
+  {
+   "commit_sha": "b372875a9a6c952ca3d4679da97584a6e06e8e50",
+   "id": "source-development",
+   "image": null,
+   "image_digest": null,
+   "kind": "fs",
+   "os": null,
+   "packages_scanned": 124,
+   "reason": null,
+   "ref": "development",
+   "scanner": "trivy",
+   "status": "ok"
+  },
+  {
+   "commit_sha": null,
+   "id": "ai-dial-adapter-openai-development",
+   "image": "epam/ai-dial-adapter-openai",
+   "image_digest": "ghcr.io/epam/ai-dial-adapter-openai@sha256:d1da1c33b359ae59cb1c8fb4c1f405683cd80186c5df8704c00a74986a6ff411",
+   "kind": "image",
+   "os": {
+    "eosl": false,
+    "family": "alpine",
+    "name": "3.24.3"
+   },
+   "packages_scanned": 143,
+   "reason": null,
+   "ref": "development",
+   "scanner": "trivy",
+   "status": "ok"
+  },
+  {
+   "commit_sha": "b372875a9a6c952ca3d4679da97584a6e06e8e50",
+   "id": "source-development",
+   "image": null,
+   "image_digest": null,
+   "kind": "fs",
+   "packages_scanned": 124,
+   "reason": null,
+   "ref": "development",
+   "scanner": "osv",
+   "status": "ok"
+  },
+  {
+   "commit_sha": null,
+   "id": "ai-dial-adapter-openai-development",
+   "image": "epam/ai-dial-adapter-openai",
+   "image_digest": null,
+   "kind": "image",
+   "packages_scanned": 135,
+   "reason": null,
+   "ref": "development",
+   "scanner": "osv",
+   "status": "ok"
+  }
+ ],
+ "versions": [
+  {
+   "counts": {
+    "all": 6,
+    "c": 0,
+    "fixable": 6,
+    "h": 0,
+    "l": 1,
+    "m": 5,
+    "unknown": 0
+   },
+   "kind": "development",
+   "latest": false,
+   "packages": [
+    {
+     "class": "lang",
+     "installed": [
+      "4.2.4"
+     ],
+     "pkg": "filelock",
+     "where": [
+      "source-development"
+     ]
+    },
+    {
+     "class": "lang",
+     "installed": [
+      "84.2.1"
+     ],
+     "pkg": "setuptools",
+     "where": [
+      "ai-dial-adapter-openai-development",
+      "source-development"
+     ]
+    },
+    {
+     "class": "lang",
+     "installed": [
+      "21.14.13"
+     ],
+     "pkg": "virtualenv",
+     "where": [
+      "source-development"
+     ]
+    }
+   ],
+   "ref": "development",
+   "status": "ok",
+   "targets": [
+    "ai-dial-adapter-openai-development",
+    "source-development"
+   ],
+   "vulns": []
+  }
+ ]
+}

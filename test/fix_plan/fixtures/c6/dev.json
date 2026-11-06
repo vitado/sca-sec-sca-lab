@@ -1,0 +1,85 @@
+{
+ "repo": "epam/ai-dial-admin-backend",
+ "run_id": "41491263199",
+ "run_url": "https://github.com/vitado/ai-dial-admin-backend/actions/runs/41491263199",
+ "schema_version": 4,
+ "targets": [
+  {
+   "commit_sha": "f646fa751a9b9dade8910b553349bb2a73e2bbfe",
+   "id": "source-development",
+   "image": null,
+   "image_digest": null,
+   "kind": "fs",
+   "os": null,
+   "packages_scanned": 584,
+   "reason": null,
+   "ref": "development",
+   "scanner": "trivy",
+   "status": "ok"
+  },
+  {
+   "commit_sha": null,
+   "id": "ai-dial-admin-backend-development",
+   "image": "epam/ai-dial-admin-backend",
+   "image_digest": "ghcr.io/epam/ai-dial-admin-backend@sha256:15cdf19037c3d6f4985cb189cc7c1f8bff424786ec6c4310df7b033203bd5fda",
+   "kind": "image",
+   "os": {
+    "eosl": false,
+    "family": "alpine",
+    "name": "3.24.3"
+   },
+   "packages_scanned": 518,
+   "reason": null,
+   "ref": "development",
+   "scanner": "trivy",
+   "status": "ok"
+  },
+  {
+   "commit_sha": "f646fa751a9b9dade8910b553349bb2a73e2bbfe",
+   "id": "source-development",
+   "image": null,
+   "image_digest": null,
+   "kind": "fs",
+   "packages_scanned": 584,
+   "reason": null,
+   "ref": "development",
+   "scanner": "osv",
+   "status": "ok"
+  },
+  {
+   "commit_sha": null,
+   "id": "ai-dial-admin-backend-development",
+   "image": "epam/ai-dial-admin-backend",
+   "image_digest": null,
+   "kind": "image",
+   "packages_scanned": 660,
+   "reason": null,
+   "ref": "development",
+   "scanner": "osv",
+   "status": "ok"
+  }
+ ],
+ "versions": [
+  {
+   "counts": {
+    "all": 4,
+    "c": 0,
+    "fixable": 4,
+    "h": 0,
+    "l": 0,
+    "m": 0,
+    "unknown": 4
+   },
+   "kind": "development",
+   "latest": false,
+   "packages": [],
+   "ref": "development",
+   "status": "ok",
+   "targets": [
+    "ai-dial-admin-backend-development",
+    "source-development"
+   ],
+   "vulns": []
+  }
+ ]
+}

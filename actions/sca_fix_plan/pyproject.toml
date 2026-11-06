@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sca-fix-plan"
+dynamic = ["version"]
+description = "Plan the fixes of the vulnerable packages of the newest release lines from schema 4 SCA reports"
+requires-python = ">=3.12"
+dependencies = []
+
+[tool.setuptools]
+packages = ["sca_fix_plan"]
+
+[tool.setuptools.dynamic]
+version = { attr = "sca_fix_plan.__version__" }

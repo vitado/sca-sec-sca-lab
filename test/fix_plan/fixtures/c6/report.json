@@ -1,0 +1,176 @@
+{
+ "repo": "epam/ai-dial-admin-backend",
+ "run_id": "41489391124",
+ "run_url": "https://github.com/vitado/ai-dial-admin-backend/actions/runs/41489391124",
+ "schema_version": 4,
+ "targets": [
+  {
+   "commit_sha": "50cf0d8fac6102e8ac4aa6a4e574e8cf7cad0e7c",
+   "id": "source-0.21.0-rc.0",
+   "image": null,
+   "image_digest": null,
+   "kind": "fs",
+   "os": null,
+   "packages_scanned": 534,
+   "reason": null,
+   "ref": "0.21.0-rc.0",
+   "scanner": "trivy",
+   "status": "ok"
+  },
+  {
+   "commit_sha": null,
+   "id": "ai-dial-admin-backend-0.21.0-rc.0",
+   "image": "epam/ai-dial-admin-backend",
+   "image_digest": "ghcr.io/epam/ai-dial-admin-backend@sha256:6e3694792ddf9e7939237aa53c018018042e983161fa6c8e5c61dfa57cc3d11e",
+   "kind": "image",
+   "os": {
+    "eosl": false,
+    "family": "alpine",
+    "name": "3.24.1"
+   },
+   "packages_scanned": 488,
+   "reason": null,
+   "ref": "0.21.0-rc.0",
+   "scanner": "trivy",
+   "status": "ok"
+  },
+  {
+   "commit_sha": "50cf0d8fac6102e8ac4aa6a4e574e8cf7cad0e7c",
+   "id": "source-0.21.0-rc.0",
+   "image": null,
+   "image_digest": null,
+   "kind": "fs",
+   "packages_scanned": 534,
+   "reason": null,
+   "ref": "0.21.0-rc.0",
+   "scanner": "osv",
+   "status": "ok"
+  },
+  {
+   "commit_sha": null,
+   "id": "ai-dial-admin-backend-0.21.0-rc.0",
+   "image": "epam/ai-dial-admin-backend",
+   "image_digest": null,
+   "kind": "image",
+   "packages_scanned": 603,
+   "reason": null,
+   "ref": "0.21.0-rc.0",
+   "scanner": "osv",
+   "status": "ok"
+  }
+ ],
+ "versions": [
+  {
+   "counts": {
+    "all": 38,
+    "c": 4,
+    "fixable": 38,
+    "h": 13,
+    "l": 1,
+    "m": 14,
+    "unknown": 6
+   },
+   "kind": "candidate",
+   "latest": false,
+   "packages": [
+    {
+     "class": "lang",
+     "installed": [
+      "1.84"
+     ],
+     "pkg": "org.bouncycastle:bcprov-jdk18on",
+     "where": [
+      "ai-dial-admin-backend-0.21.0-rc.0",
+      "source-0.21.0-rc.0"
+     ]
+    }
+   ],
+   "ref": "0.21.0-rc.0",
+   "status": "ok",
+   "targets": [
+    "ai-dial-admin-backend-0.21.0-rc.0",
+    "source-0.21.0-rc.0"
+   ],
+   "vulns": [
+    {
+     "accepted": null,
+     "aliases": [],
+     "class": "lang",
+     "cvss": {
+      "score": 7.5,
+      "source": "nvd",
+      "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+     },
+     "dev": false,
+     "ecosystem": "Maven",
+     "fixed": "1.85",
+     "id": "CVE-2026-13506",
+     "installed": [
+      "1.84"
+     ],
+     "locations": [
+      "app/app.jar/BOOT-INF/lib/bcprov-jdk18on-1.84.jar",
+      "gradle.lockfile",
+      "secrets-utils/gradle.lockfile"
+     ],
+     "modified": "2026-09-18",
+     "names": [
+      "CVE-2026-13506",
+      "GHSA-qp49-qgx5-5m26"
+     ],
+     "pkg": "org.bouncycastle:bcprov-jdk18on",
+     "published": "2026-08-03",
+     "relationship": "indirect",
+     "severity": "HIGH",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-admin-backend-0.21.0-rc.0",
+      "source-0.21.0-rc.0"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [],
+     "class": "lang",
+     "cvss": {
+      "score": 9.1,
+      "source": "nvd",
+      "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:N"
+     },
+     "dev": false,
+     "ecosystem": "Maven",
+     "fixed": "1.85",
+     "id": "CVE-2026-8763",
+     "installed": [
+      "1.84"
+     ],
+     "locations": [
+      "app/app.jar/BOOT-INF/lib/bcprov-jdk18on-1.84.jar",
+      "gradle.lockfile",
+      "secrets-utils/gradle.lockfile"
+     ],
+     "modified": "2026-09-18",
+     "names": [
+      "CVE-2026-8763",
+      "GHSA-9pwp-9qqc-pr26"
+     ],
+     "pkg": "org.bouncycastle:bcprov-jdk18on",
+     "published": "2026-08-03",
+     "relationship": "indirect",
+     "severity": "CRITICAL",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-admin-backend-0.21.0-rc.0",
+      "source-0.21.0-rc.0"
+     ]
+    }
+   ]
+  }
+ ]
+}

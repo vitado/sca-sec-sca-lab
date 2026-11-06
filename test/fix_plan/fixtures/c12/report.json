@@ -1,0 +1,352 @@
+{
+ "repo": "epam/ai-dial-rag",
+ "run_id": "41489457445",
+ "run_url": "https://github.com/vitado/ai-dial-rag/actions/runs/41489457445",
+ "schema_version": 4,
+ "targets": [
+  {
+   "commit_sha": "9c8e35e668c12db770497afa13b2e32a8be673a5",
+   "id": "source-0.43.0-rc.0",
+   "image": null,
+   "image_digest": null,
+   "kind": "fs",
+   "os": null,
+   "packages_scanned": 272,
+   "reason": null,
+   "ref": "0.43.0-rc.0",
+   "scanner": "trivy",
+   "status": "ok"
+  },
+  {
+   "commit_sha": null,
+   "id": "ai-dial-rag-0.43.0-rc.0",
+   "image": "epam/ai-dial-rag",
+   "image_digest": "ghcr.io/epam/ai-dial-rag@sha256:01a97b264a20c154bf9aef0e42ce36049b7473827d656ac1b2e4b9d5f9666c59",
+   "kind": "image",
+   "os": {
+    "eosl": false,
+    "family": "ubuntu",
+    "name": "24.04"
+   },
+   "packages_scanned": 557,
+   "reason": null,
+   "ref": "0.43.0-rc.0",
+   "scanner": "trivy",
+   "status": "ok"
+  },
+  {
+   "commit_sha": "9c8e35e668c12db770497afa13b2e32a8be673a5",
+   "id": "source-0.43.0-rc.0",
+   "image": null,
+   "image_digest": null,
+   "kind": "fs",
+   "packages_scanned": 272,
+   "reason": null,
+   "ref": "0.43.0-rc.0",
+   "scanner": "osv",
+   "status": "ok"
+  },
+  {
+   "commit_sha": null,
+   "id": "ai-dial-rag-0.43.0-rc.0",
+   "image": "epam/ai-dial-rag",
+   "image_digest": null,
+   "image_scan_disabled": true,
+   "kind": "image",
+   "packages_scanned": 263,
+   "reason": "osv image scan disabled for this repository (image too large for the runner disk): OS packages of the image are not checked by OSV",
+   "ref": "0.43.0-rc.0",
+   "scanner": "osv",
+   "status": "ok"
+  }
+ ],
+ "versions": [
+  {
+   "counts": {
+    "all": 490,
+    "c": 11,
+    "fixable": 419,
+    "h": 93,
+    "l": 91,
+    "m": 295,
+    "unknown": 0
+   },
+   "kind": "candidate",
+   "latest": false,
+   "packages": [
+    {
+     "class": "lang",
+     "installed": [
+      "48.0.1"
+     ],
+     "pkg": "cryptography",
+     "where": [
+      "ai-dial-rag-0.43.0-rc.0",
+      "source-0.43.0-rc.0"
+     ]
+    },
+    {
+     "class": "lang",
+     "installed": [
+      "26.1.2"
+     ],
+     "pkg": "pip",
+     "where": [
+      "ai-dial-rag-0.43.0-rc.0"
+     ]
+    },
+    {
+     "class": "lang",
+     "installed": [
+      "82.0.0"
+     ],
+     "pkg": "setuptools",
+     "where": [
+      "ai-dial-rag-0.43.0-rc.0",
+      "source-0.43.0-rc.0"
+     ]
+    }
+   ],
+   "ref": "0.43.0-rc.0",
+   "status": "ok",
+   "targets": [
+    "ai-dial-rag-0.43.0-rc.0",
+    "source-0.43.0-rc.0"
+   ],
+   "vulns": [
+    {
+     "accepted": null,
+     "aliases": [],
+     "class": "lang",
+     "cvss": {
+      "score": 5.9,
+      "source": "redhat",
+      "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:N/A:N"
+     },
+     "dev": false,
+     "ecosystem": "PyPI",
+     "fixed": "50.0.0",
+     "id": "CVE-2026-69247",
+     "installed": [
+      "48.0.1"
+     ],
+     "locations": [
+      "opt/venv/lib/python3.11/site-packages/cryptography-48.0.1.dist-info/METADATA",
+      "poetry.lock"
+     ],
+     "modified": "2026-10-23",
+     "names": [
+      "CVE-2026-69247",
+      "GHSA-g6cj-pr64-35w5",
+      "PYSEC-2026-3552"
+     ],
+     "pkg": "cryptography",
+     "published": "2026-08-03",
+     "relationship": "indirect",
+     "severity": "HIGH",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-rag-0.43.0-rc.0",
+      "source-0.43.0-rc.0"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [],
+     "class": "lang",
+     "cvss": {
+      "score": 7.4,
+      "source": "redhat",
+      "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:N"
+     },
+     "dev": false,
+     "ecosystem": "PyPI",
+     "fixed": "49.0.0",
+     "id": "CVE-2026-69248",
+     "installed": [
+      "48.0.1"
+     ],
+     "locations": [
+      "opt/venv/lib/python3.11/site-packages/cryptography-48.0.1.dist-info/METADATA",
+      "poetry.lock"
+     ],
+     "modified": "2026-10-23",
+     "names": [
+      "CVE-2026-69248",
+      "GHSA-m2h6-j472-rp4c",
+      "PYSEC-2026-3554"
+     ],
+     "pkg": "cryptography",
+     "published": "2026-08-03",
+     "relationship": "indirect",
+     "severity": "MEDIUM",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-rag-0.43.0-rc.0",
+      "source-0.43.0-rc.0"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [],
+     "class": "lang",
+     "cvss": {
+      "score": 7.5,
+      "source": "redhat",
+      "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+     },
+     "dev": false,
+     "ecosystem": "PyPI",
+     "fixed": "49.0.0",
+     "id": "CVE-2026-69249",
+     "installed": [
+      "48.0.1"
+     ],
+     "locations": [
+      "opt/venv/lib/python3.11/site-packages/cryptography-48.0.1.dist-info/METADATA",
+      "poetry.lock"
+     ],
+     "modified": "2026-10-23",
+     "names": [
+      "CVE-2026-69249",
+      "GHSA-jwv3-5hgf-82ww",
+      "PYSEC-2026-3553"
+     ],
+     "pkg": "cryptography",
+     "published": "2026-08-03",
+     "relationship": "indirect",
+     "severity": "HIGH",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-rag-0.43.0-rc.0",
+      "source-0.43.0-rc.0"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [],
+     "class": "lang",
+     "cvss": {
+      "score": 6.5,
+      "source": "nvd",
+      "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:N/I:H/A:N"
+     },
+     "dev": false,
+     "ecosystem": "PyPI",
+     "fixed": "26.2.0, 26.2",
+     "id": "CVE-2026-13346",
+     "installed": [
+      "26.1.2"
+     ],
+     "locations": [
+      "opt/uv/python/cpython-3.11.15-linux-x86_64-gnu/lib/python3.11/site-packages/pip-26.1.2.dist-info/METADATA"
+     ],
+     "modified": "2026-10-24",
+     "names": [
+      "CVE-2026-13346",
+      "GHSA-qwm4-qh6w-59xr",
+      "PYSEC-2026-3721"
+     ],
+     "pkg": "pip",
+     "published": "2026-07-29",
+     "relationship": null,
+     "severity": "MEDIUM",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-rag-0.43.0-rc.0"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [
+      "BIT-setuptools-2026-59890"
+     ],
+     "class": "lang",
+     "cvss": {
+      "score": 6.1,
+      "source": "ghsa",
+      "vector": "CVSS:3.1/AV:L/AC:L/PR:N/UI:R/S:U/C:H/I:L/A:N"
+     },
+     "dev": false,
+     "ecosystem": "PyPI",
+     "fixed": "83.0.0",
+     "id": "CVE-2026-59890",
+     "installed": [
+      "82.0.0"
+     ],
+     "locations": [
+      "opt/venv/lib/python3.11/site-packages/setuptools-82.0.0.dist-info/METADATA",
+      "poetry.lock"
+     ],
+     "modified": "2026-10-25",
+     "names": [
+      "CVE-2026-59890",
+      "GHSA-h35f-9h28-mq5c",
+      "PYSEC-2026-3447"
+     ],
+     "pkg": "setuptools",
+     "published": "2026-07-08",
+     "relationship": "indirect",
+     "severity": "MEDIUM",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-rag-0.43.0-rc.0",
+      "source-0.43.0-rc.0"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [],
+     "class": "lang",
+     "cvss": {
+      "score": 1,
+      "source": "ghsa",
+      "vector": "CVSS:4.0/AV:L/AC:H/AT:P/PR:L/UI:A/VC:N/VI:L/VA:L/SC:N/SI:N/SA:N"
+     },
+     "dev": false,
+     "ecosystem": "PyPI",
+     "fixed": "84.1.0",
+     "id": "GHSA-xmj3-9gf7-h52w",
+     "installed": [
+      "82.0.0"
+     ],
+     "locations": [
+      "opt/venv/lib/python3.11/site-packages/setuptools-82.0.0.dist-info/METADATA",
+      "poetry.lock"
+     ],
+     "modified": "2026-10-23",
+     "names": [
+      "GHSA-xmj3-9gf7-h52w"
+     ],
+     "pkg": "setuptools",
+     "published": "2026-10-23",
+     "relationship": "indirect",
+     "severity": "LOW",
+     "sources": [
+      "trivy",
+      "osv"
+     ],
+     "where": [
+      "ai-dial-rag-0.43.0-rc.0",
+      "source-0.43.0-rc.0"
+     ]
+    }
+   ]
+  }
+ ]
+}

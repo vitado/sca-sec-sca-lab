@@ -1,0 +1,263 @@
+{
+ "repo": "epam/ai-dial-chat-themes",
+ "run_id": "41491290896",
+ "run_url": "https://github.com/vitado/ai-dial-chat-themes/actions/runs/41491290896",
+ "schema_version": 4,
+ "targets": [
+  {
+   "commit_sha": "28a4b9724b244adc6b197c236286ee7e5a8411e0",
+   "id": "source-development",
+   "image": null,
+   "image_digest": null,
+   "kind": "fs",
+   "os": null,
+   "packages_scanned": 0,
+   "reason": null,
+   "ref": "development",
+   "scanner": "trivy",
+   "status": "ok"
+  },
+  {
+   "commit_sha": null,
+   "id": "ai-dial-chat-themes-development",
+   "image": "epam/ai-dial-chat-themes",
+   "image_digest": "ghcr.io/epam/ai-dial-chat-themes@sha256:a13cb775abc3bd52fd315a705b4cbab02cb3e9975c7514d21327f69bcf37be5d",
+   "kind": "image",
+   "os": {
+    "eosl": false,
+    "family": "alpine",
+    "name": "3.24.2"
+   },
+   "packages_scanned": 157,
+   "reason": null,
+   "ref": "development",
+   "scanner": "trivy",
+   "status": "ok"
+  },
+  {
+   "commit_sha": "28a4b9724b244adc6b197c236286ee7e5a8411e0",
+   "id": "source-development",
+   "image": null,
+   "image_digest": null,
+   "kind": "fs",
+   "packages_scanned": 0,
+   "reason": null,
+   "ref": "development",
+   "scanner": "osv",
+   "status": "ok"
+  },
+  {
+   "commit_sha": null,
+   "id": "ai-dial-chat-themes-development",
+   "image": "epam/ai-dial-chat-themes",
+   "image_digest": null,
+   "kind": "image",
+   "packages_scanned": 65,
+   "reason": null,
+   "ref": "development",
+   "scanner": "osv",
+   "status": "ok"
+  }
+ ],
+ "versions": [
+  {
+   "counts": {
+    "all": 4,
+    "c": 0,
+    "fixable": 4,
+    "h": 0,
+    "l": 0,
+    "m": 0,
+    "unknown": 4
+   },
+   "kind": "development",
+   "latest": false,
+   "packages": [
+    {
+     "class": "os",
+     "installed": [
+      "1.2.1-r0"
+     ],
+     "pkg": "brotli-libs",
+     "where": [
+      "ai-dial-chat-themes-development"
+     ]
+    },
+    {
+     "class": "os",
+     "installed": [
+      "8.23.0-r0"
+     ],
+     "pkg": "curl",
+     "where": [
+      "ai-dial-chat-themes-development"
+     ]
+    },
+    {
+     "class": "os",
+     "installed": [
+      "8.23.0-r0"
+     ],
+     "pkg": "libcurl",
+     "where": [
+      "ai-dial-chat-themes-development"
+     ]
+    },
+    {
+     "class": "os",
+     "installed": [
+      "2.9.0-r0"
+     ],
+     "pkg": "libexpat",
+     "where": [
+      "ai-dial-chat-themes-development"
+     ]
+    }
+   ],
+   "ref": "development",
+   "status": "ok",
+   "targets": [
+    "ai-dial-chat-themes-development",
+    "source-development"
+   ],
+   "vulns": [
+    {
+     "accepted": null,
+     "aliases": [
+      "ALPINE-CVE-2026-113351"
+     ],
+     "class": "os",
+     "cvss": {
+      "score": null,
+      "source": "osv",
+      "vector": "CVSS:4.0/AV:N/AC:L/AT:P/PR:N/UI:N/VC:N/VI:N/VA:H/SC:N/SI:N/SA:N/E:X/CR:X/IR:X/AR:X/MAV:X/MAC:X/MAT:X/MPR:X/MUI:X/MVC:X/MVI:X/MVA:X/MSC:X/MSI:X/MSA:X/S:X/AU:X/R:X/V:X/RE:X/U:X"
+     },
+     "dev": false,
+     "ecosystem": "Alpine:v3.24",
+     "fixed": "2.10.0-r0",
+     "id": "CVE-2026-113351",
+     "installed": [
+      "2.9.0-r0"
+     ],
+     "locations": [],
+     "modified": "2026-11-02",
+     "names": [
+      "CVE-2026-113351"
+     ],
+     "pkg": "libexpat",
+     "published": "2026-10-20",
+     "relationship": null,
+     "severity": "UNKNOWN",
+     "sources": [
+      "osv"
+     ],
+     "where": [
+      "ai-dial-chat-themes-development"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [
+      "ALPINE-CVE-2026-115506"
+     ],
+     "class": "os",
+     "cvss": {
+      "score": null,
+      "source": "osv",
+      "vector": "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:N/VI:N/VA:H/SC:N/SI:N/SA:N/E:X/CR:X/IR:X/AR:X/MAV:X/MAC:X/MAT:X/MPR:X/MUI:X/MVC:X/MVI:X/MVA:X/MSC:X/MSI:X/MSA:X/S:X/AU:X/R:X/V:X/RE:X/U:X"
+     },
+     "dev": false,
+     "ecosystem": "Alpine:v3.24",
+     "fixed": "2.10.0-r0",
+     "id": "CVE-2026-115506",
+     "installed": [
+      "2.9.0-r0"
+     ],
+     "locations": [],
+     "modified": "2026-11-02",
+     "names": [
+      "CVE-2026-115506"
+     ],
+     "pkg": "libexpat",
+     "published": "2026-10-22",
+     "relationship": null,
+     "severity": "UNKNOWN",
+     "sources": [
+      "osv"
+     ],
+     "where": [
+      "ai-dial-chat-themes-development"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [
+      "ALPINE-CVE-2026-117610"
+     ],
+     "class": "os",
+     "cvss": {
+      "score": null,
+      "source": "osv",
+      "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:N/A:H"
+     },
+     "dev": false,
+     "ecosystem": "Alpine:v3.24",
+     "fixed": "2.10.0-r0",
+     "id": "CVE-2026-117610",
+     "installed": [
+      "2.9.0-r0"
+     ],
+     "locations": [],
+     "modified": "2026-11-02",
+     "names": [
+      "CVE-2026-117610"
+     ],
+     "pkg": "libexpat",
+     "published": "2026-10-28",
+     "relationship": null,
+     "severity": "UNKNOWN",
+     "sources": [
+      "osv"
+     ],
+     "where": [
+      "ai-dial-chat-themes-development"
+     ]
+    },
+    {
+     "accepted": null,
+     "aliases": [
+      "ALPINE-CVE-2026-118370"
+     ],
+     "class": "os",
+     "cvss": {
+      "score": null,
+      "source": "osv",
+      "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:N/A:H"
+     },
+     "dev": false,
+     "ecosystem": "Alpine:v3.24",
+     "fixed": "2.10.0-r0",
+     "id": "CVE-2026-118370",
+     "installed": [
+      "2.9.0-r0"
+     ],
+     "locations": [],
+     "modified": "2026-11-02",
+     "names": [
+      "CVE-2026-118370"
+     ],
+     "pkg": "libexpat",
+     "published": "2026-10-28",
+     "relationship": null,
+     "severity": "UNKNOWN",
+     "sources": [
+      "osv"
+     ],
+     "where": [
+      "ai-dial-chat-themes-development"
+     ]
+    }
+   ]
+  }
+ ]
+}
