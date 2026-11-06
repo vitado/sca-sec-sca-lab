@@ -94,7 +94,12 @@ def dockerfiles(tree: Path) -> list[str]:
     )
 
 
-def changes(outcome: Outcome) -> list[dict[str, Any]]:
+def changes(
+    outcome: Outcome, directories: set[str] | None = None
+) -> list[dict[str, Any]]:
+    """The dependency changes of a job; with ``directories`` only those of the
+    given job directories (the ones whose files were kept).
+    """
     return [
         {
             "name": d.get("name"),
@@ -103,6 +108,7 @@ def changes(outcome: Outcome) -> list[dict[str, Any]]:
             "directory": d.get("directory"),
         }
         for d in outcome.dependencies
+        if directories is None or str(d.get("directory")).strip("/") in directories
     ]
 
 
@@ -466,7 +472,8 @@ def apply_docker(
         )
     # only the built Dockerfiles are kept: a file the build does not cover is not proven
     kept_files = [f for f in outcome.files if event_path(f) in built]
-    step["changes"], step["files"] = changes(outcome), built
+    kept_dirs = {str(f["directory"]).strip("/") for f in kept_files}
+    step["changes"], step["files"] = changes(outcome, kept_dirs), built
 
     def scan_all(label: str) -> set[Finding]:
         found: set[Finding] = set()

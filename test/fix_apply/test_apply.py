@@ -705,6 +705,34 @@ def test_n5_1_6_docker_job_keeps_only_the_built_dockerfiles(tmp_path: Path) -> N
     assert (tree / "other").read_text(encoding="utf-8") == "x"
 
 
+def test_n7_4_2_docker_changes_list_only_the_kept_files(tmp_path: Path) -> None:
+    tree = tree_with(tmp_path, Dockerfile="FROM a:1\n")
+    (tree / "svc").mkdir()
+    (tree / "svc" / "notes").write_text("x", encoding="utf-8")
+    vuln = finding("brotli-libs", cls="os")
+    builds: list[int] = []
+
+    def image(root: Path, path: str) -> set[Finding]:
+        builds.append(1)
+        return {vuln} if len(builds) == 1 else set()
+
+    def dependabot(job: Mapping[str, Any], manager: str) -> Outcome:
+        dep = {"previous-version": "1", "version": "2"}
+        return Outcome(
+            files=[
+                file("FROM a:2\n", "/", "Dockerfile"),
+                file("y", "/svc", "notes"),
+            ],
+            dependencies=[
+                {"name": "a", "directory": "/", **dep},
+                {"name": "b", "directory": "/svc", **dep},
+            ],
+        )
+
+    result = process_line(line(os_item()), "o/r", tree, tools(dependabot, [], image))
+    assert [c["name"] for c in result["docker"]["changes"]] == ["a"]
+
+
 def test_n6_3_rule_3b_a_later_change_must_not_bring_back_an_earlier_item(
     tmp_path: Path,
 ) -> None:
