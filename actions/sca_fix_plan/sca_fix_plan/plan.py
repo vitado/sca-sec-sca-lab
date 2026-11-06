@@ -146,7 +146,12 @@ def build_item(
     """One item: every record of one package in one line."""
     installed = sorted({v for r in records for v in r["installed"]})
     where = sorted({i for r in records for i in r["where"]})
-    relationships = {r["relationship"] for r in records}
+    # an image scan has no dependency graph: only records of a source target say
+    relationships = {
+        r["relationship"]
+        for r in records
+        if any(version.targets.get(i, {}).get("kind") == "fs" for i in r["where"])
+    } or {None}
     ecosystems = sorted({r["ecosystem"] for r in records if r["ecosystem"]})
     item: dict[str, Any] = {
         "pkg": records[0]["pkg"],

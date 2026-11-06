@@ -475,3 +475,21 @@ def test_n5_4_item_relationship_is_unknown_when_a_record_does_not_say() -> None:
     assert mixed["relationship"] is None
     known = single(plan(development(), release(first)))
     assert known["relationship"] == "indirect"
+
+
+def test_n5_4_item_relationship_ignores_records_only_in_an_image() -> None:
+    targets = [
+        target("source-1.2.3"),
+        target("image-1.2.3", kind="image", image="app:1.2.3"),
+    ]
+    both = ["source-1.2.3", "image-1.2.3"]
+    first = record(
+        "lib", "1.0.0", "1.0.5", id="CVE-1", relationship="indirect", where=both
+    )
+    second = record(
+        "lib", "1.0.0", "1.0.5", id="CVE-2", relationship=None, where=["image-1.2.3"]
+    )
+    item = single(plan(development(), release(first, second, targets=targets)))
+    assert item["relationship"] == "indirect"
+    image_only = single(plan(development(), release(second, targets=targets)))
+    assert image_only["relationship"] is None
