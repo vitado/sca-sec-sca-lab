@@ -83,6 +83,7 @@ class FakeCommands:
         scanner_output: Any = None,
         scanner_stderr: str = "",
         image_exit: int | None = None,
+        image_stderr: str | None = None,
         image_output: Any = None,
         docker_exit: int = 0,
     ) -> None:
@@ -96,6 +97,8 @@ class FakeCommands:
         )
         self.scanner_stderr = scanner_stderr
         self.image_exit = scanner_exit if image_exit is None else image_exit
+        # the stderr of the image scan; by default the one of the BOM scan
+        self.image_stderr = scanner_stderr if image_stderr is None else image_stderr
         self.image_output = (
             osv_output(*PACKAGES, vulnerable=True)
             if image_output is None
@@ -127,7 +130,7 @@ class FakeCommands:
             if self.image_output is not False:
                 output.write_text(json.dumps(self.image_output), encoding="utf-8")
             return subprocess.CompletedProcess(
-                command, self.image_exit, "", self.scanner_stderr
+                command, self.image_exit, "", self.image_stderr
             )
         bom_path = Path(command[command.index("-L") + 1])
         self.scanned_boms.append(json.loads(bom_path.read_text(encoding="utf-8")))
@@ -582,12 +585,13 @@ def test_offline_missing_database_fails_the_image_scan(
     ws = image_workspace(tmp_path)
     stderr = "no offline version of the OSV database for Debian"
     ws.run(
-        FakeCommands(scanner_exit=0, image_exit=exit_code, scanner_stderr=stderr),
+        FakeCommands(scanner_exit=0, image_exit=exit_code, image_stderr=stderr),
         offline_db_dir=tmp_path / "osv-db",
     )
-    # the BOM scan prints the same message in this fake, so it fails first
+    # a clean BOM scan: only the image scan can fail the target
     assert ws.status()["status"] == "failed"
     assert stderr in ws.status()["reason"]
+    assert "scan image" in ws.status()["reason"]
 
 
 def test_the_missing_database_message_is_ignored_online(tmp_path: Path) -> None:
