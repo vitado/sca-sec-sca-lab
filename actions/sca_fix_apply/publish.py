@@ -98,13 +98,40 @@ def remote_fix_branch(tree: Path, branch: str, head: str) -> bool:
 
 
 def owned(tree: Path, branch: str, head: str, email: str) -> bool:
-    """True when every commit of ``origin/<head>`` that is not on ``origin/<branch>`` is
-    authored by a fixer identity: the current one or the workflow bot.
+    """True when every commit of ``origin/<head>`` that is not on ``origin/<branch>`` has
+    a fixer identity as author and as committer: the current one or the workflow bot.
     """
-    authors = run(
-        ["git", "log", "--format=%ae", f"origin/{branch}..origin/{head}"], tree
+    emails = run(
+        ["git", "log", "--format=%ae%n%ce", f"origin/{branch}..origin/{head}"], tree
     ).split()
-    return all(a.lower() in {email.lower(), BOT_EMAIL} for a in authors)
+    return all(a.lower() in {email.lower(), BOT_EMAIL} for a in emails)
+
+
+def closed_unmerged(repo: str, branch: str, head: str, token: str) -> bool:
+    """True when the newest pull request from ``head`` was closed without a merge."""
+    found = json.loads(
+        run(
+            [
+                "gh",
+                "pr",
+                "list",
+                "--repo",
+                repo,
+                "--head",
+                head,
+                "--base",
+                branch,
+                "--state",
+                "all",
+                "--limit",
+                "1",
+                "--json",
+                "state",
+            ],
+            token=token,
+        )
+    )
+    return bool(found) and found[0]["state"] == "CLOSED"
 
 
 def publish(
@@ -123,7 +150,8 @@ def publish(
     pull request. Nothing is pushed when the remote fix branch has commits of others
     (``branch_has_manual_changes``, the result has no pull request) or already holds
     the same tree on the same base (``unchanged``, the pull request is still
-    updated). The branch stays pushed when the pull request cannot be opened (the
+    updated), or the same tree as a branch whose newest pull request a human closed
+    (``closed_unchanged``, nothing is reopened or created). The branch stays pushed when the pull request cannot be opened (the
     result says ``failed`` with the reason).
     """
     head = f"sca-fix/{branch}"
@@ -137,12 +165,20 @@ def publish(
     base = run(["git", "rev-parse", "HEAD"], tree)
     run(["git", "checkout", "-B", head], tree)
     run(["git", "add", "--all", "--", *files], tree)
-    unchanged = (
-        exists
-        and run(["git", "rev-parse", f"origin/{head}^"], tree) == base
-        and run(["git", "write-tree"], tree)
-        == run(["git", "rev-parse", f"origin/{head}^{{tree}}"], tree)
+    same_tree = exists and run(["git", "write-tree"], tree) == run(
+        ["git", "rev-parse", f"origin/{head}^{{tree}}"], tree
     )
+    if same_tree:
+        try:
+            if closed_unmerged(repo, branch, head, token):
+                return {
+                    "action": "none",
+                    "reason": f"the pull request of {head} was closed and the tree is unchanged",
+                    "reason_code": codes.CLOSED_UNCHANGED,
+                }
+        except PublishError as exc:
+            return {"head": head, "action": "failed", "reason": str(exc)}
+    unchanged = same_tree and run(["git", "rev-parse", f"origin/{head}^"], tree) == base
     if not unchanged:
         run(
             [

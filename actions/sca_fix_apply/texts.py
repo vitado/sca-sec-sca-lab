@@ -185,7 +185,8 @@ def pr_note(result: Mapping[str, Any]) -> str:
         )
         return f"no pull request ({pr.get('reason_code')}): {pr['reason']}{edited}"
     if pr["action"] == "failed":
-        return f"branch {pr['head']} pushed, pull request failed: {pr['reason']}"
+        pushed = f"branch {pr['head']} pushed, " if pr.get("head") else ""
+        return f"{pushed}pull request failed: {pr['reason']}"
     note = (
         " (branch unchanged, not pushed, pull request body updated)"
         if pr.get("reason_code") == codes.UNCHANGED
@@ -203,8 +204,14 @@ def detail(record: Mapping[str, Any]) -> str:
     return installed_to_new(record)
 
 
-def summary(plan: Mapping[str, Any], results: Mapping[str, Mapping[str, Any]]) -> str:
-    """Every line of the plan with its items, whether or not anything was applied."""
+def summary(
+    plan: Mapping[str, Any],
+    results: Mapping[str, Mapping[str, Any]],
+    missing: Sequence[str] = (),
+) -> str:
+    """Every line of the plan with its items, whether or not anything was applied;
+    ``missing`` are the release branches the plan job did not find.
+    """
     out = [f"# Fix run for {plan['repo']}", ""]
     if any(
         r.get("pr", {}).get("action") in ("created", "updated")
@@ -226,12 +233,8 @@ def summary(plan: Mapping[str, Any], results: Mapping[str, Mapping[str, Any]]) -
         result = results.get(line["branch"])
         if result is None:
             automated = any(i["method"] != "manual" for i in line["items"])
-            out += [
-                "not run (branch missing or job failed)"
-                if automated
-                else "no automated items",
-                "",
-            ]
+            why = "branch missing" if line["branch"] in missing else "job failed"
+            out += [f"not run ({why})" if automated else "no automated items", ""]
             out += [
                 f"- {i['pkg']} ({i['class']}): manual, {i['reason']}"
                 for i in line["items"]

@@ -76,6 +76,7 @@ def opened(monkeypatch: pytest.MonkeyPatch) -> None:
         return {"head": head, "action": "updated", "url": "u"}
 
     monkeypatch.setattr(publish_module, "open_pull_request", fake)
+    monkeypatch.setattr(publish_module, "closed_unmerged", lambda *args: False)
 
 
 def run_fixer(work: Path, content: str = "new", who: tuple[str, str] = APP) -> Any:
@@ -235,3 +236,86 @@ def test_baseline_ci_falls_back_to_the_latest_workflow_run(
 
     monkeypatch.setattr(publish_module, "run", refused)
     assert baseline_ci("o/r", "b", "t") == "unknown"
+
+
+def test_n7_2_2_a_commit_of_a_human_on_a_fixer_authored_commit_is_not_owned(
+    clone: Path, opened: None
+) -> None:
+    # `git commit --amend` by a human keeps the author: the committer tells
+    run_fixer(clone, "new")
+    other = other_clone(clone)
+    git(other, "checkout", "-q", FIX)
+    (other / "lock").write_text("amended", encoding="utf-8")
+    git(
+        other,
+        "-c",
+        "user.name=dev",
+        "-c",
+        "user.email=dev@x",
+        "commit",
+        "-qa",
+        "--amend",
+        "--no-edit",
+        f"--author={APP[0]} <{APP[1]}>",
+    )
+    git(other, "push", "-q", "--force", "origin", FIX)
+    before = remote_sha(clone)
+    result = run_fixer(clone, "newer")
+    assert remote_sha(clone) == before
+    assert result["reason_code"] == "branch_has_manual_changes"
+
+
+def test_n7_2_3_a_branch_of_another_token_kind_is_not_owned(
+    clone: Path, opened: None
+) -> None:
+    run_fixer(clone, "new", who=("octo", "1+octo@users.noreply.github.com"))
+    before = remote_sha(clone)
+    result = run_fixer(clone, "newer", who=APP)
+    assert remote_sha(clone) == before
+    assert result["reason_code"] == "branch_has_manual_changes"
+
+
+def test_n7_3_a_closed_pull_request_with_the_same_tree_is_not_reopened(
+    clone: Path, opened: None, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    run_fixer(clone, "new")
+    first = remote_sha(clone)
+    monkeypatch.setattr(publish_module, "closed_unmerged", lambda *args: True)
+    created: list[Any] = []
+    monkeypatch.setattr(
+        publish_module, "open_pull_request", lambda *args: created.append(args)
+    )
+    result = run_fixer(clone, "new")
+    assert remote_sha(clone) == first
+    assert created == []
+    assert result["action"] == "none"
+    assert result["reason_code"] == "closed_unchanged"
+
+
+def test_n7_3_a_closed_pull_request_with_a_different_tree_gets_a_new_one(
+    clone: Path, opened: None, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    run_fixer(clone, "new")
+    first = remote_sha(clone)
+    monkeypatch.setattr(publish_module, "closed_unmerged", lambda *args: True)
+    result = run_fixer(clone, "newer")
+    assert remote_sha(clone) != first
+    assert result["action"] == "updated"
+    assert "reason_code" not in result
+
+
+def test_n7_3_closed_unmerged_reads_the_newest_pull_request(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    answers = iter(['[{"state": "CLOSED"}]', '[{"state": "MERGED"}]', "[]"])
+    seen: list[list[str]] = []
+
+    def gh(cmd: list[str], cwd: Path | None = None, token: str = "") -> str:
+        seen.append(cmd)
+        return next(answers)
+
+    monkeypatch.setattr(publish_module, "run", gh)
+    assert publish_module.closed_unmerged("o/r", "b", "h", "t") is True
+    assert publish_module.closed_unmerged("o/r", "b", "h", "t") is False
+    assert publish_module.closed_unmerged("o/r", "b", "h", "t") is False
+    assert "--limit" in seen[0] and "all" in seen[0]

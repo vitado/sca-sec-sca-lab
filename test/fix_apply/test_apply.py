@@ -6,7 +6,7 @@ from typing import Any
 import pytest
 from apply import Tools, process_line
 from builders import file, finding, item, line, outcome, tools
-from dependabot import TIMEOUT, Outcome
+from dependabot import TIMEOUT, JobError, Outcome
 from scan import BuildError, Finding, ScanError
 
 
@@ -51,7 +51,8 @@ def test_no_change_goes_on_to_the_override_step(tmp_path: Path) -> None:
     record = result["items"][0]
     assert record["status"] == "manual"
     assert record["reason"] == "no package.json and package-lock.json at the root"
-    assert record["dependabot_result"] == "dependabot produced no change"
+    assert record["dependabot_result"] == "dependabot_no_change"
+    assert record["dependabot_detail"] == "dependabot produced no change"
     assert result["files"] == []
 
 
@@ -70,10 +71,19 @@ def not_needed(tmp_path: Path, baseline: set[Finding]) -> dict[str, Any]:
 def test_n5_2_not_needed_is_already_fixed_when_the_detector_does_not_find_it(
     tmp_path: Path,
 ) -> None:
-    record = not_needed(tmp_path, set())
+    # the item is gone from the baseline: rule 1a settles it before any job runs
+    jobs: list[str] = []
+
+    def job(j: Mapping[str, Any], m: str) -> Outcome:
+        jobs.append(m)
+        return outcome(error="security_update_not_needed")
+
+    record = process_line(
+        line(item()), "o/r", lockfile_tree(tmp_path), tools(job, [set()])
+    )["items"][0]
     assert record["status"] == "already_fixed"
     assert record["reason_code"] == "not_in_baseline"
-    assert record["dependabot_result"] == "security_update_not_needed"
+    assert jobs == []
 
 
 def test_n5_2_not_needed_is_not_believed_when_the_detector_finds_it(
@@ -102,6 +112,7 @@ def test_n5_3_not_needed_with_the_item_still_detected_goes_to_the_fallback(
     # the fallback ran (the tree has no package.json) and kept the Dependabot outcome
     assert record["reason_code"] == "override_no_root_lockfile"
     assert record["dependabot_result"] == "security_update_not_needed"
+    assert record["dependabot_detail"] is None
 
 
 def test_n5_3_not_needed_with_the_item_gone_does_not_run_the_fallback(
@@ -121,7 +132,7 @@ def test_gate_without_baseline_findings_is_already_fixed(tmp_path: Path) -> None
     )
     record = result["items"][0]
     assert record["status"] == "already_fixed"
-    assert record["reverted"] is True
+    assert record["reverted"] is False  # no change of its own was made
     assert (tree / "package-lock.json").read_text(encoding="utf-8") == "old"
 
 
@@ -573,7 +584,7 @@ def test_n6_3_rule_1b_change_of_one_item_also_fixes_another(tmp_path: Path) -> N
     assert (second["status"], second["reason_code"]) == ("applied", None)
     assert second["files"] == []
     assert second["fixed_with"] == ["a"]
-    assert second["reverted"] is True
+    assert second["reverted"] is False  # settled before a job of its own ran
     assert result["files"] == ["package-lock.json"]
     assert (tree / "package-lock.json").read_text(encoding="utf-8") == "new1"
 
@@ -608,9 +619,11 @@ def test_n6_3_rule_1a_absent_in_the_baseline_is_already_fixed_first(
     assert "fixed_with" not in second
 
 
-def test_n6_3_rule_1b_for_a_not_needed_answer_of_dependabot(tmp_path: Path) -> None:
+def test_n6_3_rule_1b_settles_an_item_before_its_dependabot_job(
+    tmp_path: Path,
+) -> None:
     fa, fb = finding("a"), finding("b")
-    answers = [outcome(file("new1")), outcome(error="security_update_not_needed")]
+    answers = [outcome(file("new1"))]
     result = process_line(
         line(item("a", fallback="manual"), item("b", fallback="manual")),
         "o/r",
@@ -619,7 +632,7 @@ def test_n6_3_rule_1b_for_a_not_needed_answer_of_dependabot(tmp_path: Path) -> N
     )
     second = result["items"][1]
     assert (second["status"], second["fixed_with"]) == ("applied", ["a"])
-    assert second["dependabot_result"] == "security_update_not_needed"
+    assert "dependabot_result" not in second
 
 
 def test_n5_4_relationship_null_is_override_relationship_unknown(
@@ -629,3 +642,258 @@ def test_n5_4_relationship_null_is_override_relationship_unknown(
     record = result["items"][0]
     assert record["reason_code"] == "override_relationship_unknown"
     assert record["dependabot_result"] == "security_update_not_possible"
+
+
+# exec 01b: the fixes of the R2 review
+
+
+def test_n6_3_rule_1a_docker_item_outside_the_built_images_is_not_already_fixed(
+    tmp_path: Path,
+) -> None:
+    # zlib lives only in the image of sub/Dockerfile, which Dependabot did not change
+    (tmp_path / "sub").mkdir()
+    tree = tree_with(tmp_path, Dockerfile="FROM a:1\n")
+    (tmp_path / "sub" / "Dockerfile").write_text("FROM b:1\n", encoding="utf-8")
+    zlib = finding("zlib", cls="os")
+    one = os_item()
+    one["pkg"] = "zlib"
+    one["vulns"][0].update(id="CVE-zlib", names=[], aliases=[])
+    built: list[str] = []
+
+    def image(root: Path, path: str) -> set[Finding]:
+        built.append(path)
+        return {zlib} if path == "sub/Dockerfile" else set()
+
+    result = process_line(
+        line(one),
+        "o/r",
+        tree,
+        tools(lambda j, m: outcome(file("FROM a:2\n", "/", "Dockerfile")), [], image),
+    )
+    record = result["items"][0]
+    assert built == ["Dockerfile", "Dockerfile"]
+    assert (record["status"], record["reason_code"]) == (
+        "manual",
+        "no_dockerfile_changed",
+    )
+
+
+def test_n5_1_6_docker_job_keeps_only_the_built_dockerfiles(tmp_path: Path) -> None:
+    tree = tree_with(tmp_path, Dockerfile="FROM a:1\n", other="x")
+    vuln = finding("brotli-libs", cls="os")
+    builds: list[int] = []
+
+    def image(root: Path, path: str) -> set[Finding]:
+        builds.append(1)
+        return {vuln} if len(builds) == 1 else set()
+
+    result = process_line(
+        line(os_item()),
+        "o/r",
+        tree,
+        tools(
+            lambda j, m: outcome(
+                file("FROM a:2\n", "/", "Dockerfile"), file("y", "/", "other")
+            ),
+            [],
+            image,
+        ),
+    )
+    assert result["items"][0]["status"] == "applied"
+    assert result["items"][0]["files"] == ["Dockerfile"]
+    assert result["files"] == ["Dockerfile"]
+    assert (tree / "other").read_text(encoding="utf-8") == "x"
+
+
+def test_n6_3_rule_3b_a_later_change_must_not_bring_back_an_earlier_item(
+    tmp_path: Path,
+) -> None:
+    fa, fb = finding("a"), finding("b")
+    tree = lockfile_tree(tmp_path)
+    result = process_line(
+        line(item("a", fallback="manual"), item("b", fallback="manual")),
+        "o/r",
+        tree,
+        # the change for b would bring a back
+        tools(changing(), [{fa, fb}, {fb}, {fa}]),
+    )
+    first, second = result["items"]
+    assert first["status"] == "applied"
+    assert (second["status"], second["reason_code"]) == ("manual", "gate_reintroduced")
+    assert "a" in second["detail"]
+    assert second["reverted"] is True
+    assert second["changes"] == [] and second["files"] == []
+    assert (tree / "package-lock.json").read_text(encoding="utf-8") == "new1"
+
+
+def test_n6_3_rule_3b_holds_for_an_item_fixed_with_another_change(
+    tmp_path: Path,
+) -> None:
+    fa, fb, fc = finding("a"), finding("b"), finding("c")
+    result = process_line(
+        line(*(item(n, fallback="manual") for n in "abc")),
+        "o/r",
+        lockfile_tree(tmp_path),
+        # the change for a removes a and b; the change for c would bring b back
+        tools(changing(), [{fa, fb, fc}, {fc}, {fb}]),
+    )
+    _, second, third = result["items"]
+    assert second["fixed_with"] == ["a"]
+    assert (third["status"], third["reason_code"]) == ("manual", "gate_reintroduced")
+
+
+def test_n5_2_4_item_absent_in_the_baseline_is_settled_before_the_job(
+    tmp_path: Path,
+) -> None:
+    jobs: list[str] = []
+
+    def job(j: Mapping[str, Any], m: str) -> Outcome:
+        jobs.append(m)
+        return outcome()
+
+    record = process_line(
+        line(item(fallback="manual")),
+        "o/r",
+        lockfile_tree(tmp_path),
+        tools(job, [set()]),
+    )["items"][0]
+    assert (record["status"], record["reason_code"]) == (
+        "already_fixed",
+        "not_in_baseline",
+    )
+    assert jobs == []
+
+
+def test_n5_2_4_item_fixed_by_an_earlier_change_is_applied_not_refused(
+    tmp_path: Path,
+) -> None:
+    fa, fb = finding("a"), finding("b")
+    jobs: list[str] = []
+
+    def job(j: Mapping[str, Any], m: str) -> Outcome:
+        jobs.append(m)
+        return outcome(file("new1"))
+
+    result = process_line(
+        line(item("a", fallback="manual"), item("b", fallback="manual")),
+        "o/r",
+        lockfile_tree(tmp_path),
+        tools(job, [{fa, fb}, set()]),
+    )
+    second = result["items"][1]
+    assert (second["status"], second["fixed_with"]) == ("applied", ["a"])
+    assert len(jobs) == 1
+
+
+def test_n5_4_override_preconditions_look_at_the_tree_a_later_change_left(
+    tmp_path: Path,
+) -> None:
+    # b is refused by Dependabot and waits for the override step; by then the change
+    # for a has removed b, so the preconditions (here: relationship unknown) are moot
+    fa, fb = finding("a"), finding("b")
+    answers = [outcome(error="security_update_not_possible"), outcome(file("new1"))]
+    one = item("b")
+    one["relationship"] = None
+    result = process_line(
+        line(one, item("a", fallback="manual")),
+        "o/r",
+        lockfile_tree(tmp_path),
+        tools(lambda j, m: answers.pop(0), [{fa, fb}, set()]),
+    )
+    first = result["items"][0]
+    assert (first["status"], first["fixed_with"]) == ("applied", ["a"])
+    assert first["dependabot_result"] == "security_update_not_possible"
+
+
+def test_n9_1_a_reverted_gate_failure_leaves_no_side_effects(tmp_path: Path) -> None:
+    tree = tree_with(tmp_path, **{"package-lock.json": "a\nb\n"})
+    both = outcome(file("a\nX\n"), file("a\nY\n"))
+    result = process_line(
+        line(item(fallback="manual")),
+        "o/r",
+        tree,
+        tools(lambda j, m: both, [{finding()}, {finding()}]),
+    )
+    record = result["items"][0]
+    assert record["status"] == "manual" and record["reverted"] is True
+    assert record["changes"] == [] and record["files"] == []
+    assert record["left_out"] == 0
+    assert (tree / "package-lock.json").read_text(encoding="utf-8") == "a\nb\n"
+
+
+def test_n9_1_a_rescan_failure_leaves_no_side_effects(tmp_path: Path) -> None:
+    both = outcome(file("a\nX\n"), file("a\nY\n"))
+    scans = [{finding()}]
+
+    def scan() -> set[Finding]:
+        if scans:
+            return scans.pop()
+        raise ScanError("boom")
+
+    fake = tools(lambda j, m: both, [])
+    fake = Tools(**{**fake.__dict__, "scan_tree": scan})
+    tree = tree_with(tmp_path, **{"package-lock.json": "a\nb\n"})
+    record = process_line(line(item(fallback="manual")), "o/r", tree, fake)["items"][0]
+    assert record["reason_code"] == "rescan_failed"
+    assert record["changes"] == [] and record["files"] == [] and record["left_out"] == 0
+
+
+def test_n9_1_a_successful_override_has_no_detail(tmp_path: Path) -> None:
+    record = run_override(override_tree(tmp_path), [{finding()}, set()])["items"][0]
+    assert record["status"] == "applied" and record["method_used"] == "npm-override"
+    assert record["detail"] is None
+    assert record["dependabot_result"] == "security_update_not_possible"
+
+
+@pytest.mark.parametrize(
+    ("error", "result", "detail"),
+    [
+        ("security_update_not_possible", "security_update_not_possible", None),
+        (None, "dependabot_no_change", "dependabot produced no change"),
+        (TIMEOUT, "dependabot_timeout", None),
+    ],
+)
+def test_n9_2_1_dependabot_result_is_a_code(
+    tmp_path: Path, error: str | None, result: str, detail: str | None
+) -> None:
+    record = process_line(
+        line(item()),
+        "o/r",
+        lockfile_tree(tmp_path),
+        tools(lambda j, m: outcome(error=error), [{finding()}]),
+    )["items"][0]
+    assert record["dependabot_result"] == result
+    assert record["dependabot_detail"] == detail
+
+
+def test_n7_4_2_override_record_has_the_resolved_versions(tmp_path: Path) -> None:
+    record = run_override(
+        override_tree(tmp_path),
+        [{finding()}, set()],
+        ls=lambda pkg: [("hono", "2.1.7"), ("other/hono", "2.1.7")],
+    )["items"][0]
+    assert record["changes"] == [
+        {"name": "hono", "from": "2.0.12", "to": "2.1.7", "directory": "/"}
+    ]
+
+
+def test_n5_6_a_job_error_of_one_item_does_not_fail_the_line(tmp_path: Path) -> None:
+    fa, fb = finding("a"), finding("b")
+    calls: list[int] = []
+
+    def job(j: Mapping[str, Any], m: str) -> Outcome:
+        calls.append(1)
+        if len(calls) == 1:
+            raise JobError("cannot read the job output: bad yaml")
+        return outcome(file("new"))
+
+    result = process_line(
+        line(item("a", fallback="manual"), item("b", fallback="manual")),
+        "o/r",
+        lockfile_tree(tmp_path),
+        tools(job, [{fa, fb}, {fa}]),
+    )
+    first, second = result["items"]
+    assert (first["status"], first["reason_code"]) == ("manual", "dependabot_failed")
+    assert "bad yaml" in first["detail"]
+    assert second["status"] == "applied"

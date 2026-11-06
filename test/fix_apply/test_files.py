@@ -69,3 +69,13 @@ def test_deleted_file(tmp_path: Path) -> None:
     changed, _ = journal.apply([{**file("", "/", "gone"), "deleted": True}])
     assert changed == ["gone"]
     assert not (tmp_path / "gone").exists()
+
+
+def test_n5_2_5_new_file_with_several_versions_counts_the_left_out(
+    tmp_path: Path,
+) -> None:
+    journal = Journal(tmp_path)
+    changed, left_out = journal.apply([file("one"), file("two"), file("three")])
+    assert changed == ["package-lock.json"]
+    assert (tmp_path / "package-lock.json").read_text(encoding="utf-8") == "one"
+    assert left_out == 2

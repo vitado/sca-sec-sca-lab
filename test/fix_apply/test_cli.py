@@ -45,7 +45,7 @@ def test_summary_names_every_line() -> None:
     plan = {"repo": "o/r", "lines": [line(item()), line(item(), branch="release-1.1")]}
     text = summary(plan, {"release-1.2": result(pr={"action": "created", "url": "u"})})
     assert "pull request created: u" in text
-    assert "not run (branch missing or job failed)" in text
+    assert "not run (job failed)" in text
     assert "workflow token" in text
 
 
@@ -125,3 +125,84 @@ def test_node_command_writes_the_workflow_outputs(
     monkeypatch.setenv("GITHUB_OUTPUT", str(out))
     assert fix_apply.main(["node", "--tree", str(tmp_path)]) == 0
     assert out.read_text(encoding="utf-8") == "version=22\nsource=.nvmrc\n"
+
+
+def result_file(tmp_path: Path, **fields: Any) -> None:
+    (tmp_path / "result.json").write_text(
+        json.dumps({"files": ["f"], "branch": "b", **fields}), encoding="utf-8"
+    )
+
+
+def publish_args(tmp_path: Path, *extra: str) -> list[str]:
+    return [
+        "publish",
+        *extra,
+        "--plan",
+        "unused",
+        "--branch",
+        "b",
+        "--tree",
+        str(tmp_path),
+        "--repo",
+        "o/r",
+        "--output-dir",
+        str(tmp_path),
+    ]
+
+
+def test_n7_1_dry_run_comes_before_nothing_applied(tmp_path: Path) -> None:
+    result_file(tmp_path, files=[])
+    fix_apply.main(publish_args(tmp_path, "--dry-run"))
+    written = json.loads((tmp_path / "result.json").read_text(encoding="utf-8"))
+    assert written["pr"]["reason_code"] == "dry_run"
+
+
+def test_n10_2_a_publish_error_still_writes_the_result(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    def broken(*args: Any) -> Any:
+        raise fix_apply.PublishError("git push failed: denied")
+
+    monkeypatch.setattr(fix_apply, "publish", broken)
+    result_file(tmp_path)
+    assert fix_apply.main(publish_args(tmp_path)) == 1
+    written = json.loads((tmp_path / "result.json").read_text(encoding="utf-8"))
+    assert written["pr"] == {
+        "action": "failed",
+        "reason": "git push failed: denied",
+        "reason_code": "pr_failed",
+    }
+    plan = {"repo": "o/r", "lines": [line(item(), branch="b")]}
+    assert "pull request failed: git push failed: denied" in summary(
+        plan, {"b": {**result(), **written}}
+    )
+
+
+def test_n8_4_the_baseline_ci_is_read_with_its_own_token(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    plan = {"schema_version": 2, "lines": [line(item(), branch="b")], "reports": []}
+    (tmp_path / "plan.json").write_text(json.dumps(plan), encoding="utf-8")
+    seen: list[str] = []
+    monkeypatch.setattr(fix_apply, "process_line", lambda *a: {"files": []})
+    monkeypatch.setattr(
+        fix_apply, "baseline_ci", lambda repo, branch, token: seen.append(token) or "x"
+    )
+    monkeypatch.setenv("GH_TOKEN", "app")
+    monkeypatch.setenv("BASELINE_CI_TOKEN", "workflow")
+    args = ["apply", "--plan", str(tmp_path / "plan.json"), "--branch", "b"]
+    args += ["--tree", str(tmp_path), "--repo", "o/r", "--output-dir", str(tmp_path)]
+    args += ["--dependabot", "d", "--updater-images", "{}", "--proxy-image", "p"]
+    assert fix_apply.main(args) == 0
+    assert seen == ["workflow"]
+
+
+def test_n7_5_the_summary_tells_a_missing_branch_from_a_failed_job() -> None:
+    plan = {
+        "repo": "o/r",
+        "lines": [line(item(), branch="gone"), line(item(), branch="failed")],
+    }
+    text = summary(plan, {}, ["gone"])
+    gone, failed = text.split("branch `failed`")
+    assert "not run (branch missing)" in gone
+    assert "not run (job failed)" in failed

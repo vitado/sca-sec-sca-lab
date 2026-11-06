@@ -116,6 +116,7 @@ class Journal:
                 after: str | None = None
             elif len(versions) == 1 or before is None:
                 after = file_text(versions[0])
+                skipped += len(versions) - 1  # a new file takes the first version
             else:
                 after, left_out = merge_text(
                     before.decode("utf-8"), [file_text(v) for v in versions]

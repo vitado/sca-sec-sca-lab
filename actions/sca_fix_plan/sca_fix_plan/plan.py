@@ -152,9 +152,10 @@ def build_item(
         "pkg": records[0]["pkg"],
         "class": records[0]["class"],
         "ecosystem": ecosystems[0] if ecosystems else None,
-        "relationship": next(
-            (x for x in ("direct", "indirect") if x in relationships), None
-        ),
+        # unknown as soon as one record does not say
+        "relationship": None
+        if None in relationships
+        else next((x for x in ("direct", "indirect") if x in relationships), None),
         "locations": sorted({p for r in records for p in r["locations"]}),
         "where": where,
         "targets": [],

@@ -56,6 +56,12 @@ inputs:
   token:
     description: Token for the Dependabot git source, the push and the pull request
     default: ${{ github.token }}
+  ci-token:
+    description: Token that reads the workflow runs and commit statuses of the baseline CI (apply); a GitHub App token does not have the permissions, the workflow token with actions and statuses read does
+    default: ${{ github.token }}
+  missing-branches:
+    description: JSON list of the release branches of the plan that do not exist in the repository (summary)
+    default: "[]"
 
 outputs:
   version:
@@ -97,6 +103,8 @@ runs:
         GIT_USER_NAME: ${{ inputs.git-user-name }}
         GIT_USER_EMAIL: ${{ inputs.git-user-email }}
         GH_TOKEN: ${{ inputs.token }}
+        BASELINE_CI_TOKEN: ${{ inputs.ci-token }}
+        MISSING_BRANCHES: ${{ inputs.missing-branches }}
       run: |
         args=("$COMMAND" --plan "$PLAN")
         case "$COMMAND" in
@@ -117,7 +125,7 @@ runs:
             args=(node --tree "$TREE")
             ;;
           summary)
-            args+=(--results-dir "$RESULTS_DIR")
+            args+=(--results-dir "$RESULTS_DIR" --missing-branches "$MISSING_BRANCHES")
             ;;
         esac
         python "$ACTION_PATH/fix_apply.py" "${args[@]}"

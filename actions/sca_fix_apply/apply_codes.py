@@ -26,12 +26,14 @@ NO_DOCKERFILE_CHANGED = "no_dockerfile_changed"
 RESCAN_FAILED = "rescan_failed"
 GATE_STILL_PRESENT = "gate_still_present"
 GATE_NEW_SERIOUS = "gate_new_serious"
+GATE_REINTRODUCED = "gate_reintroduced"
 NOT_IN_BASELINE = "not_in_baseline"
 DRY_RUN = "dry_run"
 NOTHING_APPLIED = "nothing_applied"
 UNCHANGED = "unchanged"
 BRANCH_HAS_MANUAL_CHANGES = "branch_has_manual_changes"
 PR_FAILED = "pr_failed"
+CLOSED_UNCHANGED = "closed_unchanged"
 
 CODES = frozenset(
     value

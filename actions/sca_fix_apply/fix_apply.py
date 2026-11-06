@@ -101,7 +101,9 @@ def cmd_apply(args: argparse.Namespace) -> int:
     except (ScanError, JobError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 1
-    result["baseline_ci"] = baseline_ci(args.repo, args.branch, token)
+    # the workflow token reads runs and statuses; the token above only pushes
+    ci_token = os.environ.get("BASELINE_CI_TOKEN") or token
+    result["baseline_ci"] = baseline_ci(args.repo, args.branch, ci_token)
     result.update(
         schema_version=RESULT_SCHEMA_VERSION,
         repo=args.repo,
@@ -126,17 +128,17 @@ def cmd_apply(args: argparse.Namespace) -> int:
 def cmd_publish(args: argparse.Namespace) -> int:
     result = read_json(args.output_dir / "result.json")
     result["token_kind"] = args.token_kind
-    if not result["files"]:
-        result["pr"] = {
-            "action": "none",
-            "reason": "nothing applied",
-            "reason_code": codes.NOTHING_APPLIED,
-        }
-    elif args.dry_run:
+    if args.dry_run:
         result["pr"] = {
             "action": "none",
             "reason": "dry run",
             "reason_code": codes.DRY_RUN,
+        }
+    elif not result["files"]:
+        result["pr"] = {
+            "action": "none",
+            "reason": "nothing applied",
+            "reason_code": codes.NOTHING_APPLIED,
         }
     else:
         try:
@@ -158,7 +160,11 @@ def cmd_publish(args: argparse.Namespace) -> int:
             }
         except PublishError as exc:
             print(f"error: {exc}", file=sys.stderr)
-            return 1
+            result["pr"] = {
+                "action": "failed",
+                "reason": str(exc),
+                "reason_code": codes.PR_FAILED,
+            }
     write_json(args.output_dir / "result.json", result)
     print(json.dumps(result["pr"]))
     return 1 if result["pr"]["action"] == "failed" else 0
@@ -186,7 +192,7 @@ def cmd_summary(args: argparse.Namespace) -> int:
     for path in sorted(args.results_dir.rglob("result.json")):
         data = read_json(path)
         results[data["branch"]] = data
-    text = summary(plan, results)
+    text = summary(plan, results, json.loads(args.missing_branches))
     print(text)
     target = os.environ.get("GITHUB_STEP_SUMMARY")
     if target:
@@ -248,6 +254,11 @@ def build_parser() -> argparse.ArgumentParser:
     node_parser.set_defaults(handler=cmd_node)
     summary_parser = sub.add_parser("summary", parents=[plan])
     summary_parser.add_argument("--results-dir", required=True, type=Path)
+    summary_parser.add_argument(
+        "--missing-branches",
+        default="[]",
+        help="JSON list: release branches of the plan that do not exist",
+    )
     summary_parser.set_defaults(handler=cmd_summary)
     return parser
 

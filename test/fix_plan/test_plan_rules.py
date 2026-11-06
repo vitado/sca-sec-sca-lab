@@ -466,3 +466,12 @@ def test_n4_2_skips_are_grouped_per_package_and_code() -> None:
             "reason_code": "accepted",
         }
     ]
+
+
+def test_n5_4_item_relationship_is_unknown_when_a_record_does_not_say() -> None:
+    first = record("lib", "1.0.0", "1.0.5", id="CVE-1", relationship="indirect")
+    second = record("lib", "1.0.0", "1.0.5", id="CVE-2", relationship=None)
+    mixed = single(plan(development(), release(first, second)))
+    assert mixed["relationship"] is None
+    known = single(plan(development(), release(first)))
+    assert known["relationship"] == "indirect"

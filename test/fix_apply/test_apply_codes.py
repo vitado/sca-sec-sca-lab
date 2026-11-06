@@ -27,7 +27,10 @@ from test_apply import (
 )
 
 # N9.2: the code list of the spec, copied
+# plus the codes of the exec 01b decisions (gate_reintroduced, closed_unchanged)
 N9_2_CODES = {
+    "gate_reintroduced",
+    "closed_unchanged",
     "accepted",
     "not_fixed_in_development",
     "development_data_incomplete",
@@ -153,7 +156,7 @@ def test_n9_2_dependabot_outcomes(tmp_path: Path, error: str | None, code: str) 
 def test_n9_2_unsupported_ecosystem(tmp_path: Path) -> None:
     go = item("lib", ecosystem="Go", fallback=None, locations=("go.sum",))
     result = process_line(
-        line(go), "o/r", tmp_path, tools(lambda j, m: outcome(), [set()])
+        line(go), "o/r", tmp_path, tools(lambda j, m: outcome(), [{finding("lib")}])
     )
     assert code_of(result) == "ecosystem_unsupported"
 
@@ -371,8 +374,8 @@ def test_n9_2_docker_codes(tmp_path: Path) -> None:
 
     serious = run(docker_tree(sub(tmp_path, "g")), bump, adds_serious)
     assert code_of(serious) == "gate_new_serious"
-    gone = run(docker_tree(sub(tmp_path, "h")), bump, lambda r, p: set())
-    assert code_of(gone) == "not_in_baseline"
+    outside = run(docker_tree(sub(tmp_path, "h")), bump, lambda r, p: set())
+    assert code_of(outside) == "no_dockerfile_changed"
 
 
 # result.json and the plan version
