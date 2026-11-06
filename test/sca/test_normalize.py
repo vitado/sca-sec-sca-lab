@@ -54,6 +54,11 @@ def trivy(*results, tid="source-development"):
     return list(findings.values()), inventory
 
 
+def test_a_null_title_is_an_empty_title():
+    rows, _ = trivy(result([package("a")], [vuln("a", Title=None)]))
+    assert rows[0]["title"] == ""
+
+
 def test_pick_id_is_the_first_cve_else_the_first_id():
     assert pick_id(["GHSA-aaaa", "CVE-2026-2", "CVE-2026-1"]) == "CVE-2026-1"
     assert pick_id(["GHSA-aaaa", "PYSEC-1"]) == "GHSA-aaaa"

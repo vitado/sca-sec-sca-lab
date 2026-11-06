@@ -30,7 +30,7 @@ exit code 124, a failed target with that reason). A target whose Trivy target wa
 scanned is ``not_applicable``. The merge fails an output that is not a valid result.
 The script exits 0: the workflow decides about failing the run.
 
-With ``--offline-db-dir DIR`` nothing leaves the runner: ``DIR`` is the osv-scanner
+With ``--offline-db-dir DIR`` osv-scanner makes no OSV or deps.dev network request (the image pull of an image scan still happens): ``DIR`` is the osv-scanner
 database cache (``OSV_SCANNER_LOCAL_DB_CACHE_DIRECTORY``), filled by the caller beforehand
 (``osv-scanner --download-offline-databases``; the engine never downloads). Both scans
 run with ``--offline``, which switches off every network feature of osv-scanner, not only

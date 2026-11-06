@@ -303,6 +303,11 @@ def build_versions(
         given = sorted(
             {t["ref"] for t in report["targets"] if t["id"] in ids} & version_kinds.keys()
         )
+        if len({version_kinds[g] for g in given}) > 1:
+            raise ValueError(
+                f"version_kinds: version {ref} has refs of different kinds: "
+                + ", ".join(f"{g} is {version_kinds[g]}" for g in given)
+            )
         if given:
             named.add(ref)
         failed = any(

@@ -71,6 +71,65 @@ def test_a_rule_without_ids_accepts_every_vulnerability_of_the_package(tmp_path)
     assert report["acceptances"][0]["matched"] == 3
 
 
+def test_a_rule_without_an_ids_key_or_with_empty_ids_accepts_every_vulnerability(
+    tmp_path,
+):
+    no_key = rule([IMG], "libc6")
+    del no_key["ids"]
+    for name, ids in (("none", None), ("empty", [])):
+        explicit = {**rule([IMG], "libc6"), "ids": ids}
+        report = run(tmp_path / name, [explicit])
+        assert set(accepted(report)) == {(IMG, "CVE-2026-10")}
+        assert not report["acceptances"][0]["bad_rule"]
+    report = run(tmp_path / "nokey", [no_key])
+    assert set(accepted(report)) == {(IMG, "CVE-2026-10")}
+    assert report["acceptances"][0]["bad_rule"] is False
+
+
+BAD_RULES = {
+    "targets is a string": {**rule([IMG], "libc6"), "targets": IMG},
+    "targets is a substring of a string": {**rule([IMG], "libc6"), "targets": "xx-image-dev-xx"},
+    "targets has a non-string": {**rule([IMG], "libc6"), "targets": [IMG, 3]},
+    "targets is missing": {k: v for k, v in rule([IMG], "libc6").items() if k != "targets"},
+    "ids is a string": {**rule([IMG], "libc6"), "ids": "CVE-2026-10"},
+    "ids has a non-string": {**rule([IMG], "libc6"), "ids": ["CVE-2026-10", 1]},
+    "ids is a dict": {**rule([IMG], "libc6"), "ids": {"CVE-2026-10": 1}},
+    "package is missing": {k: v for k, v in rule([IMG], "libc6").items() if k != "package"},
+    "package is a list": {**rule([IMG], "libc6"), "package": ["libc6"]},
+    "class is a number": {**rule([IMG], "libc6"), "class": 1},
+}
+
+
+@pytest.mark.parametrize("bad", BAD_RULES.values(), ids=BAD_RULES.keys())
+def test_a_malformed_rule_is_flagged_never_acts_and_the_report_is_written(
+    tmp_path, bad
+):
+    report = run(tmp_path, [bad, rule([IMG], "libc6", ["CVE-2026-10"])])
+    first, second = report["acceptances"]
+    assert first["bad_rule"] is True and first["matched"] == 0
+    assert (first["expired"], first["bad_expiry"]) == (False, False)
+    assert second["bad_rule"] is False and second["matched"] == 1
+    # only the good rule acts, and it is the second entry of acceptances
+    assert accepted(report) == {
+        (IMG, "CVE-2026-10"): {"until": "2099-01-01", "reason": "why", "rule": 1}
+    }
+
+
+@pytest.mark.parametrize("entry", ["libc6", 7, None, ["libc6"]])
+def test_a_rule_that_is_not_a_mapping_is_kept_under_rule_and_flagged(tmp_path, entry):
+    report = run(tmp_path, [entry])
+    (audit,) = report["acceptances"]
+    assert audit["rule"] == entry and audit["bad_rule"] is True
+    assert (audit["matched"], audit["expired"], audit["bad_expiry"]) == (0, False, True)
+    assert not accepted(report)
+
+
+def test_a_malformed_rule_with_an_expired_date_keeps_its_date_flags(tmp_path):
+    bad = {**rule([IMG], "libc6", expires="2026-10-14"), "targets": IMG}
+    (audit,) = run(tmp_path, [bad])["acceptances"]
+    assert (audit["bad_rule"], audit["expired"]) == (True, True)
+
+
 def test_a_language_package_name_is_normalized_and_an_os_name_is_exact(tmp_path):
     report = run(tmp_path, [rule([SRC], "py-b"), rule([IMG], "LibC6")])
     assert set(accepted(report)) == {(SRC, "CVE-2026-2")}

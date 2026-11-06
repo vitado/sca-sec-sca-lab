@@ -228,7 +228,7 @@ def normalize_trivy(
                     "dev": graph["dev"],
                     "relationship": graph["relationship"],
                     "chain": graph["chain"],
-                    "title": vuln.get("Title", ""),
+                    "title": vuln.get("Title") or "",
                     "url": vuln.get("PrimaryURL", ""),
                     "summary": None,
                     "src_pkg": src_pkg or None,

@@ -8,7 +8,7 @@ source target of the run (a version).
 
 The rules are the optional ``acceptances`` of ``targets.json``, decisions that do not
 live in the repository: ``targets`` (ids of Trivy targets), ``package``, optional
-``class`` (``os`` or ``lang``: only that kind of package), ``ids`` (empty: every
+``class`` (``os`` or ``lang``: only that kind of package), ``ids`` (optional, empty: every
 vulnerability of the package), ``reason``, ``expires`` and whatever the pipeline adds
 about the approval. A rule marks the findings of its package in its targets
 ``accepted``; nothing is hidden. Like a line of the file it stops acting on the day
@@ -126,12 +126,32 @@ def rule_matches(rule: dict[str, Any], f: dict[str, Any], names: set[str]) -> bo
         same = norm(rule["package"]) == norm(f["pkg"])
     else:  # an OS package is exactly what the distribution calls it (python3.12 is not python3-12)
         same = rule["package"] == f["pkg"]
-    return same and (not rule["ids"] or bool(set(rule["ids"]) & names))
+    return same and (not rule.get("ids") or bool(set(rule["ids"]) & names))
 
 
-def add_acceptances(report: dict[str, Any], rules: list[dict[str, Any]]) -> None:
-    """Set ``acceptances`` of the report: the rules with ``expired``, ``bad_expiry``
-    and ``matched`` (the findings a live rule accepts); and ``accepted`` on each of
+def is_strings(value: object) -> bool:
+    return isinstance(value, list) and all(isinstance(v, str) for v in value)
+
+
+def rule_is_bad(rule: object) -> bool:
+    """A rule that is not a mapping of the documented shape: ``package`` a string,
+    ``targets`` a list of strings, ``ids`` (optional, empty means every vulnerability
+    of the package) a list of strings, ``class`` (optional) a string.
+    """
+    return not (
+        isinstance(rule, dict)
+        and isinstance(rule.get("package"), str)
+        and is_strings(rule.get("targets"))
+        and (rule.get("ids") is None or is_strings(rule["ids"]))
+        and (rule.get("class") is None or isinstance(rule["class"], str))
+    )
+
+
+def add_acceptances(report: dict[str, Any], rules: list[Any]) -> None:
+    """Set ``acceptances`` of the report: the rules with ``expired``, ``bad_expiry``,
+    ``bad_rule`` and ``matched`` (the findings a live rule accepts); a rule of a wrong
+    shape is kept with ``bad_rule: true`` (a non-mapping entry as ``{"rule": entry}``),
+    never acts, and does not stop the report; and ``accepted`` on each of
     those findings: ``{"until", "reason", "rule"}`` of the rule with the earliest
     ``expires`` (``rule`` indexes ``acceptances``). A finding is matched by package
     (a language package as the merge normalizes it, an OS package exactly), by the
@@ -143,16 +163,21 @@ def add_acceptances(report: dict[str, Any], rules: list[dict[str, Any]]) -> None
     today = report["generated_utc"][:10]
     audit = []
     for rule in rules:
-        until = iso_date(rule.get("expires"))
+        until = iso_date(rule.get("expires") if isinstance(rule, dict) else None)
         audit.append(
             {
-                **rule,
+                **(rule if isinstance(rule, dict) else {"rule": rule}),
                 "expired": until is not None and until <= today,
                 "bad_expiry": until is None,
+                "bad_rule": rule_is_bad(rule),
                 "matched": 0,
             }
         )
-    live = [i for i, a in enumerate(audit) if not a["expired"] and not a["bad_expiry"]]
+    live = [
+        i
+        for i, a in enumerate(audit)
+        if not (a["expired"] or a["bad_expiry"] or a["bad_rule"])
+    ]
     slots: dict[tuple[str, str, str], list[dict[str, Any]]] = {}
     for f in report["findings"]:
         slots.setdefault((f["target"], norm(f["pkg"]), f["version"]), []).append(f)

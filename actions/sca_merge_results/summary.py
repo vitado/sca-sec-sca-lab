@@ -302,15 +302,19 @@ def acceptances_audit(report: Mapping[str, Any]) -> list[str]:
     checks = (
         ("Expired", lambda a: a["expired"]),
         ("With a bad date", lambda a: a["bad_expiry"]),
+        ("Malformed", lambda a: a.get("bad_rule")),
         (
             "Matching nothing",
-            lambda a: not (a["matched"] or a["expired"] or a["bad_expiry"]),
+            lambda a: not (
+                a["matched"] or a["expired"] or a["bad_expiry"] or a.get("bad_rule")
+            ),
         ),
     )
     lines = []
     for title, bad in checks:
         found = [
-            a["package"] + (f" (until {a.get('expires')})" if a.get("expires") else "")
+            str(a.get("package", a.get("rule", "?")))
+            + (f" (until {a.get('expires')})" if a.get("expires") else "")
             for a in report.get("acceptances") or []
             if bad(a)
         ]

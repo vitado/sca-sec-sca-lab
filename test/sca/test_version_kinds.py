@@ -57,6 +57,19 @@ def test_the_map_is_read_with_the_ref_as_given_before_the_v_strip(tmp_path):
     ]
 
 
+def test_two_refs_of_one_version_mapped_to_different_kinds_are_an_input_error(tmp_path):
+    # the git tag carries a v, the registry tag does not: one version, two raw refs
+    source = {**target("s", "trivy"), "git_ref": "v1.2.3"}
+    image = {**target("i", "trivy", "image"), "tag": "1.2.3"}
+    run = Run(tmp_path, [source, image], {"version_kinds": {"v1.2.3": "release", "1.2.3": "candidate"}})
+    with pytest.raises(ValueError, match=r"1\.2\.3 is candidate.*v1\.2\.3 is release|v1\.2\.3 is release.*1\.2\.3 is candidate"):
+        run.merge()
+    (tmp_path / "ok").mkdir()
+    run = Run(tmp_path / "ok", [source, image], {"version_kinds": {"v1.2.3": "release", "1.2.3": "release"}})
+    _, report = run.merge()
+    assert [(v["ref"], v["kind"]) for v in report["versions"]] == [("1.2.3", "release")]
+
+
 @pytest.mark.parametrize(
     ("version_kinds", "tag", "latest"),
     [
