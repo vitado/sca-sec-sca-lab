@@ -146,10 +146,11 @@ def record_of(fs: Sequence[Finding], source_ids: set[str]) -> dict[str, Any]:
     fixed = (x for f in fs for x in fixed_of(f))
     dates = [f["published"] for f in fs if f["published"]]
     untils = [f["accepted"]["until"] for f in fs if f.get("accepted")]
+    pkg = pkg_of(fs, source_ids)
     return {
         "id": vid,
         "names": [vid, *sorted(names - {vid})],
-        "pkg": pkg_of(fs, source_ids),
+        "pkg": pkg,
         "class": fs[0]["class"],
         "severity": min((f["severity"] for f in rated), key=SEVERITIES.index),
         "fixed": ", ".join(dict.fromkeys(fixed)),
@@ -165,7 +166,23 @@ def record_of(fs: Sequence[Finding], source_ids: set[str]) -> dict[str, Any]:
         "relationship": relationship_of(fs),
         "locations": sorted({loc for f in fs for loc in f["locations"]}),
         "accepted": {"until": min(untils)} if len(untils) == len(fs) else None,
+        "pkg_key": norm(pkg),
+        "src_pkg": next(
+            (f["src_pkg"] for f in fs if f["scanner"] == "trivy" and f["src_pkg"]), None
+        ),
+        "title": title_of(fs),
     }
+
+
+def title_of(fs: Sequence[Finding]) -> str | None:
+    """The first non-empty title with whitespace collapsed: Trivy's ``Title`` of the
+    findings, else the ``summary`` of an OSV advisory (never its details).
+    """
+    for f in sorted(fs, key=lambda f: f["scanner"] != "trivy"):
+        text = " ".join((f["title"] if f["scanner"] == "trivy" else f["summary"] or "").split())
+        if text:
+            return text
+    return None
 
 
 def counts_of(vulns: Sequence[Mapping[str, Any]]) -> dict[str, int]:
@@ -183,6 +200,7 @@ def packages_of(
     keys: Mapping[tuple[str, str], str],
     package_sets: Mapping[str, PackageSet],
     ok: set[str],
+    sources: Mapping[tuple[str, str], str],
 ) -> list[dict[str, Any]]:
     """The ``packages`` of one version: per package of ``keys`` the versions installed
     in its targets and the targets. Trivy packages of ``ok`` targets (vulnerable or
@@ -205,9 +223,30 @@ def packages_of(
             "class": k[0],
             "installed": sorted(installed),
             "where": sorted(where),
+            "pkg_key": k[1],
+            "src_pkg": sources.get(k),
         }
         for k, (installed, where) in sorted(seen.items())
     ]
+
+
+def set_roles(versions: Sequence[dict[str, Any]]) -> None:
+    """``role`` of every version (``versions`` is newest first): ``dev`` for each
+    development version, ``rc`` for each candidate; of the release versions ``rel``
+    for the newest of the newest release line (major.minor) and ``rel-1`` for the
+    newest of the line before it; any other version, and a release whose ref has no
+    major.minor, gets ``None``.
+    """
+    lines: list[tuple[int, ...]] = []
+    for v in versions:
+        role = {"development": "dev", "candidate": "rc"}.get(v["kind"])
+        m = VERSION.fullmatch(v["ref"])
+        if v["kind"] == "release" and m and "." in m[1]:
+            line = tuple(int(n) for n in m[1].split(".")[:2])
+            if line not in lines:
+                lines.append(line)
+                role = ("rel", "rel-1")[len(lines) - 1] if len(lines) <= 2 else None
+        v["role"] = role
 
 
 def build_versions(
@@ -285,10 +324,17 @@ def build_versions(
         for t in report["targets"]
         if t["scanner"] == "trivy" and t["status"] == "ok"
     }
+    # the source package of an OS package, as the first version with a record states it
+    sources: dict[tuple[str, str], str] = {}
+    for version in result:
+        for v in version["vulns"]:
+            if v["src_pkg"]:
+                sources.setdefault((v["class"], v["pkg_key"]), v["src_pkg"])
     for version in result:
         version["packages"] = packages_of(
-            set(version["targets"]), version["vulns"], keys, package_sets, ok
+            set(version["targets"]), version["vulns"], keys, package_sets, ok, sources
         )
+    set_roles(result)
     ok_releases = (
         v
         for v in result

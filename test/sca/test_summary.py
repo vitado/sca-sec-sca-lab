@@ -59,6 +59,8 @@ def finding(
         "chain": [],
         "title": "",
         "url": f"https://example.test/{vid}",
+        "summary": None,
+        "src_pkg": None,
         **extra,
     }
 

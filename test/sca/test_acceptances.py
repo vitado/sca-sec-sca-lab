@@ -6,7 +6,7 @@ from pathlib import Path
 import ignores
 import pytest
 import vulns
-from golden_case import GOLDEN, merged
+from golden_case import GOLDEN, as_before, merged
 
 SRC, REL, IMG = "source-development", "source-1.0.0", "image-dev"
 
@@ -46,7 +46,7 @@ def records(report, ref="development"):
 
 def test_without_rules_the_report_is_byte_identical_to_before(tmp_path):
     out = merged(tmp_path)
-    assert out == GOLDEN.read_bytes()
+    assert as_before(out, tmp_path) == GOLDEN.read_bytes()
     assert "acceptances" not in json.loads(out)
 
 
@@ -194,6 +194,9 @@ def test_a_record_is_accepted_only_when_every_finding_of_it_is():
             "relationship": None,
             "locations": [],
             "fixed_version": "",
+            "title": "",
+            "summary": None,
+            "src_pkg": None,
         }
 
     fs = [twin("trivy", ["CVE-1"]), twin("osv", ["GHSA-a", "CVE-1"])]

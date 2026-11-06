@@ -436,7 +436,7 @@ def test_aliases_and_locations_of_a_record_with_both_scanners():
         locations=["a/lock.json", "b/lock.json"],
     )
     v = record(trivy, osv)
-    assert v["id"] == "CVE-1" and "title" not in v and "url" not in v
+    assert v["id"] == "CVE-1" and "url" not in v
     assert v["aliases"] == ["PYSEC-1", "VEND-1"]
     assert v["locations"] == ["a/lock.json", "b/lock.json"]
 
@@ -460,7 +460,7 @@ def test_record_key_order():
     assert list(record(finding("s", "CVE-1", "lib"))) == [
         "id", "names", "pkg", "class", "severity", "fixed", "dev", "installed",
         "where", "sources", "published", "modified", "cvss", "aliases", "ecosystem",
-        "relationship", "locations", "accepted",
+        "relationship", "locations", "accepted", "pkg_key", "src_pkg", "title",
     ]  # fmt: skip
 
 
@@ -488,7 +488,7 @@ def test_a_package_vulnerable_in_one_version_is_listed_in_all_with_what_runs():
     assert pkgs(got["development"]) == [
         ("Lib_X", "lang", ["0.3.84"], ["source-development"])
     ]
-    assert list(got["1.0"])[-2:] == ["vulns", "packages"]
+    assert list(got["1.0"])[-3:] == ["vulns", "packages", "role"]
 
 
 def test_an_absent_package_has_empty_installed_and_where():

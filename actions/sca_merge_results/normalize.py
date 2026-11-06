@@ -173,11 +173,14 @@ def normalize_trivy(
             p.get("ID") or f"{p['Name']}@{p.get('Version')}": p
             for p in result.get("Packages") or []
         }
+        sources: dict[tuple[str, str], str] = {}  # (name, version) -> source package
         for package in packages.values():
             epoch, release = package.get("Epoch"), package.get("Release")
             version = f"{epoch}:" * bool(epoch) + (package.get("Version") or "")
             version += f"-{release}" * bool(release)
             seen.add(("lang" if lang else "os", norm(package["Name"]), version))
+            if package.get("SrcName"):
+                sources[package["Name"], version] = package["SrcName"]
         parents: dict[str, list[str]] = {}
         for pid, package in packages.items():
             for dep in package.get("DependsOn") or []:
@@ -196,6 +199,9 @@ def normalize_trivy(
             vid = vuln["VulnerabilityID"]
             name, version = vuln["PkgName"], vuln["InstalledVersion"]
             graph = no_graph()
+            src_pkg = None
+            if not lang:  # the source package of a distribution package
+                src_pkg = vuln.get("SrcName") or sources.get((name, version))
             if lang:
                 pid = vuln.get("PkgID") or f"{name}@{version}"
                 graph = package_graph_info(pid, packages, parents)
@@ -224,6 +230,8 @@ def normalize_trivy(
                     "chain": graph["chain"],
                     "title": vuln.get("Title", ""),
                     "url": vuln.get("PrimaryURL", ""),
+                    "summary": None,
+                    "src_pkg": src_pkg or None,
                 },
             )
     return seen
@@ -418,6 +426,8 @@ def normalize_osv(
                             "chain": own["chain"],
                             "title": first.get("summary") or next(iter(details), ""),
                             "url": OSV_URL + url_id,
+                            "summary": first.get("summary") or None,
+                            "src_pkg": None,
                         },
                     )
 

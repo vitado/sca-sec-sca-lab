@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 
 import pytest
-from golden_case import GOLDEN, merged
+from golden_case import GOLDEN, as_before, merged
 from test_merge_results import Run, target
 
 
@@ -87,5 +87,6 @@ def test_an_unmapped_version_keeps_the_latest_rule_next_to_a_mapped_one(tmp_path
 
 
 def test_an_empty_map_leaves_the_report_byte_identical(tmp_path):
-    assert merged(tmp_path, {"version_kinds": {}}) == GOLDEN.read_bytes()
+    out = merged(tmp_path, {"version_kinds": {}})
+    assert as_before(out, tmp_path) == GOLDEN.read_bytes()
     assert json.loads(GOLDEN.read_bytes())["versions"][0]["kind"] == "development"

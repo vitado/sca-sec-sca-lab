@@ -6,6 +6,7 @@ so a change of the engine shows what it did to a report that does not use it.
 import json
 from pathlib import Path
 
+from _sca_lib import dump_json
 from merge_results import run_merge
 from test_merge_results import DB, osv_native, target
 
@@ -133,3 +134,22 @@ if __name__ == "__main__":  # regenerate the golden file: python golden_case.py 
 
     GOLDEN.parent.mkdir(exist_ok=True)
     GOLDEN.write_bytes(merged(Path(sys.argv[1])))
+
+
+def as_before(raw: bytes, scratch: Path) -> bytes:
+    """``report.json`` as the engine wrote it before the fields of the report
+    additions: ``src_pkg`` and ``summary`` of the findings, ``role`` of a version,
+    ``pkg_key`` and ``src_pkg`` of a vulnerability record and a package, ``title``
+    of a record, removed. Same key order and format as the engine's own dump.
+    """
+    report = json.loads(raw)
+    for finding in report["findings"]:
+        del finding["src_pkg"], finding["summary"]
+    for version in report["versions"]:
+        del version["role"]
+        for record in version["vulns"]:
+            del record["pkg_key"], record["src_pkg"], record["title"]
+        for package in version["packages"]:
+            del package["pkg_key"], package["src_pkg"]
+    dump_json(scratch / "before.json", report)
+    return (scratch / "before.json").read_bytes()
