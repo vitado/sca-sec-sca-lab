@@ -7,11 +7,54 @@ These actions are called by the `sca_scheduled.yml` workflow of [epam/ai-dial-ci
 ## Actions
 
 - `actions/sca_resolve_targets`: builds the list of scan targets and resolves the releases: the default branch source, the source of each release of the release set, and, per image, `development` and the same release tags. The release set is the newest patch of each of the last `release-lines` (default 2) minor lines (`X.Y.Z` tags of non-prerelease, non-draft GitHub releases), plus at most one candidate. The candidate is the newest prerelease (by version, `X.Y.Z-pre`) whose base version is greater than the newest stable; a prerelease of an already published version is not scanned. A stable release whose tag is not `X.Y.Z` is left out of the set and counted in one notice. The release listing is read page by page (up to 1000 releases). Inputs: `scan-tag` focuses the run on one git tag (its source and the tag in every image, no `development`); `osv-image-scan` is the repository's own setting that switches the direct OSV image scan off; `force-image-scan` runs that scan anyway (a manual run) and marks the run with `forced_image_scan` in `targets.json` and `report.json`. Pass `osv-image-scan` as the repository sets it, not combined with the force flag: the action does the combining.
-- `actions/sca_query_osv`: checks the language packages found by Trivy against OSV with osv-scanner; an image target also gets a direct `osv-scanner scan image`, which reads the image's own package database and so checks its OS packages against OSV correctly (a BOM cannot: OSV keys its records by the source package name). The BOM query runs either way, so a package either detector sees keeps its OSV check. Optional input `offline-db-dir`: a directory with the osv-scanner offline databases that the caller downloaded beforehand (the engine never downloads them). Given, the action sets `OSV_SCANNER_LOCAL_DB_CACHE_DIRECTORY` to it and runs both scans (BOM and image) with `--offline`, which also switches off the other network features of osv-scanner. An osv-scanner run that reports `no offline version of the OSV database` on stderr fails its target whatever the exit code, with the stderr tail as the reason. Empty (the default): nothing changes. A target of `targets.json` may carry `image_scan_disabled_reason` next to `image_scan_disabled`; it is then the reason shown for the skipped image scan.
+- `actions/sca_query_osv`: checks the language packages found by Trivy against OSV with osv-scanner; an image target also gets a direct `osv-scanner scan image`, which reads the image's own package database and so checks its OS packages against OSV correctly (a BOM cannot: OSV keys its records by the source package name). The BOM query runs either way, so a package either detector sees keeps its OSV check. The action installs Trivy from the aquasecurity/trivy GitHub release of `trivy-version`: the archive is checked against the `checksums.txt` of the release and the install is cached by version, OS and architecture. Optional input `offline-db-dir`: a directory with the osv-scanner offline databases that the caller downloaded beforehand (the engine never downloads them). Given, the action sets `OSV_SCANNER_LOCAL_DB_CACHE_DIRECTORY` to it and runs both scans (BOM and image) with `--offline`, which also switches off the other network features of osv-scanner. An osv-scanner run that reports `no offline version of the OSV database` on stderr fails its target whatever the exit code, with the stderr tail as the reason. Empty (the default): nothing changes. A target of `targets.json` may carry `image_scan_disabled_reason` next to `image_scan_disabled`; it is then the reason shown for the skipped image scan.
 - `actions/sca_merge_results`: normalizes the Trivy and OSV reports, merges them into `report.json` and writes the `summary.md` job summary (see below). Optional input `engine-ref` (or the environment variable `SCA_ENGINE_REF`, or the `--engine-ref` argument of `merge_results.py`) sets the `engine` field of the report. The order is the argument, then the environment variable, then the ref the action runs from (`ACTION_PATH`), else `null`. Empty (the default): nothing changes.
 - `actions/generate_gradle_lockfiles`: generates Gradle lockfiles on the fly so Trivy can resolve Gradle dependencies (repository files are not modified).
+- `actions/sca_fix_plan` and `actions/sca_fix_apply`: the fixer, see Fixer below.
 
 The actions share the code in `actions/_sca_lib` (it is imported through `PYTHONPATH=${{ github.action_path }}/..`, so the `actions/` layout must stay as it is).
+
+## Inputs
+
+The inputs of every action are in its `action.yml`; these are the ones a caller sets.
+
+`sca_resolve_targets`:
+
+| Input | Default | What it does |
+|---|---|---|
+| `repository` | none (required) | The repository (owner/name) whose code is scanned and whose releases are resolved. |
+| `registry` | `ghcr.io` | The container registry the images are pulled from. |
+| `images` | empty | Image names without registry, one per line; empty means a source scan only. |
+| `release-lines` | `2` | How many of the newest minor release lines are scanned, plus the newest candidate. |
+| `scan-tag` | empty | Focus the run on one git tag instead of the release set. |
+| `osv-image-scan` | `true` | The repository's own switch of the direct OSV image scan. |
+| `force-image-scan` | `false` | Run the OSV image scan although the repository switched it off (a manual run). |
+
+`sca_query_osv`:
+
+| Input | Default | What it does |
+|---|---|---|
+| `targets-file`, `parts-dir`, `output-dir` | none (required) | The `targets.json` of the resolver, the Trivy parts, the folder of the OSV parts. |
+| `trivy-version` | none (required) | The Trivy release tag (for example `v0.75.0`) installed from the GitHub release. |
+| `offline-db-dir` | empty | The osv-scanner offline databases, downloaded by the caller; given, both scans run with `--offline`. |
+
+`sca_merge_results`:
+
+| Input | Default | What it does |
+|---|---|---|
+| `targets-file`, `parts-dir`, `output-dir` | none (required) | The `targets.json`, the scan parts of both scanners, the folder of `report.json` and `summary.md`. |
+| `trivy-db-info` | empty | The Trivy DB snapshot of the run as JSON; empty means unknown. |
+| `engine-ref` | empty | The ref stated as `engine` in the report; empty means the ref the action runs from. |
+
+Optional keys of `targets.json` that the caller may add before the merge (the resolver does not write them):
+
+| Key | Type | What it does |
+|---|---|---|
+| `acceptances` | list of rules | Risk acceptance rules of the caller (see Acceptance rules). |
+| `version_kinds` | object, ref to kind | The kind of a version whose ref is not a semver tag (see `versions[]`). |
+| `image_scan_disabled_reason` | string, on a target | The reason shown for a skipped OSV image scan (next to `image_scan_disabled`). |
+
+`sca_fix_plan` (`reports`, `config`, `output-dir`) and `sca_fix_apply` are described under Fixer.
 
 ## Job summary
 
@@ -32,11 +75,24 @@ Marks after a vulnerability id, in brackets:
 
 A package is not fixable when none of its vulnerabilities has a fixed version. If only some have one, it counts as fixable and `Fixed` lists the versions that exist.
 
+## Fixer
+
+The fixer turns the schema 4 reports into pull requests that bump the vulnerable packages of the newest release lines. The `sca_fix.yml` reusable workflow of [epam/ai-dial-ci](https://github.com/epam/ai-dial-ci) runs the two actions; they are not meant to be called on their own.
+
+- `actions/sca_fix_plan` (input `reports`: the `report.json` files of one repo; `config`: the policy as JSON; `output-dir`): plans which records of which versions become fix items, with the target version and the method (`dependabot`, `npm-override`, opt-in `docker-tag`; anything else is `manual` with a reason code). It writes `fix-plan.json` (schema 2) and `fix-plan.md`. A pure function of the reports and the configuration: no network, no git.
+- `actions/sca_fix_apply` (input `command`: `apply`, `publish`, `node` or `summary`): `apply` runs the automated items of one plan line on a checked-out branch (Dependabot CLI jobs, the npm override step, the base image bump) and proves each change with a rescan by the same detector as the scan (Trivy and OSV from one database state, records built by `records_of` of the engine); `publish` pushes the fix branch the fixer owns and opens or updates one pull request; `node` reads the node version of a branch; `summary` writes the job summary of all lines.
+
+`sca_fix_plan` is also an installable package (`actions/sca_fix_plan`, standard library only, no side effects on import, `__version__` 1.0.0) with this public API:
+
+- `build_plan(reports, config)`: the fix plan (`reports` from `merge_reports`, `config` from `parse_config`).
+- `classify(...)`: the state of every record in the planned lines: fixed, removed or open in development, or incomplete data.
+- `upgrade_target(installed, records, dev_versions=(), allow_major="none")`: the target version the plan rule gives for one installed version of a package, as `(target, evidence, reason_code)`. `records` are the records of that package; the required version is the highest over the records of their lowest fixed version above `installed`; the target is the lowest development version at or above it, else the lowest fixed version at or above it, in the major of `installed` (`allow_major="dev-proven"` also takes a development version of another major). Without a target, `target` is `None`, `evidence` the reason and `reason_code` one of `no_fixed_version`, `needs_major` or `version_unparsable` (a version that cannot be compared is returned, not raised). `build_plan` uses the same rule, so the two cannot differ.
+
 ## Tests
 
 ```sh
 python -m pip install pytest
-python -m pytest test/sca
+python -m pytest test/sca test/fix_plan test/fix_apply
 ```
 
 The tests need Python 3.12 and no network access. They run in GitHub Actions on every push and pull request to `main`.
@@ -71,6 +127,25 @@ Fields added to the end of the objects of `versions[]` (the rest of the report i
 - `src_pkg` on `vulns[]` and `packages[]`: the Trivy source package (`SrcName`) of an OS package, `null` for a language package or when Trivy gives none; `pkg` of an OS record stays the binary name. A record takes the value of its first Trivy finding that has one; a package the first value any of its records has.
 - `title` on `vulns[]`: the Trivy `Title` of the record's findings, else the OSV `summary` (never its details), whitespace collapsed to single spaces; the first non-empty, Trivy first; `null` when there is none.
 
+### Fields added in v0.8.0
+
+`schema_version` stays 4: every addition is a new optional field or input; nothing is renamed, retyped or removed, and a report made without the new inputs differs from v0.7.0 only by these fields.
+
+| Path | Type | What it is |
+|---|---|---|
+| `versions[].role` | string or null | `dev`, `rc`, `rel`, `rel-1` or `null`, from `kind` and the version order. |
+| `versions[].vulns[].pkg_key` | string | `norm(pkg)`, the key the engine groups by. |
+| `versions[].packages[].pkg_key` | string | The same for a package entry. |
+| `versions[].vulns[].src_pkg` | string or null | The Trivy source package of an OS package. |
+| `versions[].packages[].src_pkg` | string or null | The same for a package entry. |
+| `versions[].vulns[].title` | string or null | The Trivy title, else the OSV summary. |
+| `versions[].vulns[].accepted` | object or null | `{until}`, now also from an acceptance rule of the caller. |
+| `acceptances[]` | list | The rules of the caller with `expired`, `bad_expiry`, `matched`; only when `targets.json` has `acceptances`. |
+| `findings[].accepted` | object | `{until, reason, rule}`; only on a finding a rule accepted. |
+| `findings[].summary` | string or null | The OSV `summary`; `null` for Trivy. |
+| `findings[].src_pkg` | string or null | The Trivy `SrcName`; `null` otherwise. |
+| `ignores_error` | string or null | `null` also when the run has no source target (images only). |
+
 How the records are made. The findings of a version for one package merge into one record when their `names` intersect; `names` are the id and the real aliases of one vulnerability.
 
 - Trivy: the id is `VulnerabilityID`; `names` is the id alone.
@@ -103,13 +178,13 @@ A caller that keeps its risk decisions outside the repository adds an optional `
 
 ## Versioning
 
-Releases are git tags `vX.Y.Z`. Schema 4 of `report.json` is a breaking change: the `counts` block is gone (the numbers are in `versions[].counts`), and `findings[]` changed too: a Trivy finding's id is `VulnerabilityID` (no longer the lowest CVE among `VulnerabilityID` and `VendorIDs`); an OSV `os` group gives one finding per own CVE with that member's Ubuntu priority, fixes and date (was one finding per group with the group's CVSS bucket); a bulletin-only group gives one `UNKNOWN` finding with the smallest bulletin id. Consumers therefore branch on `schema_version`. Consumers pin a tag, for example:
+Releases are git tags `vX.Y.Z`. v0.8.0 keeps schema 4 and only adds to it (see Fields added in v0.8.0; the changes are listed in `CHANGELOG.md`). Schema 4 itself was a breaking change in v0.7.0: the `counts` block is gone (the numbers are in `versions[].counts`), and `findings[]` changed too: a Trivy finding's id is `VulnerabilityID` (no longer the lowest CVE among `VulnerabilityID` and `VendorIDs`); an OSV `os` group gives one finding per own CVE with that member's Ubuntu priority, fixes and date (was one finding per group with the group's CVSS bucket); a bulletin-only group gives one `UNKNOWN` finding with the smallest bulletin id. Consumers therefore branch on `schema_version`. Consumers pin a tag, for example:
 
 ```yml
-- uses: epam/ai-dial-sec-sca/actions/sca_merge_results@v0.7.0
+- uses: epam/ai-dial-sec-sca/actions/sca_merge_results@v0.8.0
 ```
 
-The third-party actions are pinned by commit SHA and osv-scanner by the sha256 of its binary (in `actions/sca_query_osv/action.yml`). Trivy is pinned by version only: `aquasecurity/setup-trivy` verifies the download against the checksums published with the same release, not against a value pinned here.
+The third-party actions are pinned by commit SHA and osv-scanner by the sha256 of its binary (in `actions/sca_query_osv/action.yml`). Trivy is pinned by version only: the install checks the download against the checksums published with the same release, not against a value pinned here.
 
 ## License
 
