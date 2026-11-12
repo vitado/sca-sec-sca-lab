@@ -1,23 +1,20 @@
 name: osv-compare
 on:
   workflow_dispatch:
-    inputs:
-      images:
-        description: "newline-separated image refs"
-        required: true
+  push:
+    branches: [osv-compare]
 jobs:
   plan:
     runs-on: ubuntu-24.04
     outputs:
       matrix: ${{ steps.m.outputs.matrix }}
     steps:
+      - uses: actions/checkout@v4
       - id: m
-        env:
-          IMAGES: ${{ inputs.images }}
         run: |
           python3 - <<'PY' >> "$GITHUB_OUTPUT"
           import json, os
-          refs = [l.strip() for l in os.environ["IMAGES"].splitlines() if l.strip()]
+          refs = [l.strip() for l in open("osv-compare-images.txt") if l.strip()]
           print("matrix=" + json.dumps({"include": [{"i": n, "ref": r} for n, r in enumerate(refs)]}))
           PY
   compare:
